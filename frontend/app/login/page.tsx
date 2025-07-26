@@ -3,6 +3,8 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import ApiService from "@/lib/api"; // Add this import
 
 const Navbar = () => {
   return (
@@ -26,7 +28,6 @@ const Navbar = () => {
           </h1>
         </div>
         
-        {/* Added Home and Gallery links */}
         <div className="flex space-x-4 sm:space-x-6">
           <Link href="/" passHref>
             <motion.button
@@ -50,27 +51,72 @@ const Navbar = () => {
       </div>
     </motion.div>
   );
-  
 };
 
 const LoginPage = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  // Updated state management
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Added loading state
   const [role, setRole] = useState<"Admin" | "Medical Staff">("Admin");
+  
+  const router = useRouter(); // Use Next.js router
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Updated handleSubmit with API integration
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!username || !password) {
-      setError("Please enter username and password!");
+    
+    // Validation
+    if (!formData.email || !formData.password) {
+      setError("Please enter email and password!");
       return;
     }
-    if (username === "admin@medicalsewa.com" && password === "admin123") {
-      setError("");
-      window.location.href = "/dashboard";
-    } else {
-      setError("Invalid username or password.");
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // Call your backend API
+      const response = await ApiService.login({
+        email: formData.email,
+        password: formData.password,
+        role: role // Include role in the request
+      });
+
+      console.log('Login successful:', response);
+
+      // Store authentication token if provided
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        localStorage.setItem('role', role);
+      }
+
+      // Redirect based on role
+      if (role === "Admin") {
+        router.push('/dashboard');
+      } else if (role === "Medical Staff") {
+        router.push('/medical-dashboard'); // You can create a different dashboard
+      }
+
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Updated input handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
@@ -107,6 +153,7 @@ const LoginPage = () => {
                       : "bg-gray-200 text-gray-700 hover:bg-teal-400 hover:text-white"
                   } w-24 sm:w-28 text-center text-xs sm:text-sm`}
                   onClick={() => setRole("Admin")}
+                  disabled={loading} // Disable during loading
                 >
                   Admin
                 </button>
@@ -117,6 +164,7 @@ const LoginPage = () => {
                       : "bg-gray-200 text-gray-700 hover:bg-cyan-400 hover:text-white"
                   } w-50 sm:w-50 text-center text-xs sm:text-sm`}
                   onClick={() => setRole("Medical Staff")}
+                  disabled={loading} // Disable during loading
                 >
                   Medical Staff
                 </button>
@@ -125,13 +173,16 @@ const LoginPage = () => {
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Username</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    type="email"
+                    name="email" // Added name attribute
+                    value={formData.email}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-300 text-sm"
-                    placeholder="Enter your username"
+                    placeholder="Enter your email"
+                    disabled={loading} // Disable during loading
+                    required
                   />
                 </div>
 
@@ -139,14 +190,22 @@ const LoginPage = () => {
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Password</label>
                   <input
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    name="password" // Added name attribute
+                    value={formData.password}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-300 text-sm"
                     placeholder="Enter your password"
+                    disabled={loading} // Disable during loading
+                    required
                   />
                 </div>
 
-                {error && <div className="text-red-500 text-xs text-center">{error}</div>}
+                {/* Enhanced error display */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs text-center">
+                    {error}
+                  </div>
+                )}
 
                 <div className="text-right">
                   <a href="/forgot-password" className="text-xs sm:text-sm text-teal-600 hover:underline">
@@ -154,17 +213,33 @@ const LoginPage = () => {
                   </a>
                 </div>
 
+                {/* Updated submit button with loading state */}
                 <button
                   type="submit"
-                  className="w-full py-2 rounded-full bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-200 shadow-md text-white font-bold text-base transition-transform hover:scale-105 hover:from-purple-600 hover:to-indigo-600 duration-300"
+                  disabled={loading}
+                  className={`w-full py-2 rounded-full bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-200 shadow-md text-white font-bold text-base transition-transform duration-300 ${
+                    loading 
+                      ? 'opacity-70 cursor-not-allowed' 
+                      : 'hover:scale-105 hover:from-purple-600 hover:to-indigo-600'
+                  }`}
                 >
-                  Sign In
+                  {loading ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Signing In...
+                    </span>
+                  ) : (
+                    'Sign In'
+                  )}
                 </button>
               </form>
             </motion.div>
           </div>
 
-          {/* Right Section */}
+          {/* Right Section - unchanged */}
           <div className="w-full md:w-full lg:w-1/2 flex flex-col items-center justify-center text-white p-6 sm:p-8 space-y-5 bg-gradient-to-r from-purple-800 via-pink-600 to-yellow-500 shadow-md relative overflow-hidden">
             <motion.h2
               initial={{ opacity: 0 }}
@@ -187,14 +262,12 @@ const LoginPage = () => {
               </a>
             </motion.div>
 
-            {/* Background Animation Circle */}
             <motion.div
               className="absolute -bottom-10 -right-10 bg-white opacity-10 rounded-full w-32 sm:w-40 h-32 sm:h-40"
               animate={{ scale: [1, 1.2, 1], rotate: [0, 360, 0] }}
               transition={{ repeat: Infinity, duration: 20 }}
             />
           </div>
-
         </div>
       </div>
     </div>
