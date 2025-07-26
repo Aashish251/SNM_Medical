@@ -50,7 +50,6 @@ router.get('/stats', authenticateToken, async (req, res) => {
 // Get user profile from database
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
-    // Query user data from registration table
     const [users] = await promisePool.execute(`
       SELECT 
         r.reg_id, r.full_name, r.email, r.user_type, r.mobile_no,
@@ -70,6 +69,27 @@ router.get('/profile', authenticateToken, async (req, res) => {
 
     const user = users[0];
 
+    // Fix profile image path formatting
+    let profileImageUrl = null;
+    if (user.profile_img_path) {
+      const imagePath = user.profile_img_path.trim();
+      
+      if (imagePath && imagePath !== '') {
+        // If it's already a full URL, use as is
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+          profileImageUrl = imagePath;
+        }
+        // If it's a relative path, add leading slash
+        else if (!imagePath.startsWith('/')) {
+          profileImageUrl = `/${imagePath}`;
+        }
+        // If it already has leading slash, use as is
+        else {
+          profileImageUrl = imagePath;
+        }
+      }
+    }
+
     res.json({
       success: true,
       data: {
@@ -79,7 +99,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
         role: user.user_type === 'admin' ? 'Medical Administrator' : 'Medical Sewadar',
         qualification: user.qualification_name || 'Not specified',
         department: user.department_name || 'Not assigned',
-        profileImage: user.profile_img_path,
+        profileImage: profileImageUrl, // Now properly formatted
         joinedDate: user.created_datetime,
         location: `${user.city_name}, ${user.state_name}`,
         mobile: user.mobile_no,

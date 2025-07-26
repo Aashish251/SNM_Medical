@@ -1,9 +1,9 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image, { StaticImageData } from 'next/image';
 import { FaChartPie, FaBars, FaTimes } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-import ApiService from '@/lib/api'; // Import your API service
+import ApiService from '@/lib/api';
 
 // Chart.js components
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
@@ -46,15 +46,19 @@ const imageMap: { [key: string]: StaticImageData } = {
   'Lab-Tech': LabTechImage,
 };
 
+// TypeScript Interfaces
 interface UserData {
   id: number;
   name: string;
   email: string;
   role: string;
   qualification: string;
-  profileImage?: string;
+  profileImage?: string | null;
   joinedDate: string;
   department: string;
+  mobile?: string;
+  location?: string;
+  address?: string;
 }
 
 interface StatData {
@@ -68,6 +72,18 @@ interface DashboardData {
   stats: StatData[];
   lastUpdated: string;
   period: string;
+}
+
+interface NavItem {
+  id: string;
+  name: string;
+  href?: string;
+  onClick?: () => void;
+  children?: Array<{
+    id: string;
+    name: string;
+    href?: string;
+  }>;
 }
 
 export default function Dashboard() {
@@ -85,6 +101,53 @@ export default function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reportsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Helper function to validate image URLs
+  const getValidImageSrc = (imagePath: string | null | undefined, fallback: StaticImageData = DoctorsImage): string | StaticImageData => {
+    if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
+      return fallback;
+    }
+
+    const cleanPath = imagePath.trim();
+    
+    // Check for placeholder or invalid paths
+    if (cleanPath === 'path/to/profile.jpg' || 
+        cleanPath === 'placeholder.jpg' || 
+        cleanPath.includes('path/to/')) {
+      return fallback;
+    }
+    
+    // Valid absolute URLs
+    if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+      return cleanPath;
+    }
+    
+    // Valid relative paths with leading slash
+    if (cleanPath.startsWith('/')) {
+      return cleanPath;
+    }
+    
+    // If it's a relative path without leading slash, add it
+    if (cleanPath.includes('.')) {
+      return `/${cleanPath}`;
+    }
+    
+    return fallback;
+  };
+
+  // Close reports dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (reportsRef.current && !reportsRef.current.contains(event.target as Node)) {
+        setShowReports(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Check authentication and fetch data
   useEffect(() => {
@@ -108,10 +171,13 @@ export default function Dashboard() {
         if (profileResponse.success && statsResponse.success) {
           setUserData(profileResponse.data);
           
-          // Add images to stats data
+          // Process stats with proper image assignment
           const statsWithImages = statsResponse.data.stats.map((stat: StatData) => ({
             ...stat,
-            image: imageMap[stat.title] || DoctorsImage
+            image: imageMap[stat.title] || DoctorsImage,
+            title: stat.title || 'Unknown Service',
+            value: stat.value || 0,
+            color: stat.color || '#6B7280'
           }));
           
           setDashboardData({
@@ -119,7 +185,10 @@ export default function Dashboard() {
             stats: statsWithImages
           });
           
-          if (profileResponse.data.profileImage) {
+          // Validate profile image
+          if (profileResponse.data.profileImage && 
+              typeof profileResponse.data.profileImage === 'string' && 
+              profileResponse.data.profileImage.trim() !== '') {
             setProfileImage(profileResponse.data.profileImage);
           }
         }
@@ -130,6 +199,8 @@ export default function Dashboard() {
         // If unauthorized, redirect to login
         if (err.message?.includes('token') || err.message?.includes('unauthorized')) {
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('role');
           router.push('/login');
         }
       } finally {
@@ -172,7 +243,7 @@ export default function Dashboard() {
   };
 
   // Navigation items
-  const navItems = [
+  const navItems: NavItem[] = [
     { id: 'home', href: '/', name: 'Home' },
     { id: 'update-profile', href: '/registrationpage', name: 'Update Profile' },
     { id: 'master-search', href: '/master', name: 'Master Search' },
@@ -181,9 +252,9 @@ export default function Dashboard() {
       id: 'reports', 
       name: 'Reports', 
       children: [
-        { id: 'daily-report', href: 'daily-report', name: 'Daily Report' },
-        { id: 'registration-report', href: 'registration-report', name: 'Registration Report' },
-        { id: 'master-report', href: 'master-report', name: 'Master Report' }
+        { id: 'daily-report', href: '/daily-report', name: 'Daily Report' },
+        { id: 'registration-report', href: '/registration-report', name: 'Registration Report' },
+        { id: 'master-report', href: '/master-report', name: 'Master Report' }
       ]
     },
     { id: 'sign-out', onClick: handleLogout, name: 'Sign Out' }
@@ -201,10 +272,17 @@ export default function Dashboard() {
       setIsMenuOpen(false);
       const item = navItems.find(item => item.id === id);
       if (item?.href) {
-        window.location.href = item.href;
+        router.push(item.href);
       }
     }
   };
+
+  // Memoize chart data for performance
+  const chartData = useMemo(() => ({
+    labels: dashboardData?.stats.map(stat => stat.title) || [],
+    values: dashboardData?.stats.map(stat => stat.value) || [],
+    colors: dashboardData?.stats.map(stat => stat.color) || []
+  }), [dashboardData?.stats]);
 
   // Loading state
   if (loading) {
@@ -245,14 +323,9 @@ export default function Dashboard() {
     );
   }
 
-  // Prepare chart data
-  const chartLabels = dashboardData.stats.map(stat => stat.title);
-  const chartData = dashboardData.stats.map(stat => stat.value);
-  const chartColors = dashboardData.stats.map(stat => stat.color);
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
-      {/* Header - Keep your existing header code */}
+      {/* Header */}
       <header className="bg-gradient-to-r from-purple-700 via-pink-500 to-amber-500 shadow-lg py-3 sticky top-0 z-50">
         <div className="max-w-8xl mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
@@ -261,8 +334,8 @@ export default function Dashboard() {
                 <Image 
                   src={Logo} 
                   alt="Medical Sewa Logo" 
-                  layout="fill"
-                  objectFit="contain"
+                  fill
+                  style={{ objectFit: 'contain' }}
                   className="rounded-full"
                 />
               </div>
@@ -270,7 +343,53 @@ export default function Dashboard() {
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Medical Sewa</h1>
           </div>
           
-          {/* Add user info in header */}
+          {/* Desktop Navbar */}
+          <nav className="hidden lg:flex items-center space-x-1">
+            {navItems.map((item) => (
+              <div key={item.id} className="relative group" ref={item.id === 'reports' ? reportsRef : undefined}>
+                <button
+                  onClick={() => handleTabClick(item.id)}
+                  className={`px-3 py-2 font-medium whitespace-nowrap rounded-md transition-all flex items-center
+                    ${
+                      activeTab === item.id || 
+                      (item.id === 'reports' && showReports)
+                        ? "bg-white text-indigo-700 shadow-inner"
+                        : 'text-white hover:text-purple-900 hover:bg-white/90'
+                    }`}
+                >
+                  {item.name}
+                  {item.children && (
+                    <span className="ml-1">
+                      {showReports ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                    </span>
+                  )}
+                </button>
+                {/* Dropdown for Reports */}
+                {item.children && showReports && (
+                  <div className="absolute top-full left-0 w-48 bg-white shadow-xl rounded-md overflow-hidden z-20 border border-gray-200">
+                    {item.children.map((child) => (
+                      <button
+                        key={child.id}
+                        onClick={() => {
+                          setActiveTab(child.id);
+                          setShowReports(false);
+                          if (child.href) {
+                            router.push(child.href);
+                          }
+                        }}
+                        className={`w-full px-4 py-3 text-left text-gray-700 hover:bg-purple-50 transition-colors flex items-center border-b border-gray-100 last:border-b-0
+                          ${activeTab === child.id ? 'bg-purple-50 text-purple-700 font-medium' : ''}`}
+                      >
+                        <span className="ml-2">{child.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+          
+          {/* User info in header */}
           <div className="hidden md:flex items-center space-x-4">
             <span className="text-white text-sm">Welcome, {userData.name}</span>
             <span className="bg-white/20 text-white px-3 py-1 rounded-full text-xs">
@@ -278,6 +397,7 @@ export default function Dashboard() {
             </span>
           </div>
           
+          {/* Mobile Menu Button */}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden text-white p-2 rounded-md"
@@ -287,8 +407,88 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* Mobile Navigation Drawer */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm" 
+            onClick={() => setIsMenuOpen(false)}
+          ></div>
+          <div className="relative z-50">
+            <div className="fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-purple-800/90 to-pink-600/90 shadow-xl backdrop-blur-lg">
+              <div className="p-4 flex justify-between items-center border-b border-white/20">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white rounded-full p-1">
+                    <div className="relative w-8 h-8">
+                      <Image 
+                        src={Logo} 
+                        alt="Medical Sewa Logo" 
+                        fill
+                        style={{ objectFit: 'contain' }}
+                        className="rounded-full"
+                      />
+                    </div>
+                  </div>
+                  <span className="text-white font-bold">Medical Sewa</span>
+                </div>
+                <button onClick={() => setIsMenuOpen(false)} className="text-white">
+                  <FaTimes className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="py-4 overflow-y-auto h-full">
+                {navItems.map((item) => (
+                  <div key={item.id} className="relative">
+                    <button
+                      onClick={() => handleTabClick(item.id)}
+                      className={`w-full px-6 py-4 text-left font-medium flex items-center justify-between transition-colors
+                        ${
+                          activeTab === item.id || 
+                          (item.id === 'reports' && showReports)
+                            ? "bg-white/20 text-white"
+                            : 'text-white/90 hover:bg-white/10'
+                        }`}
+                    >
+                      <span>{item.name}</span>
+                      {item.children && (
+                        <span>
+                          {showReports ? <IoIosArrowUp /> : <IoIosArrowDown />}
+                        </span>
+                      )}
+                    </button>
+                    
+                    {/* Dropdown for Reports in mobile */}
+                    {item.children && showReports && (
+                      <div className="pl-6 bg-purple-900/30">
+                        {item.children.map((child) => (
+                          <button
+                            key={child.id}
+                            onClick={() => {
+                              setActiveTab(child.id);
+                              setShowReports(false);
+                              setIsMenuOpen(false);
+                              if (child.href) {
+                                router.push(child.href);
+                              }
+                            }}
+                            className={`w-full px-4 py-3 text-left text-white/90 hover:bg-white/10 transition-colors flex items-center
+                              ${activeTab === child.id ? 'bg-white/20' : ''}`}
+                          >
+                            <span className="ml-2">{child.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="flex-1 max-w-9xl mx-auto w-full px-1 py-1 space-y-1">
-        {/* Profile Section - Updated with dynamic data */}
+        {/* Profile Section */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="flex flex-col p-1">
             <div className="flex flex-col sm:flex-row items-start gap-4 w-full">
@@ -298,21 +498,33 @@ export default function Dashboard() {
                     className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-full p-1.5 cursor-pointer flex justify-center"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    {profileImage ? (
-                      <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 overflow-hidden">
-                        <Image
-                          src={profileImage}
-                          alt="Profile"
-                          width={160}
-                          height={160}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
-                        <BsFillPersonFill className="h-16 w-16 text-gray-400" />
-                      </div>
-                    )}
+                    {(() => {
+                      const imageSource = getValidImageSrc(profileImage || userData?.profileImage);
+                      
+                      if (typeof imageSource === 'string') {
+                        return (
+                          <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 overflow-hidden">
+                            <Image
+                              src={imageSource}
+                              alt="Profile"
+                              width={160}
+                              height={160}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.log('Profile image load error:', imageSource);
+                                setProfileImage(null);
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
+                          <BsFillPersonFill className="h-16 w-16 text-gray-400" />
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="absolute bottom-3 right-3 bg-white rounded-full p-2 shadow-md cursor-pointer group-hover:bg-gray-100 transition-colors">
                     <BsFillCameraFill className="h-5 w-5 text-purple-600" />
@@ -341,6 +553,18 @@ export default function Dashboard() {
                       <span className="mr-2">📧</span>
                       <span>{userData.email}</span>
                     </div>
+                    {userData.mobile && (
+                      <div className="flex items-center text-gray-600">
+                        <span className="mr-2">📱</span>
+                        <span>{userData.mobile}</span>
+                      </div>
+                    )}
+                    {userData.location && (
+                      <div className="flex items-center text-gray-600">
+                        <span className="mr-2">📍</span>
+                        <span>{userData.location}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -350,8 +574,8 @@ export default function Dashboard() {
                   <Image
                     src="/satgurumataji1.png"
                     alt="Medical Services"
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: 'cover' }}
                     className="rounded-xl"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent flex items-end p-6">
@@ -366,7 +590,7 @@ export default function Dashboard() {
           </div>
         </div>  
         
-        {/* Stats Grid - Updated with dynamic data */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {dashboardData.stats.map((stat, index) => (
             <motion.div 
@@ -380,8 +604,8 @@ export default function Dashboard() {
                   <Image
                     src={stat.image || DoctorsImage}
                     alt={stat.title}
-                    layout="fill"
-                    objectFit="contain"
+                    fill
+                    style={{ objectFit: 'contain' }}
                   />
                 </div>
               </div>
@@ -396,7 +620,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Charts Section - Updated with dynamic data */}
+        {/* Charts Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Bar Chart */}
           <div className="bg-white rounded-xl shadow-md p-6 flex flex-col">
@@ -412,12 +636,12 @@ export default function Dashboard() {
             <div className="w-full h-96">
               <Bar
                 data={{
-                  labels: chartLabels,
+                  labels: chartData.labels,
                   datasets: [
                     {
                       label: 'Patient Count',
-                      data: chartData,
-                      backgroundColor: chartColors,
+                      data: chartData.values,
+                      backgroundColor: chartData.colors,
                       borderRadius: 6,
                     }
                   ]
@@ -475,10 +699,10 @@ export default function Dashboard() {
             <div className="w-full h-96">
               <Doughnut
                 data={{
-                  labels: chartLabels,
+                  labels: chartData.labels,
                   datasets: [{
-                    data: chartData,
-                    backgroundColor: chartColors,
+                    data: chartData.values,
+                    backgroundColor: chartData.colors,
                     borderWidth: 0,
                   }]
                 }}
@@ -521,8 +745,100 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* Keep your existing footer */}
-      {/* Footer code remains the same... */}
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white pt-12 pb-6 md:pt-16 md:pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <div>
+              <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                <Image
+                  src={Logo}
+                  alt="Sant Nirankari Mission Logo"
+                  width={40}
+                  height={40}
+                  className="rounded-full border-2 border-white"
+                />
+                <span className="text-lg md:text-xl font-bold">Medical Sewa</span>
+              </div>
+              <p className="text-gray-400 mb-4 md:mb-6 text-sm md:text-base">
+                Providing compassionate healthcare services to underserved communities through the Sant Nirankari Mission.
+              </p>
+              <div className="flex space-x-3 md:space-x-4">
+                {['facebook', 'twitter', 'instagram', 'youtube'].map((social) => (
+                  <motion.a 
+                    key={social}
+                    whileHover={{ scale: 1.1 }}
+                    href={`#${social}`}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <span className="sr-only">{social}</span>
+                    <div className="w-7 h-7 md:w-8 md:h-8 bg-gray-800 rounded-full flex items-center justify-center">
+                      <span className="text-sm md:text-base">{social === 'facebook' ? 'f' : social.charAt(0).toUpperCase()}</span>
+                    </div>
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-base md:text-lg font-bold mb-3 md:mb-6">Quick Links</h3>
+              <ul className="space-y-2 md:space-y-3">
+                {['Home', 'About', 'Services', 'Contact'].map((link) => (
+                  <li key={link}>
+                    <motion.a 
+                      whileHover={{ scale: 1.05 }}
+                      href={`#${link.toLowerCase()}`}
+                      className="text-gray-400 hover:text-white transition-colors text-sm md:text-base"
+                    >
+                      {link}
+                    </motion.a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-base md:text-lg font-bold mb-3 md:mb-6">Our Services</h3>
+              <ul className="space-y-2 md:space-y-3">
+                {['Medical Camps', 'Outreach Programs', 'Pharmacy', 'Pathology', 'Ambulance Services', 'Physiotherapy'].map((service) => (
+                  <li key={service}>
+                    <motion.a 
+                      whileHover={{ scale: 1.05 }}
+                      href="#services"
+                      className="text-gray-400 hover:text-white transition-colors text-sm md:text-base"
+                    >
+                      {service}
+                    </motion.a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-base md:text-lg font-bold mb-3 md:mb-6">Contact Us</h3>
+              <ul className="space-y-2 md:space-y-3 text-gray-400">
+                <li className="flex items-start">
+                  <span className="mr-2 mt-0.5">📍</span>
+                  <span className="text-sm md:text-base">123 Medical Street, Health District, New Delhi, India</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2 mt-0.5">📞</span>
+                  <span className="text-sm md:text-base">+91 98765 43210</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2 mt-0.5">✉️</span>
+                  <span className="text-sm md:text-base">info@medicalsewa.org</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 mt-8 md:mt-12 pt-6 md:pt-8 text-center text-gray-500 text-xs md:text-sm">
+            <p>© {new Date().getFullYear()} Medical Sewa. All rights reserved.</p>
+            <p className="mt-1 md:mt-2">A Sant Nirankari Mission Initiative</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
