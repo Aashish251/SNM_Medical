@@ -1,11 +1,12 @@
 "use client";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ApiService from "@/lib/api"; // Add this import
+import ApiService from "@/lib/api";
 
+// Complete Navbar component (this was missing in my previous response)
 const Navbar = () => {
   return (
     <motion.div
@@ -54,24 +55,51 @@ const Navbar = () => {
 };
 
 const LoginPage = () => {
-  // Updated state management
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"Admin" | "Medical Staff">("Admin");
   
-  const router = useRouter(); // Use Next.js router
+  const router = useRouter();
 
-  // Updated handleSubmit with API integration
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      router.push('/dashboard');
+    }
+  }, [router]);
+
+  // Pre-fill email from registration
+  useEffect(() => {
+    const registeredEmail = localStorage.getItem('registeredEmail');
+    const registeredUserType = localStorage.getItem('registeredUserType');
+    
+    if (registeredEmail) {
+      setFormData(prev => ({ ...prev, email: registeredEmail }));
+      localStorage.removeItem('registeredEmail');
+    }
+    
+    if (registeredUserType) {
+      setRole(registeredUserType === 'admin' ? 'Admin' : 'Medical Staff');
+      localStorage.removeItem('registeredUserType');
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.email || !formData.password) {
       setError("Please enter email and password!");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address!");
       return;
     }
 
@@ -79,44 +107,59 @@ const LoginPage = () => {
     setError("");
 
     try {
-      // Call your backend API
       const response = await ApiService.login({
-        email: formData.email,
+        email: formData.email.toLowerCase().trim(),
         password: formData.password,
-        role: role // Include role in the request
+        role: role
       });
 
-      console.log('Login successful:', response);
-
-      // Store authentication token if provided
       if (response.token) {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         localStorage.setItem('role', role);
+        
+        localStorage.removeItem('registeredEmail');
+        localStorage.removeItem('registeredUserType');
       }
 
-      // Redirect based on role
-      if (role === "Admin") {
-        router.push('/dashboard');
-      } else if (role === "Medical Staff") {
-        router.push('/medical-dashboard'); // You can create a different dashboard
-      }
+      router.push('/dashboard');
 
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please check your credentials.');
+      
+      if (err.message?.includes('Invalid credentials')) {
+        setError('Invalid email or password. Please check your credentials.');
+      } else if (err.message?.includes('Invalid role')) {
+        setError('This account type does not match the selected role.');
+      } else if (err.message?.includes('server')) {
+        setError('Unable to connect to server. Please try again later.');
+      } else {
+        setError(err.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Updated input handler
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (error) setError("");
+  };
+
+  const handleRoleChange = (selectedRole: "Admin" | "Medical Staff") => {
+    setRole(selectedRole);
+    if (error) setError("");
+  };
+
+  const clearForm = () => {
+    setFormData({ email: "", password: "" });
+    setError("");
   };
 
   return (
@@ -126,7 +169,6 @@ const LoginPage = () => {
       <div className="pt-24 flex-1 flex flex-col md:flex-col lg:flex-row items-center justify-center w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-1 w-full max-w-5xl mx-auto shadow-2xl rounded-3xl bg-white/60 flex-col md:flex-col lg:flex-row max-h-[90vh] overflow-hidden">
           
-          {/* Left Section */}
           <div className="w-full md:w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 bg-[#f9f9f6]">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -144,7 +186,6 @@ const LoginPage = () => {
                 Sign in to your {role} account.
               </p>
 
-              {/* Role Buttons */}
               <div className="flex justify-center gap-2 flex-wrap">
                 <button
                   className={`px-4 py-2 rounded-full font-semibold transition-all shadow-md ${
@@ -152,8 +193,8 @@ const LoginPage = () => {
                       ? "bg-teal-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-teal-400 hover:text-white"
                   } w-24 sm:w-28 text-center text-xs sm:text-sm`}
-                  onClick={() => setRole("Admin")}
-                  disabled={loading} // Disable during loading
+                  onClick={() => handleRoleChange("Admin")}
+                  disabled={loading}
                 >
                   Admin
                 </button>
@@ -163,25 +204,24 @@ const LoginPage = () => {
                       ? "bg-cyan-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-cyan-400 hover:text-white"
                   } w-50 sm:w-50 text-center text-xs sm:text-sm`}
-                  onClick={() => setRole("Medical Staff")}
-                  disabled={loading} // Disable during loading
+                  onClick={() => handleRoleChange("Medical Staff")}
+                  disabled={loading}
                 >
                   Medical Staff
                 </button>
               </div>
 
-              {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
                     type="email"
-                    name="email" // Added name attribute
+                    name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-300 text-sm"
                     placeholder="Enter your email"
-                    disabled={loading} // Disable during loading
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -190,30 +230,37 @@ const LoginPage = () => {
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Password</label>
                   <input
                     type="password"
-                    name="password" // Added name attribute
+                    name="password"
                     value={formData.password}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition duration-300 text-sm"
                     placeholder="Enter your password"
-                    disabled={loading} // Disable during loading
+                    disabled={loading}
                     required
                   />
                 </div>
 
-                {/* Enhanced error display */}
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs text-center">
-                    {error}
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs">
+                    <div className="flex items-center justify-between">
+                      <span>{error}</span>
+                      <button
+                        type="button"
+                        onClick={clearForm}
+                        className="ml-2 text-red-800 hover:text-red-900 underline text-xs"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
                 )}
 
                 <div className="text-right">
-                  <a href="/forgot-password" className="text-xs sm:text-sm text-teal-600 hover:underline">
+                  <Link href="/forgot-password" className="text-xs sm:text-sm text-teal-600 hover:underline">
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
 
-                {/* Updated submit button with loading state */}
                 <button
                   type="submit"
                   disabled={loading}
@@ -239,7 +286,7 @@ const LoginPage = () => {
             </motion.div>
           </div>
 
-          {/* Right Section - unchanged */}
+          {/* Right Section */}
           <div className="w-full md:w-full lg:w-1/2 flex flex-col items-center justify-center text-white p-6 sm:p-8 space-y-5 bg-gradient-to-r from-purple-800 via-pink-600 to-yellow-500 shadow-md relative overflow-hidden">
             <motion.h2
               initial={{ opacity: 0 }}
@@ -254,12 +301,12 @@ const LoginPage = () => {
             </p>
 
             <motion.div whileHover={{ scale: 1.05 }}>
-              <a
+              <Link
                 href="/registrationpage"
                 className="border-2 border-white px-5 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-bold hover:bg-white hover:text-indigo-700 transition-all duration-300 shadow-lg text-center"
               >
                 Sign Up / Registration
-              </a>
+              </Link>
             </motion.div>
 
             <motion.div

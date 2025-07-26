@@ -1,9 +1,7 @@
 'use client';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image, { StaticImageData } from 'next/image';
 import { FaChartPie, FaBars, FaTimes } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
-import ApiService from '@/lib/api';
 
 // Chart.js components
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
@@ -11,12 +9,19 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 // Icons
-import { IoIosMail, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
+import {  IoIosMail, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { BsFillPersonFill, BsFillCameraFill, BsGraphUp } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 
-// Import your images
+// Placeholder images
+import MedicalCamp from '@/public/snmlogo.jpeg';
+import Volunteers from '@/public/SD03.jpg';
+import Outreach from '@/public/satgurumataji1.png';
+import Awareness from '@/public/SD02.jpg';
+import PatientCare from '@/public/snmlogo.jpeg';
 import Logo from '@/public/snmlogo.jpeg';
+
+// Category images
 import DoctorsImage from '@/public/Doctors.png';
 import NursesImage from '@/public/Nurse.png';
 import DressingImage from '@/public/Dressing.png';
@@ -30,109 +35,42 @@ import AmbulanceImage from '@/public/Ambulance.png';
 import RegistrationImage from '@/public/Registration.png';
 import LabTechImage from '@/public/Lab-Tech.png';
 
-// Image mapping for dynamic assignment
-const imageMap: { [key: string]: StaticImageData } = {
-  'Doctors': DoctorsImage,
-  'Nurses': NursesImage,
-  'Dressing': DressingImage,
-  'Paramedical': ParamedicalImage,
-  'Pathology': PathologyImage,
-  'Acupuncture': AcupunctureImage,
-  'Pharmacy': PharmacyImage,
-  'Physiotherapy': PhysiotherapyImage,
-  'Homeopathy': HomeopathyImage,
-  'Ambulance': AmbulanceImage,
-  'Registration': RegistrationImage,
-  'Lab-Tech': LabTechImage,
-};
-
-// TypeScript Interfaces
-interface UserData {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  qualification: string;
-  profileImage?: string | null;
-  joinedDate: string;
-  department: string;
-  mobile?: string;
-  location?: string;
-  address?: string;
-}
-
-interface StatData {
-  title: string;
-  value: number;
-  color: string;
-  image?: StaticImageData;
-}
-
-interface DashboardData {
-  stats: StatData[];
-  lastUpdated: string;
-  period: string;
-}
-
-interface NavItem {
-  id: string;
-  name: string;
-  href?: string;
-  onClick?: () => void;
-  children?: Array<{
-    id: string;
-    name: string;
-    href?: string;
-  }>;
-}
-
 export default function Dashboard() {
-  // State management
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-  const [selectedMonth, setSelectedMonth] = useState('JUL');
+  const [selectedMonth] = useState('JUL');
   const [activeTab, setActiveTab] = useState('home');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showReports, setShowReports] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reportsRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  
+  type Photo = { id: number; title: string; url: string | StaticImageData };
+  const [] = useState<Photo[]>([
+    { id: 1, title: 'Medical Camp', url: MedicalCamp },
+    { id: 2, title: 'Volunteers', url: Volunteers },
+    { id: 3, title: 'Outreach', url: Outreach },
+    { id: 4, title: 'Awareness', url: Awareness },
+    { id: 5, title: 'Patient Care', url: PatientCare },
+    { id: 6, title: 'satgurumataji', url: '/satgurumataji1.png' },
+  ]);
 
-  // Helper function to validate image URLs
-  const getValidImageSrc = (imagePath: string | null | undefined, fallback: StaticImageData = DoctorsImage): string | StaticImageData => {
-    if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
-      return fallback;
+  // Handle profile image upload
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setProfileImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
     }
+  };
 
-    const cleanPath = imagePath.trim();
-    
-    // Check for placeholder or invalid paths
-    if (cleanPath === 'path/to/profile.jpg' || 
-        cleanPath === 'placeholder.jpg' || 
-        cleanPath.includes('path/to/')) {
-      return fallback;
-    }
-    
-    // Valid absolute URLs
-    if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
-      return cleanPath;
-    }
-    
-    // Valid relative paths with leading slash
-    if (cleanPath.startsWith('/')) {
-      return cleanPath;
-    }
-    
-    // If it's a relative path without leading slash, add it
-    if (cleanPath.includes('.')) {
-      return `/${cleanPath}`;
-    }
-    
-    return fallback;
+  // Trigger file input click
+  const handleProfileClick = () => {
+    fileInputRef.current?.click();
   };
 
   // Close reports dropdown when clicking outside
@@ -149,193 +87,96 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Check authentication and fetch data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        // Check if user is authenticated
-        const token = localStorage.getItem('token');
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        // Fetch user profile and dashboard stats
-        const [profileResponse, statsResponse] = await Promise.all([
-          ApiService.getUserProfile(),
-          ApiService.getDashboardStats()
-        ]);
-
-        if (profileResponse.success && statsResponse.success) {
-          setUserData(profileResponse.data);
-          
-          // Process stats with proper image assignment
-          const statsWithImages = statsResponse.data.stats.map((stat: StatData) => ({
-            ...stat,
-            image: imageMap[stat.title] || DoctorsImage,
-            title: stat.title || 'Unknown Service',
-            value: stat.value || 0,
-            color: stat.color || '#6B7280'
-          }));
-          
-          setDashboardData({
-            ...statsResponse.data,
-            stats: statsWithImages
-          });
-          
-          // Validate profile image
-          if (profileResponse.data.profileImage && 
-              typeof profileResponse.data.profileImage === 'string' && 
-              profileResponse.data.profileImage.trim() !== '') {
-            setProfileImage(profileResponse.data.profileImage);
-          }
-        }
-      } catch (err: any) {
-        console.error('Dashboard fetch error:', err);
-        setError('Failed to load dashboard data');
-        
-        // If unauthorized, redirect to login
-        if (err.message?.includes('token') || err.message?.includes('unauthorized')) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          localStorage.removeItem('role');
-          router.push('/login');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [router]);
-
-  // Handle profile image upload
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setProfileImage(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-
-      // TODO: Upload to server
-      // try {
-      //   const formData = new FormData();
-      //   formData.append('profileImage', file);
-      //   await ApiService.uploadProfileImage(formData);
-      // } catch (error) {
-      //   console.error('Profile image upload failed:', error);
-      // }
-    }
+  const userData = {
+    name: 'Mr. Pratik Ji',
+    role: 'Medical Sewadar',
+    
+    qualiffication: 'MBA, MD',
+    stats: [
+      { title: 'Doctors', value: 520, color: '#EC4899', image: DoctorsImage },
+      { title: 'Nurses', value: 5959, color: '#3B82F6', image: NursesImage },
+      { title: 'Dressing', value: 520, color: '#F59E0B', image: DressingImage },
+      { title: 'Paramedical', value: 5969, color: '#10B981', image: ParamedicalImage },
+      { title: 'Pathology', value: 520, color: '#8B5CF6', image: PathologyImage },
+      { title: 'Acupuncture', value: 6969, color: '#06B6D4', image: AcupunctureImage },
+      { title: 'Pharmacy', value: 7509, color: '#EC4899', image: PharmacyImage },
+      { title: 'Physiotherapy', value: 2110, color: '#3B82F6', image: PhysiotherapyImage },
+      { title: 'Homeopathy', value: 7509, color: '#F59E0B', image: HomeopathyImage },
+      { title: 'Ambulance', value: 2110, color: '#10B981', image: AmbulanceImage },
+      { title: 'Registration', value: 7509, color: '#8B5CF6', image: RegistrationImage },
+      { title: 'Lab-Tech', value: 2110, color: '#06B6D4', image: LabTechImage },
+    ],
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    router.push('/login');
-  };
+  // Extract data for charts from userData.stats
+  const chartLabels = userData.stats.map(stat => stat.title);
+  const chartData = userData.stats.map(stat => stat.value);
+  const chartColors = userData.stats.map(stat => stat.color);
 
-  // Navigation items
-  const navItems: NavItem[] = [
+  const navItems = [
     { id: 'home', href: '/', name: 'Home' },
-    { id: 'update-profile', href: '/registrationpage', name: 'Update Profile' },
-    { id: 'master-search', href: '/master', name: 'Master Search' },
+    { id: 'update-profile', href:'/registrationpage', name: 'Update Profile' },
+    { id: 'master-search', href:'/master',name: 'Master Search' },
     { id: 'duty-chart', href: '/DutyChart', name: 'Duty Chart' },
-    { 
-      id: 'reports', 
-      name: 'Reports', 
-      children: [
-        { id: 'daily-report', href: '/daily-report', name: 'Daily Report' },
-        { id: 'registration-report', href: '/registration-report', name: 'Registration Report' },
-        { id: 'master-report', href: '/master-report', name: 'Master Report' }
-      ]
-    },
-    { id: 'sign-out', onClick: handleLogout, name: 'Sign Out' }
+    { id: 'reports', name: 'Reports', children: [
+      { id: 'daily-report', href: 'daily-report', name: 'Daily Report' },
+      { id: 'registration-report', href: 'registration-report', name: 'Registration Report' },
+      { id: 'master-report', href: 'master-report', name: 'Master Report' }
+    ]},
+    { id: 'sign-out', href: '/login', name: 'Sign Out' }
   ];
+
+  // Define services for the footer
+  const services = [
+    { title: 'Medical Camps' },
+    { title: 'Outreach Programs' },
+    { title: 'Patient Care' },
+    { title: 'Pathology' },
+    { title: 'Pharmacy' },
+    { title: 'Physiotherapy' },
+    { title: 'Homeopathy' },
+    { title: 'Ambulance Services' },
+    { title: 'Acupuncture' },
+    { title: 'Dressing' },
+    { title: 'Paramedical Services' },
+    { title: 'Registration' },
+    { title: 'Lab Technician Services' }
+  ];
+
+  // Check if any report child is active
+  const isReportChildActive = navItems
+    .find(item => item.id === 'reports')
+    ?.children?.some(child => child.id === activeTab) || false;
 
   // Handle navigation
   const handleTabClick = (id: string) => {
     if (id === 'reports') {
       setShowReports(!showReports);
-    } else if (id === 'sign-out') {
-      handleLogout();
     } else {
       setActiveTab(id);
       setShowReports(false);
       setIsMenuOpen(false);
       const item = navItems.find(item => item.id === id);
       if (item?.href) {
-        router.push(item.href);
+        window.location.href = item.href;
       }
     }
   };
-
-  // Memoize chart data for performance
-  const chartData = useMemo(() => ({
-    labels: dashboardData?.stats.map(stat => stat.title) || [],
-    values: dashboardData?.stats.map(stat => stat.value) || [],
-    colors: dashboardData?.stats.map(stat => stat.color) || []
-  }), [dashboardData?.stats]);
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">⚠️ Error</div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // If no data, show message
-  if (!userData || !dashboardData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600">No data available</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-700 via-pink-500 to-amber-500 shadow-lg py-3 sticky top-0 z-50">
         <div className="max-w-8xl mx-auto px-4 flex justify-between items-center">
+          {/* Logo and Title */}
           <div className="flex items-center space-x-3">
             <div className="bg-white rounded-full p-1 flex items-center justify-center">
               <div className="relative w-8 h-8 sm:w-10 sm:h-10">
                 <Image 
                   src={Logo} 
                   alt="Medical Sewa Logo" 
-                  fill
-                  style={{ objectFit: 'contain' }}
+                  layout="fill"
+                  objectFit="contain"
                   className="rounded-full"
                 />
               </div>
@@ -346,13 +187,13 @@ export default function Dashboard() {
           {/* Desktop Navbar */}
           <nav className="hidden lg:flex items-center space-x-1">
             {navItems.map((item) => (
-              <div key={item.id} className="relative group" ref={item.id === 'reports' ? reportsRef : undefined}>
+              <div key={item.id} className="relative group" ref={item.id === 'reports' ? reportsRef : null}>
                 <button
                   onClick={() => handleTabClick(item.id)}
                   className={`px-3 py-2 font-medium whitespace-nowrap rounded-md transition-all flex items-center
                     ${
                       activeTab === item.id || 
-                      (item.id === 'reports' && showReports)
+                      (item.id === 'reports' && (showReports || isReportChildActive))
                         ? "bg-white text-indigo-700 shadow-inner"
                         : 'text-white hover:text-purple-900 hover:bg-white/90'
                     }`}
@@ -373,9 +214,6 @@ export default function Dashboard() {
                         onClick={() => {
                           setActiveTab(child.id);
                           setShowReports(false);
-                          if (child.href) {
-                            router.push(child.href);
-                          }
                         }}
                         className={`w-full px-4 py-3 text-left text-gray-700 hover:bg-purple-50 transition-colors flex items-center border-b border-gray-100 last:border-b-0
                           ${activeTab === child.id ? 'bg-purple-50 text-purple-700 font-medium' : ''}`}
@@ -389,14 +227,6 @@ export default function Dashboard() {
             ))}
           </nav>
           
-          {/* User info in header */}
-          <div className="hidden md:flex items-center space-x-4">
-            <span className="text-white text-sm">Welcome, {userData.name}</span>
-            <span className="bg-white/20 text-white px-3 py-1 rounded-full text-xs">
-              {userData.role}
-            </span>
-          </div>
-          
           {/* Mobile Menu Button */}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -407,11 +237,11 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Mobile Navigation Drawer - Changed to blur effect */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div 
-            className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm" 
+            className="fixed inset-0  bg-opacity-30 backdrop-blur-sm" 
             onClick={() => setIsMenuOpen(false)}
           ></div>
           <div className="relative z-50">
@@ -423,8 +253,8 @@ export default function Dashboard() {
                       <Image 
                         src={Logo} 
                         alt="Medical Sewa Logo" 
-                        fill
-                        style={{ objectFit: 'contain' }}
+                        layout="fill"
+                        objectFit="contain"
                         className="rounded-full"
                       />
                     </div>
@@ -441,10 +271,10 @@ export default function Dashboard() {
                   <div key={item.id} className="relative">
                     <button
                       onClick={() => handleTabClick(item.id)}
-                      className={`w-full px-6 py-4 text-left font-medium flex items-center justify-between transition-colors
+                      className={`w-full px-6 py-4 text-left font-medium flex items-center justify-between
                         ${
                           activeTab === item.id || 
-                          (item.id === 'reports' && showReports)
+                          (item.id === 'reports' && (showReports || isReportChildActive))
                             ? "bg-white/20 text-white"
                             : 'text-white/90 hover:bg-white/10'
                         }`}
@@ -466,10 +296,6 @@ export default function Dashboard() {
                             onClick={() => {
                               setActiveTab(child.id);
                               setShowReports(false);
-                              setIsMenuOpen(false);
-                              if (child.href) {
-                                router.push(child.href);
-                              }
                             }}
                             className={`w-full px-4 py-3 text-left text-white/90 hover:bg-white/10 transition-colors flex items-center
                               ${activeTab === child.id ? 'bg-white/20' : ''}`}
@@ -496,35 +322,23 @@ export default function Dashboard() {
                 <div className="relative group w-full flex-col">
                   <div 
                     className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-full p-1.5 cursor-pointer flex justify-center"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={handleProfileClick}
                   >
-                    {(() => {
-                      const imageSource = getValidImageSrc(profileImage || userData?.profileImage);
-                      
-                      if (typeof imageSource === 'string') {
-                        return (
-                          <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 overflow-hidden">
-                            <Image
-                              src={imageSource}
-                              alt="Profile"
-                              width={160}
-                              height={160}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                console.log('Profile image load error:', imageSource);
-                                setProfileImage(null);
-                              }}
-                            />
-                          </div>
-                        );
-                      }
-                      
-                      return (
-                        <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
-                          <BsFillPersonFill className="h-16 w-16 text-gray-400" />
-                        </div>
-                      );
-                    })()}
+                    {profileImage ? (
+                      <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 overflow-hidden">
+                        <Image
+                          src={profileImage}
+                          alt="Profile"
+                          width={160}
+                          height={160}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
+                        <BsFillPersonFill className="h-16 w-16 text-gray-400" />
+                      </div>
+                    )}
                   </div>
                   <div className="absolute bottom-3 right-3 bg-white rounded-full p-2 shadow-md cursor-pointer group-hover:bg-gray-100 transition-colors">
                     <BsFillCameraFill className="h-5 w-5 text-purple-600" />
@@ -542,29 +356,13 @@ export default function Dashboard() {
                   <h2 className="text-2xl font-bold text-gray-800">{userData.name}</h2>
                   <div className="mt-4 flex flex-col items-center sm:items-start space-y-2">
                     <div className="flex items-center text-gray-600">
-                      <span className="mr-2">👨‍⚕️</span>
-                      <span>{userData.role}</span>
+                     
+                     
                     </div>
                     <div className="flex items-center text-gray-600">
                       <IoIosMail className="mr-2 text-purple-600" />
-                      <span>{userData.qualification}</span>
+                      <span>{userData.qualiffication}</span>
                     </div>
-                    <div className="flex items-center text-gray-600">
-                      <span className="mr-2">📧</span>
-                      <span>{userData.email}</span>
-                    </div>
-                    {userData.mobile && (
-                      <div className="flex items-center text-gray-600">
-                        <span className="mr-2">📱</span>
-                        <span>{userData.mobile}</span>
-                      </div>
-                    )}
-                    {userData.location && (
-                      <div className="flex items-center text-gray-600">
-                        <span className="mr-2">📍</span>
-                        <span>{userData.location}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -574,25 +372,20 @@ export default function Dashboard() {
                   <Image
                     src="/satgurumataji1.png"
                     alt="Medical Services"
-                    fill
-                    style={{ objectFit: 'cover' }}
+                    layout="fill"
+                    objectFit="cover"
                     className="rounded-xl"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent flex items-end p-6">
-                    <div className="text-white">
-                      <p className="text-sm">Last Updated: {new Date(dashboardData.lastUpdated).toLocaleDateString()}</p>
-                      <p className="text-xs">Period: {dashboardData.period}</p>
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent flex items-end p-6"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>  
         
-        {/* Stats Grid */}
+        {/* Stats Grid with Compact Layout */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {dashboardData.stats.map((stat, index) => (
+          {userData.stats.map((stat, index) => (
             <motion.div 
               key={index}
               className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg flex flex-row items-center justify-between"
@@ -602,10 +395,10 @@ export default function Dashboard() {
               <div className="flex items-center justify-center h-16 bg-gray-50 p-1">
                 <div className="relative w-10 h-10">
                   <Image
-                    src={stat.image || DoctorsImage}
+                    src={stat.image}
                     alt={stat.title}
-                    fill
-                    style={{ objectFit: 'contain' }}
+                    layout="fill"
+                    objectFit="contain"
                   />
                 </div>
               </div>
@@ -622,36 +415,38 @@ export default function Dashboard() {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Bar Chart */}
+          {/* Bar Graph - Converted to Horizontal */}
           <div className="bg-white rounded-xl shadow-md p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                 <BsGraphUp className="text-purple-600" />
-                Service Utilization ({dashboardData.period})
+                Service Utilization ({selectedMonth} 2023)
               </h4>
               <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
-                {dashboardData.period}
+                {selectedMonth} 2023
               </span>
             </div>
-            <div className="w-full h-96">
+            <div className="w-full h-96"> {/* Increased height for better visibility */}
               <Bar
                 data={{
-                  labels: chartData.labels,
+                  labels: chartLabels,
                   datasets: [
                     {
                       label: 'Patient Count',
-                      data: chartData.values,
-                      backgroundColor: chartData.colors,
+                      data: chartData,
+                      backgroundColor: chartColors,
                       borderRadius: 6,
                     }
                   ]
                 }}
                 options={{
-                  indexAxis: 'y',
+                  indexAxis: 'y', // Make chart horizontal
                   responsive: true,
                   maintainAspectRatio: false,
                   plugins: {
-                    legend: { display: false },
+                    legend: {
+                      display: false
+                    },
                     tooltip: {
                       backgroundColor: '#1f2937',
                       titleFont: { size: 14 },
@@ -667,16 +462,29 @@ export default function Dashboard() {
                   },
                   scales: {
                     x: {
-                      grid: { color: '#f3f4f6' },
-                      ticks: { color: '#6b7280' },
-                      beginAtZero: true,
-                      border: { display: false }
-                    },
-                    y: {
-                      grid: { display: false },
+                      grid: {
+                        color: '#f3f4f6'
+                      },
                       ticks: {
                         color: '#6b7280',
-                        font: { size: 11 }
+                        callback: function(value) {
+                          return value;
+                        }
+                      },
+                      beginAtZero: true,
+                      border: {
+                        display: false
+                      }
+                    },
+                    y: {
+                      grid: {
+                        display: false
+                      },
+                      ticks: {
+                        color: '#6b7280',
+                        font: {
+                          size: 11 // Smaller font for better fit
+                        }
                       }
                     }
                   }
@@ -685,7 +493,7 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Doughnut Chart */}
+          {/* Pie Chart - Connected to grid data */}
           <div className="bg-white rounded-xl shadow-md p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -696,13 +504,13 @@ export default function Dashboard() {
                 Top Services
               </span>
             </div>
-            <div className="w-full h-96">
+            <div className="w-full h-96"> {/* Increased height for better visibility */}
               <Doughnut
                 data={{
-                  labels: chartData.labels,
+                  labels: chartLabels,
                   datasets: [{
-                    data: chartData.values,
-                    backgroundColor: chartData.colors,
+                    data: chartData,
+                    backgroundColor: chartColors,
                     borderWidth: 0,
                   }]
                 }}
@@ -718,7 +526,9 @@ export default function Dashboard() {
                         padding: 12,
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        font: { size: 10 }
+                        font: {
+                          size: 10 // Smaller font for better fit
+                        }
                       }
                     },
                     tooltip: {
@@ -783,7 +593,7 @@ export default function Dashboard() {
             <div>
               <h3 className="text-base md:text-lg font-bold mb-3 md:mb-6">Quick Links</h3>
               <ul className="space-y-2 md:space-y-3">
-                {['Home', 'About', 'Services', 'Contact'].map((link) => (
+                {['Home', 'About',  'Contact'].map((link) => (
                   <li key={link}>
                     <motion.a 
                       whileHover={{ scale: 1.05 }}
@@ -800,14 +610,14 @@ export default function Dashboard() {
             <div>
               <h3 className="text-base md:text-lg font-bold mb-3 md:mb-6">Our Services</h3>
               <ul className="space-y-2 md:space-y-3">
-                {['Medical Camps', 'Outreach Programs', 'Pharmacy', 'Pathology', 'Ambulance Services', 'Physiotherapy'].map((service) => (
-                  <li key={service}>
+                {services.map((service) => (
+                  <li key={service.title}>
                     <motion.a 
                       whileHover={{ scale: 1.05 }}
                       href="#services"
                       className="text-gray-400 hover:text-white transition-colors text-sm md:text-base"
                     >
-                      {service}
+                      {service.title}
                     </motion.a>
                   </li>
                 ))}

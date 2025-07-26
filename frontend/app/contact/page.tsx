@@ -8,7 +8,7 @@ import Logo from '@/public/snmlogo.jpeg';
 import { motion } from 'framer-motion';
 
 export default function ContactPage() {
-  const [ setProfileImage] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showReports, setShowReports] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('contact');
