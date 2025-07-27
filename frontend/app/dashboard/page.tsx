@@ -76,7 +76,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // ✅ Dynamic data states
+  //  Dynamic data states
   const [userData, setUserData] = useState<UserData>({
     name: 'Mr. Pratik Ji', // Default fallback
     role: 'Medical Sewadar',
@@ -122,7 +122,7 @@ export default function Dashboard() {
   const reportsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // ✅ Fetch real data from backend
+  //  Fetch real data from backend
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -161,7 +161,7 @@ export default function Dashboard() {
             setProfileImage(profileResponse.data.profileImage);
           }
           
-          console.log('✅ User profile loaded:', profileResponse.data.name);
+          console.log(' User profile loaded:', profileResponse.data.name);
         }
 
         // Update stats data if successful
@@ -185,11 +185,11 @@ export default function Dashboard() {
           }
 
           setStatsData(mappedStats.slice(0, 12)); // Keep exactly 12 items
-          console.log('✅ Dashboard stats loaded:', mappedStats.length, 'departments');
+          console.log(' Dashboard stats loaded:', mappedStats.length, 'departments');
         }
 
       } catch (err: any) {
-        console.error('❌ Dashboard data fetch error:', err);
+        console.error(' Dashboard data fetch error:', err);
         setError('Unable to load some dashboard data. Using cached information.');
         
         // Don't redirect on error, just show error message and use fallback data
@@ -236,7 +236,7 @@ export default function Dashboard() {
     { title: 'Lab Technician Services' }
   ];
 
-  // ✅ Logout function
+  //  Logout function
   const handleLogout = async () => {
     try {
       console.log('🔍 Logging out user...');
@@ -249,11 +249,11 @@ export default function Dashboard() {
         console.warn('API logout failed:', apiError);
       }
 
-      console.log('✅ User logged out successfully');
+      console.log(' User logged out successfully');
       window.location.href = '/login';
       
     } catch (error) {
-      console.error('❌ Logout error:', error);
+      console.error(' Logout error:', error);
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = '/login';
@@ -300,7 +300,7 @@ export default function Dashboard() {
     .find(item => item.id === 'reports')
     ?.children?.some(child => child.id === activeTab) || false;
 
-  // ✅ Handle navigation with sign-out
+  //  Handle navigation with sign-out
   const handleTabClick = (id: string) => {
     console.log('🔍 Navigation clicked:', id);
 
@@ -325,7 +325,7 @@ export default function Dashboard() {
   const chartData = statsData.map(stat => stat.value);
   const chartColors = statsData.map(stat => stat.color);
 
-  // ✅ Loading overlay (subtle, preserves your UI)
+  //  Loading overlay (subtle, preserves your UI)
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
@@ -341,7 +341,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
-      {/* ✅ Error banner (non-intrusive) */}
+      {/*  Error banner (non-intrusive) */}
       {error && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3">
           <div className="flex">
@@ -562,7 +562,7 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="text-center sm:text-left mt-4 ml-5">
-                  {/* ✅ Dynamic user data */}
+                  {/*  Dynamic user data */}
                   <h2 className="text-2xl font-bold text-gray-800">{userData.name}</h2>
                   <div className="mt-4 flex flex-col items-center sm:items-start space-y-2">
                     <div className="flex items-center text-gray-600">
@@ -611,7 +611,7 @@ export default function Dashboard() {
               </div>
               
               <div className="p-3 text-center flex-grow flex flex-row justify-between">
-                {/* ✅ Dynamic values */}
+                {/*  Dynamic values */}
                 <div className="text-xl font-bold" style={{ color: stat.color }}>
                   {stat.value.toLocaleString()}
                 </div>

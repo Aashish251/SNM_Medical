@@ -10,16 +10,16 @@ router.get('/stats', authenticateToken, async (req, res) => {
 
     // Test database connection first
     const [connectionTest] = await promisePool.execute('SELECT 1 as test');
-    console.log('✅ Database connection OK');
+    console.log(' Database connection OK');
 
     // Get total users
     const [userCount] = await promisePool.execute(`
       SELECT COUNT(*) as total FROM registration_tbl WHERE is_deleted = 0
     `);
     const totalUsers = userCount[0]?.total || 0;
-    console.log('✅ Total users:', totalUsers);
+    console.log(' Total users:', totalUsers);
 
-    // ✅ FIXED: Get recent registrations with compatible date syntax
+    //  FIXED: Get recent registrations with compatible date syntax
     const [recentCount] = await promisePool.execute(`
       SELECT COUNT(*) as recent 
       FROM registration_tbl 
@@ -27,7 +27,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
       AND created_datetime >= DATE(NOW() - INTERVAL 7 DAY)
     `);
     const recentRegistrations = recentCount[0]?.recent || 0;
-    console.log('✅ Recent registrations:', recentRegistrations);
+    console.log(' Recent registrations:', recentRegistrations);
 
     // Get department-wise statistics
     const [departmentStats] = await promisePool.execute(`
@@ -56,7 +56,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
       ORDER BY COUNT(r.reg_id) DESC, d.department_name
     `);
 
-    console.log('✅ Department stats fetched:', departmentStats.length, 'departments');
+    console.log(' Department stats fetched:', departmentStats.length, 'departments');
 
     res.json({
       success: true,
@@ -70,7 +70,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Dashboard stats error:', {
+    console.error(' Dashboard stats error:', {
       message: error.message,
       code: error.code,
       sqlState: error.sqlState,
@@ -134,7 +134,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
       }
     }
 
-    console.log('✅ Profile fetched successfully for:', user.full_name);
+    console.log(' Profile fetched successfully for:', user.full_name);
 
     res.json({
       success: true,
@@ -160,7 +160,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Profile fetch error:', error);
+    console.error('Profile fetch error:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to fetch user profile',

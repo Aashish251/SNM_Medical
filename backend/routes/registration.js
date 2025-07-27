@@ -137,7 +137,7 @@ router.post('/check-email', async (req, res) => {
       });
     }
 
-    // ✅ FIXED: Use reg_id instead of id
+    //  FIXED: Use reg_id instead of id
     const [existingUsers] = await promisePool.execute(
       'SELECT reg_id FROM registration_tbl WHERE email = ? AND is_deleted = 0',
       [sanitizedEmail]
@@ -235,7 +235,7 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // ✅ FIXED: Check for existing email and mobile with reg_id
+    //  FIXED: Check for existing email and mobile with reg_id
     const [
       [existingUsers],
       [existingMobile]
@@ -282,7 +282,7 @@ router.post('/register', async (req, res) => {
     await connection.beginTransaction();
 
     try {
-      // ✅ FIXED: Insert with correct column names matching your table structure
+      //  FIXED: Insert with correct column names matching your table structure
       const [registrationResult] = await connection.execute(`
         INSERT INTO registration_tbl (
           user_type, login_id, title, full_name, email, password, mobile_no, 
