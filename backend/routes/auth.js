@@ -5,100 +5,93 @@ const jwt = require('jsonwebtoken');
 const { promisePool } = require('../config/database');
 
 // Test route
+router.get('/test', (req, res) => {
+  res.json({ message: 'Auth route working with SNM Dispensary DB!' });
+});
 
-// Login route using stored procedure
+// Login route with correct role mapping
 router.post('/login', async (req, res) => {
   try {
     const { email, password, role } = req.body;
     
-    console.log('Login attempt:', { email, role });
+    console.log('Login attempt:', { email, password, role });
     
-    // Basic validation
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // Determine user_type based on role
-    let user_type = 'ms'; // medical staff
-    if (role === 'Admin') {
-      user_type = 'admin';
-    }
-
-    // Use stored procedure for login validation
-    const [results] = await promisePool.execute(
-      'CALL sp_validate_login(?, ?, ?)',
-      [user_type, email, password]
+    // Query registration_tbl directly
+    const [users] = await promisePool.execute(
+      'SELECT * FROM registration_tbl WHERE email = ? AND is_deleted = 0',
+      [email]
     );
-
-    if (results.length === 0 || results[0].length === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    
+    console.log('Database query result:', users);
+    
+    if (users.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials - User not found' });
     }
 
-    const user = results[0][0]; // First result set, first row
+    const user = users[0];
+    console.log('Found user:', user);
     
+    // Check password (your passwords are stored as plain text)
+    const isValidPassword = password === user.password;
+    
+    console.log('Password check:', { provided: password, stored: user.password, valid: isValidPassword });
+    
+    if (!isValidPassword) {
+      return res.status(401).json({ message: 'Invalid credentials - Wrong password' });
+    }
+
+    // Map database user_type to frontend role
+    let userRole;
+    if (user.user_type === 'admin') {
+      userRole = 'Admin';
+    } else if (user.user_type === 'ms') {
+      userRole = 'Medical Staff';
+    } else {
+      userRole = 'Medical Staff'; // default
+    }
+
+    // Check role if provided (map frontend role to database user_type)
+    if (role) {
+      const expectedUserType = role === 'Admin' ? 'admin' : 'ms';
+      if (user.user_type !== expectedUserType) {
+        return res.status(401).json({ 
+          message: `Invalid role. User is ${userRole}, but ${role} was selected.` 
+        });
+      }
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       { 
         userId: user.reg_id, 
-        email: email,
-        role: user.user_type === 'admin' ? 'Admin' : 'Medical Staff',
-        fullName: user.full_name
+        email: user.email,
+        role: userRole,
+        fullName: user.full_name,
+        userType: user.user_type
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
+    
+    console.log('Login successful, generating token for:', user.full_name);
     
     res.json({
       message: 'Login successful',
       token,
       user: { 
         id: user.reg_id, 
-        email: email, 
+        email: user.email, 
         name: user.full_name,
-        role: user.user_type === 'admin' ? 'Admin' : 'Medical Staff',
-        qualification: user.qualification_id,
-        department: user.department_id,
-        mobile: user.mobile_no
+        role: userRole,
+        userType: user.user_type
       }
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// Forgot password route using stored procedure
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { mobile_no } = req.body;
-    
-    if (!mobile_no) {
-      return res.status(400).json({ message: 'Mobile number is required' });
-    }
-
-    // Use stored procedure for password recovery
-    const [results] = await promisePool.execute(
-      'CALL sp_forgot_password_by_mobile(?)',
-      [mobile_no]
-    );
-
-    if (results.length === 0 || results[0].length === 0) {
-      return res.status(404).json({ message: 'Mobile number not found' });
-    }
-
-    const user = results[0][0];
-    
-    res.json({
-      success: true,
-      message: 'User found',
-      data: {
-        login_id: user.login_id,
-        // Don't send actual password in production - send reset link instead
-        password: user.password
-      }
-    });
-  } catch (error) {
-    console.error('Forgot password error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

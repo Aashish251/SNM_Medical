@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image, { StaticImageData } from 'next/image';
 import { FaChartPie, FaBars, FaTimes } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import ApiService from '@/lib/api';
 
 // Chart.js components
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
@@ -9,19 +11,12 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 // Icons
-import {  IoIosMail, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
+import { IoIosMail, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { BsFillPersonFill, BsFillCameraFill, BsGraphUp } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 
-// Placeholder images
-import MedicalCamp from '@/public/snmlogo.jpeg';
-import Volunteers from '@/public/SD03.jpg';
-import Outreach from '@/public/satgurumataji1.png';
-import Awareness from '@/public/SD02.jpg';
-import PatientCare from '@/public/snmlogo.jpeg';
+// Images
 import Logo from '@/public/snmlogo.jpeg';
-
-// Category images
 import DoctorsImage from '@/public/Doctors.png';
 import NursesImage from '@/public/Nurse.png';
 import DressingImage from '@/public/Dressing.png';
@@ -35,24 +30,235 @@ import AmbulanceImage from '@/public/Ambulance.png';
 import RegistrationImage from '@/public/Registration.png';
 import LabTechImage from '@/public/Lab-Tech.png';
 
+// Department image mapping
+const departmentImages: { [key: string]: StaticImageData } = {
+  'Admin': DoctorsImage,
+  'Doctors': DoctorsImage,
+  'Nursing': NursesImage,
+  'Nurses': NursesImage,
+  'Dressing': DressingImage,
+  'Paramedical': ParamedicalImage,
+  'Pathology': PathologyImage,
+  'Acupuncture': AcupunctureImage,
+  'Accupressure': AcupunctureImage,
+  'Pharmacy': PharmacyImage,
+  'Physiotherapy': PhysiotherapyImage,
+  'Homeopathy': HomeopathyImage,
+  'Ambulance': AmbulanceImage,
+  'Registration': RegistrationImage,
+  'Lab': LabTechImage,
+  'Lab-Tech': LabTechImage,
+};
+
+interface UserData {
+  name: string;
+  role: string;
+  qualification: string;
+  email: string;
+  mobile: string;
+  department: string;
+  profileImage: string | null;
+}
+
+interface StatData {
+  title: string;
+  value: number;
+  color: string;
+  image: StaticImageData;
+}
+
 export default function Dashboard() {
   const [selectedMonth] = useState('JUL');
   const [activeTab, setActiveTab] = useState('home');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showReports, setShowReports] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // ✅ Dynamic data states
+  const [userData, setUserData] = useState<UserData>({
+    name: 'Mr. Pratik Ji', // Default fallback
+    role: 'Medical Sewadar',
+    qualification: 'MBA, MD',
+    email: '',
+    mobile: '',
+    department: '',
+    profileImage: null
+  });
+  
+  const fixImageSrc = (src: string | null): string | null => {
+  if (!src) return null;
+  
+  // If it's already a valid URL format, return as is
+  if (src.startsWith('http://') || 
+      src.startsWith('https://') || 
+      src.startsWith('data:') || 
+      src.startsWith('/')) {
+    return src;
+  }
+  
+  // Add leading slash to relative paths
+  return '/' + src;
+};
+
+  const [statsData, setStatsData] = useState<StatData[]>([
+    // Default fallback data with your preferred structure
+    { title: 'Doctors', value: 520, color: '#EC4899', image: DoctorsImage },
+    { title: 'Nurses', value: 5959, color: '#3B82F6', image: NursesImage },
+    { title: 'Dressing', value: 520, color: '#F59E0B', image: DressingImage },
+    { title: 'Paramedical', value: 5969, color: '#10B981', image: ParamedicalImage },
+    { title: 'Pathology', value: 520, color: '#8B5CF6', image: PathologyImage },
+    { title: 'Acupuncture', value: 6969, color: '#06B6D4', image: AcupunctureImage },
+    { title: 'Pharmacy', value: 7509, color: '#EC4899', image: PharmacyImage },
+    { title: 'Physiotherapy', value: 2110, color: '#3B82F6', image: PhysiotherapyImage },
+    { title: 'Homeopathy', value: 7509, color: '#F59E0B', image: HomeopathyImage },
+    { title: 'Ambulance', value: 2110, color: '#10B981', image: AmbulanceImage },
+    { title: 'Registration', value: 7509, color: '#8B5CF6', image: RegistrationImage },
+    { title: 'Lab-Tech', value: 2110, color: '#06B6D4', image: LabTechImage },
+  ]);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reportsRef = useRef<HTMLDivElement>(null);
-  
-  type Photo = { id: number; title: string; url: string | StaticImageData };
-  const [] = useState<Photo[]>([
-    { id: 1, title: 'Medical Camp', url: MedicalCamp },
-    { id: 2, title: 'Volunteers', url: Volunteers },
-    { id: 3, title: 'Outreach', url: Outreach },
-    { id: 4, title: 'Awareness', url: Awareness },
-    { id: 5, title: 'Patient Care', url: PatientCare },
-    { id: 6, title: 'satgurumataji', url: '/satgurumataji1.png' },
-  ]);
+  const router = useRouter();
+
+  // ✅ Fetch real data from backend
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        // Check authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        console.log('🔍 Fetching dashboard data...');
+
+        // Fetch user profile and dashboard stats
+        const [profileResponse, statsResponse] = await Promise.all([
+          ApiService.getUserProfile().catch(err => ({ success: false, error: err.message })),
+          ApiService.getDashboardStats().catch(err => ({ success: false, error: err.message }))
+        ]);
+
+        // Update user data if successful
+        if (profileResponse.success && profileResponse.data) {
+          setUserData({
+            name: profileResponse.data.name || 'Mr. Pratik Ji',
+            role: profileResponse.data.role || 'Medical Sewadar',
+            qualification: profileResponse.data.qualification || 'MBA, MD',
+            email: profileResponse.data.email || '',
+            mobile: profileResponse.data.mobile || '',
+            department: profileResponse.data.department || '',
+            profileImage: profileResponse.data.profileImage || null
+          });
+          
+          // Update profile image state
+          if (profileResponse.data.profileImage) {
+            setProfileImage(profileResponse.data.profileImage);
+          }
+          
+          console.log('✅ User profile loaded:', profileResponse.data.name);
+        }
+
+        // Update stats data if successful
+        if (statsResponse.success && statsResponse.data && statsResponse.data.stats) {
+          const mappedStats = statsResponse.data.stats.map((stat: any, index: number) => ({
+            title: stat.title,
+            value: stat.value || 0,
+            color: stat.color || '#6B7280',
+            image: departmentImages[stat.title] || departmentImages['Doctors'] || DoctorsImage
+          }));
+
+          // Ensure we have exactly 12 items to match your static layout
+          while (mappedStats.length < 12) {
+            const fallbackStat = statsData[mappedStats.length % statsData.length];
+            mappedStats.push({
+              title: fallbackStat.title,
+              value: 0,
+              color: fallbackStat.color,
+              image: fallbackStat.image
+            });
+          }
+
+          setStatsData(mappedStats.slice(0, 12)); // Keep exactly 12 items
+          console.log('✅ Dashboard stats loaded:', mappedStats.length, 'departments');
+        }
+
+      } catch (err: any) {
+        console.error('❌ Dashboard data fetch error:', err);
+        setError('Unable to load some dashboard data. Using cached information.');
+        
+        // Don't redirect on error, just show error message and use fallback data
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [router]);
+
+  // Navigation items
+  const navItems = [
+    { id: 'home', href: '/', name: 'Home' },
+    { id: 'update-profile', href: '/registrationpage', name: 'Update Profile' },
+    { id: 'master-search', href: '/master', name: 'Master Search' },
+    { id: 'duty-chart', href: '/DutyChart', name: 'Duty Chart' },
+    { 
+      id: 'reports', 
+      name: 'Reports', 
+      children: [
+        { id: 'daily-report', href: '/daily-report', name: 'Daily Report' },
+        { id: 'registration-report', href: '/registration-report', name: 'Registration Report' },
+        { id: 'master-report', href: '/master-report', name: 'Master Report' }
+      ]
+    },
+    { id: 'sign-out', name: 'Sign Out' }
+  ];
+
+  // Define services for the footer
+  const services = [
+    { title: 'Medical Camps' },
+    { title: 'Outreach Programs' },
+    { title: 'Patient Care' },
+    { title: 'Pathology' },
+    { title: 'Pharmacy' },
+    { title: 'Physiotherapy' },
+    { title: 'Homeopathy' },
+    { title: 'Ambulance Services' },
+    { title: 'Acupuncture' },
+    { title: 'Dressing' },
+    { title: 'Paramedical Services' },
+    { title: 'Registration' },
+    { title: 'Lab Technician Services' }
+  ];
+
+  // ✅ Logout function
+  const handleLogout = async () => {
+    try {
+      console.log('🔍 Logging out user...');
+      localStorage.clear();
+      sessionStorage.clear();
+
+      try {
+        await ApiService.logout();
+      } catch (apiError) {
+        console.warn('API logout failed:', apiError);
+      }
+
+      console.log('✅ User logged out successfully');
+      window.location.href = '/login';
+      
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/login';
+    }
+  };
 
   // Handle profile image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,6 +268,8 @@ export default function Dashboard() {
       reader.onload = (event) => {
         if (event.target?.result) {
           setProfileImage(event.target.result as string);
+          // Update userData as well
+          setUserData(prev => ({ ...prev, profileImage: event.target!.result as string }));
         }
       };
       reader.readAsDataURL(file);
@@ -87,71 +295,20 @@ export default function Dashboard() {
     };
   }, []);
 
-  const userData = {
-    name: 'Mr. Pratik Ji',
-    role: 'Medical Sewadar',
-    
-    qualiffication: 'MBA, MD',
-    stats: [
-      { title: 'Doctors', value: 520, color: '#EC4899', image: DoctorsImage },
-      { title: 'Nurses', value: 5959, color: '#3B82F6', image: NursesImage },
-      { title: 'Dressing', value: 520, color: '#F59E0B', image: DressingImage },
-      { title: 'Paramedical', value: 5969, color: '#10B981', image: ParamedicalImage },
-      { title: 'Pathology', value: 520, color: '#8B5CF6', image: PathologyImage },
-      { title: 'Acupuncture', value: 6969, color: '#06B6D4', image: AcupunctureImage },
-      { title: 'Pharmacy', value: 7509, color: '#EC4899', image: PharmacyImage },
-      { title: 'Physiotherapy', value: 2110, color: '#3B82F6', image: PhysiotherapyImage },
-      { title: 'Homeopathy', value: 7509, color: '#F59E0B', image: HomeopathyImage },
-      { title: 'Ambulance', value: 2110, color: '#10B981', image: AmbulanceImage },
-      { title: 'Registration', value: 7509, color: '#8B5CF6', image: RegistrationImage },
-      { title: 'Lab-Tech', value: 2110, color: '#06B6D4', image: LabTechImage },
-    ],
-  };
-
-  // Extract data for charts from userData.stats
-  const chartLabels = userData.stats.map(stat => stat.title);
-  const chartData = userData.stats.map(stat => stat.value);
-  const chartColors = userData.stats.map(stat => stat.color);
-
-  const navItems = [
-    { id: 'home', href: '/', name: 'Home' },
-    { id: 'update-profile', href:'/registrationpage', name: 'Update Profile' },
-    { id: 'master-search', href:'/master',name: 'Master Search' },
-    { id: 'duty-chart', href: '/DutyChart', name: 'Duty Chart' },
-    { id: 'reports', name: 'Reports', children: [
-      { id: 'daily-report', href: 'daily-report', name: 'Daily Report' },
-      { id: 'registration-report', href: 'registration-report', name: 'Registration Report' },
-      { id: 'master-report', href: 'master-report', name: 'Master Report' }
-    ]},
-    { id: 'sign-out', href: '/login', name: 'Sign Out' }
-  ];
-
-  // Define services for the footer
-  const services = [
-    { title: 'Medical Camps' },
-    { title: 'Outreach Programs' },
-    { title: 'Patient Care' },
-    { title: 'Pathology' },
-    { title: 'Pharmacy' },
-    { title: 'Physiotherapy' },
-    { title: 'Homeopathy' },
-    { title: 'Ambulance Services' },
-    { title: 'Acupuncture' },
-    { title: 'Dressing' },
-    { title: 'Paramedical Services' },
-    { title: 'Registration' },
-    { title: 'Lab Technician Services' }
-  ];
-
   // Check if any report child is active
   const isReportChildActive = navItems
     .find(item => item.id === 'reports')
     ?.children?.some(child => child.id === activeTab) || false;
 
-  // Handle navigation
+  // ✅ Handle navigation with sign-out
   const handleTabClick = (id: string) => {
+    console.log('🔍 Navigation clicked:', id);
+
     if (id === 'reports') {
       setShowReports(!showReports);
+    } else if (id === 'sign-out') {
+      console.log('🔍 Sign out clicked');
+      handleLogout();
     } else {
       setActiveTab(id);
       setShowReports(false);
@@ -163,9 +320,39 @@ export default function Dashboard() {
     }
   };
 
+  // Extract data for charts
+  const chartLabels = statsData.map(stat => stat.title);
+  const chartData = statsData.map(stat => stat.value);
+  const chartColors = statsData.map(stat => stat.color);
+
+  // ✅ Loading overlay (subtle, preserves your UI)
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
-      {/* Header */}
+      {/* ✅ Error banner (non-intrusive) */}
+      {error && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header - EXACT SAME AS YOUR STATIC VERSION */}
       <header className="bg-gradient-to-r from-purple-700 via-pink-500 to-amber-500 shadow-lg py-3 sticky top-0 z-50">
         <div className="max-w-8xl mx-auto px-4 flex justify-between items-center">
           {/* Logo and Title */}
@@ -214,6 +401,9 @@ export default function Dashboard() {
                         onClick={() => {
                           setActiveTab(child.id);
                           setShowReports(false);
+                          if (child.href) {
+                            window.location.href = child.href;
+                          }
                         }}
                         className={`w-full px-4 py-3 text-left text-gray-700 hover:bg-purple-50 transition-colors flex items-center border-b border-gray-100 last:border-b-0
                           ${activeTab === child.id ? 'bg-purple-50 text-purple-700 font-medium' : ''}`}
@@ -237,11 +427,11 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Mobile Navigation Drawer - Changed to blur effect */}
+      {/* Mobile Navigation - EXACT SAME AS STATIC VERSION */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div 
-            className="fixed inset-0  bg-opacity-30 backdrop-blur-sm" 
+            className="fixed inset-0 bg-opacity-30 backdrop-blur-sm" 
             onClick={() => setIsMenuOpen(false)}
           ></div>
           <div className="relative z-50">
@@ -296,6 +486,9 @@ export default function Dashboard() {
                             onClick={() => {
                               setActiveTab(child.id);
                               setShowReports(false);
+                              if (child.href) {
+                                window.location.href = child.href;
+                              }
                             }}
                             className={`w-full px-4 py-3 text-left text-white/90 hover:bg-white/10 transition-colors flex items-center
                               ${activeTab === child.id ? 'bg-white/20' : ''}`}
@@ -314,7 +507,7 @@ export default function Dashboard() {
       )}
 
       <main className="flex-1 max-w-9xl mx-auto w-full px-1 py-1 space-y-1">
-        {/* Profile Section */}
+        {/* Profile Section - EXACT SAME LAYOUT, DYNAMIC DATA */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="flex flex-col p-1">
             <div className="flex flex-col sm:flex-row items-start gap-4 w-full">
@@ -324,21 +517,37 @@ export default function Dashboard() {
                     className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-full p-1.5 cursor-pointer flex justify-center"
                     onClick={handleProfileClick}
                   >
-                    {profileImage ? (
-                      <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 overflow-hidden">
-                        <Image
-                          src={profileImage}
-                          alt="Profile"
-                          width={160}
-                          height={160}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                  {profileImage || userData.profileImage ? (
+                    <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 overflow-hidden">
+                      <Image
+                        src={fixImageSrc(profileImage || userData.profileImage) || '/default-avatar.png'}
+                        alt="Profile"
+                        width={160}
+                        height={160}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
+                      <BsFillPersonFill className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
+                  {/* Header Profile Image */}
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white">
+                    {userData?.profileImage ? (
+                      <Image
+                        src={fixImageSrc(userData.profileImage) || '/default-avatar.png'}
+                        alt="Profile"
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <div className="bg-gray-200 border-2 border-dashed rounded-full w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
-                        <BsFillPersonFill className="h-16 w-16 text-gray-400" />
+                      <div className="w-full h-full bg-white flex items-center justify-center">
+                        <BsFillPersonFill className="text-gray-400 text-lg" />
                       </div>
                     )}
+                  </div>
                   </div>
                   <div className="absolute bottom-3 right-3 bg-white rounded-full p-2 shadow-md cursor-pointer group-hover:bg-gray-100 transition-colors">
                     <BsFillCameraFill className="h-5 w-5 text-purple-600" />
@@ -353,27 +562,25 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="text-center sm:text-left mt-4 ml-5">
+                  {/* ✅ Dynamic user data */}
                   <h2 className="text-2xl font-bold text-gray-800">{userData.name}</h2>
                   <div className="mt-4 flex flex-col items-center sm:items-start space-y-2">
                     <div className="flex items-center text-gray-600">
-                     
-                     
-                    </div>
-                    <div className="flex items-center text-gray-600">
                       <IoIosMail className="mr-2 text-purple-600" />
-                      <span>{userData.qualiffication}</span>
+                      <span>{userData.qualification}</span>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <div className="flex-1 w-full mt-4 sm:mt-0">
-                <div className="relative rounded-xl overflow-hidden w-full h-70 sm:h-96">
+              <div className="flex-1 sm:h-65 w-full mt-2 sm:mt-0">
+                <div className="relative rounded-xl overflow-hidden w-full h-10 sm:h-96">
                   <Image
                     src="/satgurumataji1.png"
                     alt="Medical Services"
                     layout="fill"
                     objectFit="cover"
+                    quality={100}
                     className="rounded-xl"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent flex items-end p-6"></div>
@@ -383,9 +590,9 @@ export default function Dashboard() {
           </div>
         </div>  
         
-        {/* Stats Grid with Compact Layout */}
+        {/* Stats Grid - EXACT SAME LAYOUT, DYNAMIC DATA */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {userData.stats.map((stat, index) => (
+          {statsData.map((stat, index) => (
             <motion.div 
               key={index}
               className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg flex flex-row items-center justify-between"
@@ -404,6 +611,7 @@ export default function Dashboard() {
               </div>
               
               <div className="p-3 text-center flex-grow flex flex-row justify-between">
+                {/* ✅ Dynamic values */}
                 <div className="text-xl font-bold" style={{ color: stat.color }}>
                   {stat.value.toLocaleString()}
                 </div>
@@ -413,9 +621,9 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Charts Section */}
+        {/* Charts Section - EXACT SAME LAYOUT, DYNAMIC DATA */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Bar Graph - Converted to Horizontal */}
+          {/* Bar Graph */}
           <div className="bg-white rounded-xl shadow-md p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -426,7 +634,7 @@ export default function Dashboard() {
                 {selectedMonth} 2023
               </span>
             </div>
-            <div className="w-full h-96"> {/* Increased height for better visibility */}
+            <div className="w-full h-96">
               <Bar
                 data={{
                   labels: chartLabels,
@@ -440,7 +648,7 @@ export default function Dashboard() {
                   ]
                 }}
                 options={{
-                  indexAxis: 'y', // Make chart horizontal
+                  indexAxis: 'y',
                   responsive: true,
                   maintainAspectRatio: false,
                   plugins: {
@@ -483,7 +691,7 @@ export default function Dashboard() {
                       ticks: {
                         color: '#6b7280',
                         font: {
-                          size: 11 // Smaller font for better fit
+                          size: 11
                         }
                       }
                     }
@@ -493,7 +701,7 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Pie Chart - Connected to grid data */}
+          {/* Doughnut Chart */}
           <div className="bg-white rounded-xl shadow-md p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -504,7 +712,7 @@ export default function Dashboard() {
                 Top Services
               </span>
             </div>
-            <div className="w-full h-96"> {/* Increased height for better visibility */}
+            <div className="w-full h-96">
               <Doughnut
                 data={{
                   labels: chartLabels,
@@ -527,7 +735,7 @@ export default function Dashboard() {
                         usePointStyle: true,
                         pointStyle: 'circle',
                         font: {
-                          size: 10 // Smaller font for better fit
+                          size: 10
                         }
                       }
                     },
@@ -555,7 +763,7 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* Footer */}
+      {/* Footer - EXACT SAME AS STATIC VERSION */}
       <footer className="bg-gray-900 text-white pt-12 pb-6 md:pt-16 md:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -593,7 +801,7 @@ export default function Dashboard() {
             <div>
               <h3 className="text-base md:text-lg font-bold mb-3 md:mb-6">Quick Links</h3>
               <ul className="space-y-2 md:space-y-3">
-                {['Home', 'About',  'Contact'].map((link) => (
+                {['Home', 'About', 'Contact'].map((link) => (
                   <li key={link}>
                     <motion.a 
                       whileHover={{ scale: 1.05 }}

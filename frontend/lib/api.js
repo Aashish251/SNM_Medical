@@ -83,10 +83,37 @@ class ApiService {
   }
 
   // ==================== REGISTRATION ENDPOINTS ====================
-  async getRegistrationDropdownData() {
+async getRegistrationDropdownData() {
+  try {
     console.log('Fetching registration dropdown data...');
-    return this.request('/registration/dropdown-data');
+    const response = await this.request('/registration/dropdown-data');
+    
+    // Ensure we always return the expected structure
+    return {
+      success: response.success || false,
+      data: {
+        states: response.data?.states || [],
+        cities: response.data?.cities || [],
+        departments: response.data?.departments || [],
+        qualifications: response.data?.qualifications || []
+      }
+    };
+  } catch (error) {
+    console.error('Failed to fetch dropdown data:', error);
+    
+    // Return safe fallback structure
+    return {
+      success: false,
+      data: {
+        states: [],
+        cities: [],
+        departments: [],
+        qualifications: []
+      },
+      error: error.message
+    };
   }
+}
 
   async getCitiesByState(stateId) {
     console.log('Fetching cities for state:', stateId);

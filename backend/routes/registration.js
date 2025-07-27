@@ -20,9 +20,8 @@ const validators = {
     return mobileRegex.test(mobile);
   },
   password: (password) => {
-    // At least 8 chars, 1 uppercase, 1 lowercase, 1 number
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
+    // At least 8 chars
+    return password && password.length >= 8;
   },
   name: (name) => {
     const nameRegex = /^[a-zA-Z\s]{2,50}$/;
@@ -61,11 +60,6 @@ router.get('/dropdown-data', async (req, res) => {
       `)
     ]);
 
-    // Add data validation
-    if (!states || !departments || !qualifications) {
-      throw new Error('Failed to fetch all dropdown data');
-    }
-
     res.json({
       success: true,
       message: 'Dropdown data fetched successfully',
@@ -92,24 +86,10 @@ router.get('/cities/:stateId', async (req, res) => {
   try {
     const { stateId } = req.params;
     
-    // Enhanced validation
     if (!stateId || isNaN(stateId) || parseInt(stateId) <= 0) {
       return res.status(400).json({
         success: false,
         message: 'Valid state ID is required'
-      });
-    }
-
-    // Check if state exists first
-    const [stateExists] = await promisePool.execute(
-      'SELECT id FROM state_tbl WHERE id = ? AND is_deleted = 0',
-      [stateId]
-    );
-
-    if (stateExists.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'State not found'
       });
     }
 
@@ -131,8 +111,7 @@ router.get('/cities/:stateId', async (req, res) => {
     console.error('Cities fetch error:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to fetch cities',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      message: 'Failed to fetch cities'
     });
   }
 });
@@ -151,7 +130,6 @@ router.post('/check-email', async (req, res) => {
 
     const sanitizedEmail = sanitizeInput(email.toLowerCase().trim());
 
-    // Validate email format
     if (!validators.email(sanitizedEmail)) {
       return res.status(400).json({
         success: false,
@@ -159,8 +137,9 @@ router.post('/check-email', async (req, res) => {
       });
     }
 
+    // ✅ FIXED: Use reg_id instead of id
     const [existingUsers] = await promisePool.execute(
-      'SELECT id FROM registration_tbl WHERE email = ? AND is_deleted = 0',
+      'SELECT reg_id FROM registration_tbl WHERE email = ? AND is_deleted = 0',
       [sanitizedEmail]
     );
 
@@ -174,8 +153,7 @@ router.post('/check-email', async (req, res) => {
     console.error('Email check error:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to check email availability',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      message: 'Failed to check email availability'
     });
   }
 });
@@ -197,7 +175,14 @@ router.post('/register', async (req, res) => {
       cityId,
       departmentId,
       qualificationId,
-      userType = 'ms'
+      userType = 'ms',
+      title = 'Mr',
+      gender = 1, // Default to male (1)
+      availability = 'Weekdays',
+      shift = 'Morning',
+      experience = 0,
+      lastSewa = '',
+      recommendedBy = ''
     } = req.body;
 
     console.log('Registration attempt for:', email);
@@ -208,66 +193,59 @@ router.post('/register', async (req, res) => {
       email: sanitizeInput(email?.toLowerCase()),
       mobileNo: sanitizeInput(mobileNo),
       address: sanitizeInput(address),
-      userType: sanitizeInput(userType)
+      userType: sanitizeInput(userType),
+      title: sanitizeInput(title),
+      lastSewa: sanitizeInput(lastSewa) || '',
+      recommendedBy: sanitizeInput(recommendedBy) || ''
     };
 
-    // Enhanced validation
-    const validationErrors = [];
-
-    if (!sanitizedData.fullName || !validators.name(sanitizedData.fullName)) {
-      validationErrors.push('Full name must be 2-50 characters and contain only letters and spaces');
-    }
-
-    if (!sanitizedData.email || !validators.email(sanitizedData.email)) {
-      validationErrors.push('Please enter a valid email address');
-    }
-
-    if (!password || !validators.password(password)) {
-      validationErrors.push('Password must be at least 8 characters with uppercase, lowercase, and number');
-    }
-
-    if (password !== confirmPassword) {
-      validationErrors.push('Passwords do not match');
-    }
-
-    if (!sanitizedData.mobileNo || !validators.mobile(sanitizedData.mobileNo)) {
-      validationErrors.push('Please enter a valid 10-digit Indian mobile number');
-    }
-
-    if (!['admin', 'ms'].includes(sanitizedData.userType)) {
-      validationErrors.push('Invalid user type');
-    }
-
-    // Date validation
-    if (dateOfBirth) {
-      const birthDate = new Date(dateOfBirth);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      
-      if (age < 18 || age > 100) {
-        validationErrors.push('Age must be between 18 and 100 years');
-      }
-    }
-
-    if (validationErrors.length > 0) {
+    // Basic validation
+    if (!sanitizedData.fullName || !sanitizedData.email || !password || !sanitizedData.mobileNo) {
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
-        errors: validationErrors
+        message: 'Full name, email, password, and mobile number are required'
       });
     }
 
-    // Check for existing email and mobile in parallel
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match'
+      });
+    }
+
+    if (!validators.email(sanitizedData.email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
+      });
+    }
+
+    if (!validators.mobile(sanitizedData.mobileNo)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid 10-digit mobile number'
+      });
+    }
+
+    if (!validators.password(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+
+    // ✅ FIXED: Check for existing email and mobile with reg_id
     const [
       [existingUsers],
       [existingMobile]
     ] = await Promise.all([
       promisePool.execute(
-        'SELECT id FROM registration_tbl WHERE email = ? AND is_deleted = 0',
+        'SELECT reg_id FROM registration_tbl WHERE email = ? AND is_deleted = 0',
         [sanitizedData.email]
       ),
       promisePool.execute(
-        'SELECT id FROM registration_tbl WHERE mobile_no = ? AND is_deleted = 0',
+        'SELECT reg_id FROM registration_tbl WHERE mobile_no = ? AND is_deleted = 0',
         [sanitizedData.mobileNo]
       )
     ]);
@@ -286,102 +264,70 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Validate foreign key references if provided
-    if (stateId || cityId || departmentId || qualificationId) {
-      const validationPromises = [];
-      
-      if (stateId) {
-        validationPromises.push(
-          promisePool.execute('SELECT id FROM state_tbl WHERE id = ? AND is_deleted = 0', [stateId])
-        );
-      }
-      
-      if (cityId) {
-        validationPromises.push(
-          promisePool.execute('SELECT id FROM city_tbl WHERE id = ? AND is_deleted = 0', [cityId])
-        );
-      }
-      
-      if (departmentId) {
-        validationPromises.push(
-          promisePool.execute('SELECT id FROM department_tbl WHERE id = ? AND is_deleted = 0', [departmentId])
-        );
-      }
-      
-      if (qualificationId) {
-        validationPromises.push(
-          promisePool.execute('SELECT id FROM qualification_tbl WHERE id = ? AND is_deleted = 0', [qualificationId])
-        );
-      }
-
-      const validationResults = await Promise.all(validationPromises);
-      const invalidReferences = validationResults.some(([result]) => result.length === 0);
-      
-      if (invalidReferences) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid reference data provided'
-        });
-      }
-    }
-
-    // Hash password with higher cost factor for better security
+    // Hash password
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Generate unique login_id
+    const loginId = `${sanitizedData.userType}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+    // Map gender string to number if needed
+    let genderValue = gender;
+    if (typeof gender === 'string') {
+      genderValue = gender.toLowerCase() === 'male' ? 1 : gender.toLowerCase() === 'female' ? 2 : 3;
+    }
 
     // Start transaction
     connection = await promisePool.getConnection();
     await connection.beginTransaction();
 
     try {
-      // Insert into registration_tbl
+      // ✅ FIXED: Insert with correct column names matching your table structure
       const [registrationResult] = await connection.execute(`
         INSERT INTO registration_tbl (
-          full_name, email, mobile_no, dob, address, 
-          state_id, city_id, department_id, qualification_id, 
-          user_type, password, is_deleted, created_datetime, updated_datetime
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW(), NOW())
+          user_type, login_id, title, full_name, email, password, mobile_no, 
+          dob, gender, address, state_id, city_id, qualification_id, department_id,
+          available_day_id, shifttime_id, profile_img_path, certificate_doc_path,
+          is_present, pass_entry, sewa_location_id, remark, created_datetime, 
+          updated_datetime, is_deleted, total_exp, prev_sewa_perform, recom_by, samagam_held_in
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0, ?, ?, ?, ?)
       `, [
-        sanitizedData.fullName,
-        sanitizedData.email,
-        sanitizedData.mobileNo,
-        dateOfBirth || null,
-        sanitizedData.address || null,
-        stateId || null,
-        cityId || null,
-        departmentId || null,
-        qualificationId || null,
-        sanitizedData.userType,
-        hashedPassword
+        sanitizedData.userType,           // user_type
+        loginId,                          // login_id
+        sanitizedData.title,              // title
+        sanitizedData.fullName,           // full_name
+        sanitizedData.email,              // email
+        hashedPassword,                   // password
+        sanitizedData.mobileNo,           // mobile_no
+        dateOfBirth || null,              // dob
+        genderValue,                      // gender (int)
+        sanitizedData.address || '',      // address
+        stateId || 0,                     // state_id
+        cityId || 0,                      // city_id
+        qualificationId || 0,             // qualification_id
+        departmentId || 0,                // department_id
+        1,                                // available_day_id (default to 1)
+        1,                                // shifttime_id (default to 1)
+        '',                               // profile_img_path (empty for now)
+        '',                               // certificate_doc_path (empty for now)
+        1,                                // is_present (default to 1)
+        0,                                // pass_entry (default to 0)
+        1,                                // sewa_location_id (default to 1)
+        '',                               // remark (empty for now)
+        parseFloat(experience) || 0.0,    // total_exp
+        sanitizedData.lastSewa,           // prev_sewa_perform
+        sanitizedData.recommendedBy,      // recom_by
+        ''                                // samagam_held_in (empty for now)
       ]);
 
       const newUserId = registrationResult.insertId;
-
-      // Generate unique login_id
-      const loginId = `${sanitizedData.userType}_${newUserId}_${Date.now()}`;
-
-      // Create login entry (with better error handling)
-      try {
-        const [loginTableExists] = await connection.execute(
-          "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'login_tbl'"
-        );
-        
-        if (loginTableExists[0].count > 0) {
-          await connection.execute(`
-            INSERT INTO login_tbl (reg_id, login_id, password, is_deleted, created_datetime)
-            VALUES (?, ?, ?, 0, NOW())
-          `, [newUserId, loginId, hashedPassword]);
-        }
-      } catch (loginError) {
-        console.log('Login table operation skipped:', loginError.message);
-      }
 
       // Commit transaction
       await connection.commit();
 
       console.log('User registered successfully:', sanitizedData.email);
 
-      // Return success response with limited user data
+      // Return success response
       res.status(201).json({
         success: true,
         message: 'Registration successful! You can now login with your credentials.',
@@ -406,26 +352,16 @@ router.post('/register', async (req, res) => {
     
     // Handle specific database errors
     if (error.code === 'ER_DUP_ENTRY') {
-      const field = error.message.includes('email') ? 'email' : 
-                   error.message.includes('mobile') ? 'mobile number' : 'field';
-      
       return res.status(409).json({
         success: false,
-        message: `This ${field} is already registered`
+        message: 'Email or mobile number is already registered'
       });
     }
 
-    if (error.code === 'ER_DATA_TOO_LONG') {
-      return res.status(400).json({
+    if (error.code === 'ER_BAD_FIELD_ERROR') {
+      return res.status(500).json({
         success: false,
-        message: 'One or more fields exceed maximum length'
-      });
-    }
-
-    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid reference data provided'
+        message: 'Database field error. Please contact administrator.'
       });
     }
 
@@ -443,7 +379,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Get registration statistics (Admin only)
+// Get registration statistics
 router.get('/stats', async (req, res) => {
   try {
     const [stats] = await promisePool.execute(`
