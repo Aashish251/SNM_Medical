@@ -240,24 +240,24 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_forgot_password_by_mobile`(
-    IN p_mobile_no VARCHAR(15)
-)
-BEGIN
-    -- Validate input
-    IF p_mobile_no IS NULL OR p_mobile_no = '' THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid input: Mobile number is required';
-    END IF;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_forgot_password_by_mobile`(
+--     IN p_mobile_no VARCHAR(15)
+-- )
+-- BEGIN
+--     -- Validate input
+--     IF p_mobile_no IS NULL OR p_mobile_no = '' THEN
+--         SIGNAL SQLSTATE '45000'
+--         SET MESSAGE_TEXT = 'Invalid input: Mobile number is required';
+--     END IF;
 
-    -- Check and return login_id and password
-    SELECT 
-        login_id,
-        password
-    FROM registration_tbl
-    WHERE mobile_no = p_mobile_no
-      AND is_deleted = 0;
-END ;;
+--     -- Check and return login_id and password
+--     SELECT 
+--         login_id,
+--         password
+--     FROM registration_tbl
+--     WHERE mobile_no = p_mobile_no
+--       AND is_deleted = 0;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -298,42 +298,42 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_available_day_by_id`(
-    IN p_id BIGINT UNSIGNED
-)
-BEGIN
-    -- ======= Validate Input =======
-    IF p_id IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid input: ID cannot be NULL';
-    END IF;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_available_day_by_id`(
+--     IN p_id BIGINT UNSIGNED
+-- )
+-- BEGIN
+--     -- ======= Validate Input =======
+--     IF p_id IS NULL THEN
+--         SIGNAL SQLSTATE '45000'
+--         SET MESSAGE_TEXT = 'Invalid input: ID cannot be NULL';
+--     END IF;
 
-    -- ======= Fetch All if ID is 0 =======
-    IF p_id = 0 THEN
-        SELECT 
-            id,
-            available_day,
-            created_datetime,
-            updated_datetime,
-            updated_by,
-            is_deleted
-        FROM available_day_tbl
-        WHERE is_deleted = 0;
+--     -- ======= Fetch All if ID is 0 =======
+--     IF p_id = 0 THEN
+--         SELECT 
+--             id,
+--             available_day,
+--             created_datetime,
+--             updated_datetime,
+--             updated_by,
+--             is_deleted
+--         FROM available_day_tbl
+--         WHERE is_deleted = 0;
         
-    -- ======= Fetch Specific Record =======
-    ELSE
-        SELECT 
-            id,
-            available_day,
-            created_datetime,
-            updated_datetime,
-            updated_by,
-            is_deleted
-        FROM available_day_tbl
-        WHERE id = p_id AND is_deleted = 0;
-    END IF;
+--     -- ======= Fetch Specific Record =======
+--     ELSE
+--         SELECT 
+--             id,
+--             available_day,
+--             created_datetime,
+--             updated_datetime,
+--             updated_by,
+--             is_deleted
+--         FROM available_day_tbl
+--         WHERE id = p_id AND is_deleted = 0;
+--     END IF;
 
-END ;;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -349,16 +349,16 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_city_details`(
-    IN p_state_id BIGINT UNSIGNED
-)
-BEGIN
-    SELECT id, city_name, state_id
-    FROM city_tbl
-    WHERE state_id = p_state_id 
-    AND is_deleted = 0  -- ✅ FIXED: Use correct column name
-    ORDER BY city_name;
-END ;;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_city_details`(
+--     IN p_state_id BIGINT UNSIGNED
+-- )
+-- BEGIN
+--     SELECT id, city_name, state_id
+--     FROM city_tbl
+--     WHERE state_id = p_state_id 
+--     AND is_deleted = 0  -- ✅ FIXED: Use correct column name
+--     ORDER BY city_name;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -427,23 +427,23 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_department_by_id`(
-    IN p_id BIGINT UNSIGNED
-)
-BEGIN
-    IF p_id = 0 THEN
-        -- Get all departments
-        SELECT id, department_name
-        FROM department_tbl
-        WHERE is_deleted = 0  -- ✅ FIXED: Use correct column name
-        ORDER BY department_name;
-    ELSE
-        -- Get specific department
-        SELECT id, department_name
-        FROM department_tbl
-        WHERE id = p_id AND is_deleted = 0;  -- ✅ FIXED: Use correct column name
-    END IF;
-END ;;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_department_by_id`(
+--     IN p_id BIGINT UNSIGNED
+-- )
+-- BEGIN
+--     IF p_id = 0 THEN
+--         -- Get all departments
+--         SELECT id, department_name
+--         FROM department_tbl
+--         WHERE is_deleted = 0  -- ✅ FIXED: Use correct column name
+--         ORDER BY department_name;
+--     ELSE
+--         -- Get specific department
+--         SELECT id, department_name
+--         FROM department_tbl
+--         WHERE id = p_id AND is_deleted = 0;  -- ✅ FIXED: Use correct column name
+--     END IF;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -667,23 +667,23 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_qualification_by_id`(
-    IN p_id BIGINT UNSIGNED
-)
-BEGIN
-    IF p_id = 0 THEN
-        -- Get all qualifications
-        SELECT id, qualification_name
-        FROM qualification_tbl
-        WHERE is_deleted = 0  -- ✅ FIXED: Use correct column name
-        ORDER BY qualification_name;
-    ELSE
-        -- Get specific qualification
-        SELECT id, qualification_name
-        FROM qualification_tbl
-        WHERE id = p_id AND is_deleted = 0;  -- ✅ FIXED: Use correct column name
-    END IF;
-END ;;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_qualification_by_id`(
+--     IN p_id BIGINT UNSIGNED
+-- )
+-- BEGIN
+--     IF p_id = 0 THEN
+--         -- Get all qualifications
+--         SELECT id, qualification_name
+--         FROM qualification_tbl
+--         WHERE is_deleted = 0  -- ✅ FIXED: Use correct column name
+--         ORDER BY qualification_name;
+--     ELSE
+--         -- Get specific qualification
+--         SELECT id, qualification_name
+--         FROM qualification_tbl
+--         WHERE id = p_id AND is_deleted = 0;  -- ✅ FIXED: Use correct column name
+--     END IF;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -699,41 +699,41 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_sewalocation_by_id`(
-    IN p_id BIGINT UNSIGNED
-)
-BEGIN
-    -- ======= Input Validation =======
-    IF p_id IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid input: ID cannot be NULL';
-    END IF;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_sewalocation_by_id`(
+--     IN p_id BIGINT UNSIGNED
+-- )
+-- BEGIN
+--     -- ======= Input Validation =======
+--     IF p_id IS NULL THEN
+--         SIGNAL SQLSTATE '45000'
+--         SET MESSAGE_TEXT = 'Invalid input: ID cannot be NULL';
+--     END IF;
 
-    -- ======= Return All Records if ID is 0 =======
-    IF p_id = 0 THEN
-        SELECT 
-            id,
-            sewalocation_name,
-            created_datetime,
-            updated_datetime,
-            updated_by,
-            is_deleted
-        FROM sewalocation_tbl
-        WHERE is_deleted = 0;
+--     -- ======= Return All Records if ID is 0 =======
+--     IF p_id = 0 THEN
+--         SELECT 
+--             id,
+--             sewalocation_name,
+--             created_datetime,
+--             updated_datetime,
+--             updated_by,
+--             is_deleted
+--         FROM sewalocation_tbl
+--         WHERE is_deleted = 0;
 
-    -- ======= Return Specific Record =======
-    ELSE
-        SELECT 
-            id,
-            sewalocation_name,
-            created_datetime,
-            updated_datetime,
-            updated_by,
-            is_deleted
-        FROM sewalocation_tbl
-        WHERE id = p_id AND is_deleted = 0;
-    END IF;
-END ;;
+--     -- ======= Return Specific Record =======
+--     ELSE
+--         SELECT 
+--             id,
+--             sewalocation_name,
+--             created_datetime,
+--             updated_datetime,
+--             updated_by,
+--             is_deleted
+--         FROM sewalocation_tbl
+--         WHERE id = p_id AND is_deleted = 0;
+--     END IF;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -749,41 +749,41 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_shifttime_by_id`(
-    IN p_id BIGINT UNSIGNED
-)
-BEGIN
-    -- ====== Validate Input ======
-    IF p_id IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid input: ID cannot be NULL';
-    END IF;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_shifttime_by_id`(
+--     IN p_id BIGINT UNSIGNED
+-- )
+-- BEGIN
+--     -- ====== Validate Input ======
+--     IF p_id IS NULL THEN
+--         SIGNAL SQLSTATE '45000'
+--         SET MESSAGE_TEXT = 'Invalid input: ID cannot be NULL';
+--     END IF;
 
-    -- ====== Fetch All Active Records ======
-    IF p_id = 0 THEN
-        SELECT 
-            id,
-            shifttime,
-            created_datetime,
-            updated_datetime,
-            updated_by,
-            is_deleted
-        FROM shifttime_tbl
-        WHERE is_deleted = 0;
+--     -- ====== Fetch All Active Records ======
+--     IF p_id = 0 THEN
+--         SELECT 
+--             id,
+--             shifttime,
+--             created_datetime,
+--             updated_datetime,
+--             updated_by,
+--             is_deleted
+--         FROM shifttime_tbl
+--         WHERE is_deleted = 0;
 
-    -- ====== Fetch Specific Record by ID ======
-    ELSE
-        SELECT 
-            id,
-            shifttime,
-            created_datetime,
-            updated_datetime,
-            updated_by,
-            is_deleted
-        FROM shifttime_tbl
-        WHERE id = p_id AND is_deleted = 0;
-    END IF;
-END ;;
+--     -- ====== Fetch Specific Record by ID ======
+--     ELSE
+--         SELECT 
+--             id,
+--             shifttime,
+--             created_datetime,
+--             updated_datetime,
+--             updated_by,
+--             is_deleted
+--         FROM shifttime_tbl
+--         WHERE id = p_id AND is_deleted = 0;
+--     END IF;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -799,16 +799,16 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_state_details`(
-    IN p_country_id VARCHAR(20)
-)
-BEGIN
-    SELECT id, state_name, country_id
-    FROM state_tbl
-    WHERE is_deleted = 0  -- ✅ FIXED: Use correct column name
-    AND (p_country_id IS NULL OR p_country_id = '' OR country_id = p_country_id)
-    ORDER BY state_name;
-END ;;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_state_details`(
+--     IN p_country_id VARCHAR(20)
+-- )
+-- BEGIN
+--     SELECT id, state_name, country_id
+--     FROM state_tbl
+--     WHERE is_deleted = 0  -- ✅ FIXED: Use correct column name
+--     AND (p_country_id IS NULL OR p_country_id = '' OR country_id = p_country_id)
+--     ORDER BY state_name;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -918,65 +918,65 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_user_profiles`(
-    IN p_search_key VARCHAR(100),
-    IN p_department_id INT,
-    IN p_qualification_id INT,
-    IN p_sewa_location_id INT,
-    IN p_city_id BIGINT,
-    IN p_state_id BIGINT,
-    IN p_is_present TINYINT,
-    IN p_pass_entry TINYINT
-)
-BEGIN
-    SELECT 
-        reg_id,
-        user_type,
-        login_id,
-        title,
-        full_name,
-        email,
-        password,
-        mobile_no,
-        dob,
-        gender,
-        address,
-        state_id,
-        city_id,
-        qualification_id,
-        department_id,
-        available_day_id,
-        shifttime_id,
-        profile_img_path,
-        certificate_doc_path,
-        is_present,
-        pass_entry,
-        sewa_location_id,
-        remark,
-        created_datetime,
-        updated_datetime,
-        is_deleted,
-        total_exp,
-        prev_sewa_perform,
-        recom_by,
-        samagam_held_in
-    FROM registration_tbl
-    WHERE
-        (
-            CAST(reg_id AS CHAR) LIKE CONCAT('%', p_search_key, '%')
-            OR full_name LIKE CONCAT('%', p_search_key, '%')
-            OR mobile_no LIKE CONCAT('%', p_search_key, '%')
-            OR email LIKE CONCAT('%', p_search_key, '%')
-        )
-        AND (p_department_id IS NULL OR department_id = p_department_id)
-        AND (p_qualification_id IS NULL OR qualification_id = p_qualification_id)
-        AND (p_sewa_location_id IS NULL OR sewa_location_id = p_sewa_location_id)
-        AND (p_city_id IS NULL OR city_id = p_city_id)
-        AND (p_state_id IS NULL OR state_id = p_state_id)
-        AND (p_is_present IS NULL OR is_present = p_is_present)
-        AND (p_pass_entry IS NULL OR pass_entry = p_pass_entry)
-        AND is_deleted = 0;
-END ;;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_user_profiles`(
+--     IN p_search_key VARCHAR(100),
+--     IN p_department_id INT,
+--     IN p_qualification_id INT,
+--     IN p_sewa_location_id INT,
+--     IN p_city_id BIGINT,
+--     IN p_state_id BIGINT,
+--     IN p_is_present TINYINT,
+--     IN p_pass_entry TINYINT
+-- )
+-- BEGIN
+--     SELECT 
+--         reg_id,
+--         user_type,
+--         login_id,
+--         title,
+--         full_name,
+--         email,
+--         password,
+--         mobile_no,
+--         dob,
+--         gender,
+--         address,
+--         state_id,
+--         city_id,
+--         qualification_id,
+--         department_id,
+--         available_day_id,
+--         shifttime_id,
+--         profile_img_path,
+--         certificate_doc_path,
+--         is_present,
+--         pass_entry,
+--         sewa_location_id,
+--         remark,
+--         created_datetime,
+--         updated_datetime,
+--         is_deleted,
+--         total_exp,
+--         prev_sewa_perform,
+--         recom_by,
+--         samagam_held_in
+--     FROM registration_tbl
+--     WHERE
+--         (
+--             CAST(reg_id AS CHAR) LIKE CONCAT('%', p_search_key, '%')
+--             OR full_name LIKE CONCAT('%', p_search_key, '%')
+--             OR mobile_no LIKE CONCAT('%', p_search_key, '%')
+--             OR email LIKE CONCAT('%', p_search_key, '%')
+--         )
+--         AND (p_department_id IS NULL OR department_id = p_department_id)
+--         AND (p_qualification_id IS NULL OR qualification_id = p_qualification_id)
+--         AND (p_sewa_location_id IS NULL OR sewa_location_id = p_sewa_location_id)
+--         AND (p_city_id IS NULL OR city_id = p_city_id)
+--         AND (p_state_id IS NULL OR state_id = p_state_id)
+--         AND (p_is_present IS NULL OR is_present = p_is_present)
+--         AND (p_pass_entry IS NULL OR pass_entry = p_pass_entry)
+--         AND is_deleted = 0;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -1023,136 +1023,136 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_save_user_profile`(
-    IN p_action VARCHAR(10), -- 'insert' or 'update'
-    IN p_id BIGINT UNSIGNED,
-    IN p_user_type VARCHAR(10),
-    IN p_login_id VARCHAR(100),
-    IN p_title VARCHAR(50),
-    IN p_full_name VARCHAR(100),
-    IN p_email VARCHAR(100),
-    IN p_password VARCHAR(255),
-    IN p_mobile_no VARCHAR(15),
-    IN p_dob DATE,
-    IN p_gender INT,
-    IN p_address TEXT,
-    IN p_state_id BIGINT UNSIGNED,
-    IN p_city_id BIGINT UNSIGNED,
-    IN p_qualification_id INT,
-    IN p_department_id INT,
-    IN p_available_day_id BIGINT,
-    IN p_shifttime_id BIGINT,
-    IN p_profile_img_path VARCHAR(150),
-    IN p_certificate_doc_path VARCHAR(150),
-    IN p_is_present TINYINT,
-    IN p_pass_entry TINYINT,
-    IN p_sewa_location_id INT,
-    IN p_remark TEXT,
-    IN p_total_exp DECIMAL(4,2),
-    IN p_prev_sewa_perform VARCHAR(100),
-    IN p_recom_by VARCHAR(100),
-    IN p_samagam_held_in VARCHAR(100),
-    IN p_is_deleted TINYINT
-)
-BEGIN
-    IF p_action = 'insert' THEN
-        INSERT INTO registration_tbl (
-            user_type,
-            login_id,
-            title,
-            full_name,
-            email,
-            password,
-            mobile_no,
-            dob,
-            gender,
-            address,
-            state_id,
-            city_id,
-            qualification_id,
-            department_id,
-            available_day_id,
-            shifttime_id,
-            profile_img_path,
-            certificate_doc_path,
-            is_present,
-            pass_entry,
-            sewa_location_id,
-            remark,
-            total_exp,
-            prev_sewa_perform,
-            recom_by,
-            samagam_held_in,
-            created_datetime,
-            updated_datetime,
-            is_deleted
-        )
-        VALUES (
-            p_user_type,
-            p_login_id,
-            p_title,
-            p_full_name,
-            p_email,
-            p_password,
-            p_mobile_no,
-            p_dob,
-            p_gender,
-            p_address,
-            p_state_id,
-            p_city_id,
-            p_qualification_id,
-            p_department_id,
-            p_available_day_id,
-            p_shifttime_id,
-            p_profile_img_path,
-            p_certificate_doc_path,
-            p_is_present,
-            p_pass_entry,
-            p_sewa_location_id,
-            p_remark,
-            p_total_exp,
-            p_prev_sewa_perform,
-            p_recom_by,
-            p_samagam_held_in,
-            NOW(),
-            NOW(),
-            p_is_deleted
-        );
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_save_user_profile`(
+--     IN p_action VARCHAR(10), -- 'insert' or 'update'
+--     IN p_id BIGINT UNSIGNED,
+--     IN p_user_type VARCHAR(10),
+--     IN p_login_id VARCHAR(100),
+--     IN p_title VARCHAR(50),
+--     IN p_full_name VARCHAR(100),
+--     IN p_email VARCHAR(100),
+--     IN p_password VARCHAR(255),
+--     IN p_mobile_no VARCHAR(15),
+--     IN p_dob DATE,
+--     IN p_gender INT,
+--     IN p_address TEXT,
+--     IN p_state_id BIGINT UNSIGNED,
+--     IN p_city_id BIGINT UNSIGNED,
+--     IN p_qualification_id INT,
+--     IN p_department_id INT,
+--     IN p_available_day_id BIGINT,
+--     IN p_shifttime_id BIGINT,
+--     IN p_profile_img_path VARCHAR(150),
+--     IN p_certificate_doc_path VARCHAR(150),
+--     IN p_is_present TINYINT,
+--     IN p_pass_entry TINYINT,
+--     IN p_sewa_location_id INT,
+--     IN p_remark TEXT,
+--     IN p_total_exp DECIMAL(4,2),
+--     IN p_prev_sewa_perform VARCHAR(100),
+--     IN p_recom_by VARCHAR(100),
+--     IN p_samagam_held_in VARCHAR(100),
+--     IN p_is_deleted TINYINT
+-- )
+-- BEGIN
+--     IF p_action = 'insert' THEN
+--         INSERT INTO registration_tbl (
+--             user_type,
+--             login_id,
+--             title,
+--             full_name,
+--             email,
+--             password,
+--             mobile_no,
+--             dob,
+--             gender,
+--             address,
+--             state_id,
+--             city_id,
+--             qualification_id,
+--             department_id,
+--             available_day_id,
+--             shifttime_id,
+--             profile_img_path,
+--             certificate_doc_path,
+--             is_present,
+--             pass_entry,
+--             sewa_location_id,
+--             remark,
+--             total_exp,
+--             prev_sewa_perform,
+--             recom_by,
+--             samagam_held_in,
+--             created_datetime,
+--             updated_datetime,
+--             is_deleted
+--         )
+--         VALUES (
+--             p_user_type,
+--             p_login_id,
+--             p_title,
+--             p_full_name,
+--             p_email,
+--             p_password,
+--             p_mobile_no,
+--             p_dob,
+--             p_gender,
+--             p_address,
+--             p_state_id,
+--             p_city_id,
+--             p_qualification_id,
+--             p_department_id,
+--             p_available_day_id,
+--             p_shifttime_id,
+--             p_profile_img_path,
+--             p_certificate_doc_path,
+--             p_is_present,
+--             p_pass_entry,
+--             p_sewa_location_id,
+--             p_remark,
+--             p_total_exp,
+--             p_prev_sewa_perform,
+--             p_recom_by,
+--             p_samagam_held_in,
+--             NOW(),
+--             NOW(),
+--             p_is_deleted
+--         );
 
-    ELSEIF p_action = 'update' THEN
-        UPDATE registration_tbl
-        SET
-            user_type = p_user_type,
-            login_id = p_login_id,
-            title = p_title,
-            full_name = p_full_name,
-            email = p_email,
-            password = p_password,
-            mobile_no = p_mobile_no,
-            dob = p_dob,
-            gender = p_gender,
-            address = p_address,
-            state_id = p_state_id,
-            city_id = p_city_id,
-            qualification_id = p_qualification_id,
-            department_id = p_department_id,
-            available_day_id = p_available_day_id,
-            shifttime_id = p_shifttime_id,
-            profile_img_path = p_profile_img_path,
-            certificate_doc_path = p_certificate_doc_path,
-            is_present = p_is_present,
-            pass_entry = p_pass_entry,
-            sewa_location_id = p_sewa_location_id,
-            remark = p_remark,
-            total_exp = p_total_exp,
-            prev_sewa_perform = p_prev_sewa_perform,
-            recom_by = p_recom_by,
-            samagam_held_in = p_samagam_held_in,
-            updated_datetime = NOW(),
-            is_deleted = p_is_deleted
-        WHERE reg_id = p_id;
-    END IF;
-END ;;
+--     ELSEIF p_action = 'update' THEN
+--         UPDATE registration_tbl
+--         SET
+--             user_type = p_user_type,
+--             login_id = p_login_id,
+--             title = p_title,
+--             full_name = p_full_name,
+--             email = p_email,
+--             password = p_password,
+--             mobile_no = p_mobile_no,
+--             dob = p_dob,
+--             gender = p_gender,
+--             address = p_address,
+--             state_id = p_state_id,
+--             city_id = p_city_id,
+--             qualification_id = p_qualification_id,
+--             department_id = p_department_id,
+--             available_day_id = p_available_day_id,
+--             shifttime_id = p_shifttime_id,
+--             profile_img_path = p_profile_img_path,
+--             certificate_doc_path = p_certificate_doc_path,
+--             is_present = p_is_present,
+--             pass_entry = p_pass_entry,
+--             sewa_location_id = p_sewa_location_id,
+--             remark = p_remark,
+--             total_exp = p_total_exp,
+--             prev_sewa_perform = p_prev_sewa_perform,
+--             recom_by = p_recom_by,
+--             samagam_held_in = p_samagam_held_in,
+--             updated_datetime = NOW(),
+--             is_deleted = p_is_deleted
+--         WHERE reg_id = p_id;
+--     END IF;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -1272,44 +1272,44 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validate_login`(
-    IN p_user_type VARCHAR(10),
-    IN p_login_id VARCHAR(100),
-    IN p_password VARCHAR(255)
-)
-BEGIN
-    -- Fetch matching user
-    SELECT 
-        reg_id,
-        user_type,
-        full_name,
-        email,
-        mobile_no,
-        gender,
-        state_id,
-        city_id,
-        qualification_id,
-        department_id,
-        available_day_id,
-        shifttime_id,
-        profile_img_path,
-        certificate_doc_path,
-        is_present,
-        pass_entry,
-        sewa_location_id,
-        remark,
-        created_datetime,
-        updated_datetime,
-        total_exp,
-        prev_sewa_perform,
-        recom_by,
-        samagam_held_in
-    FROM registration_tbl
-    WHERE user_type = p_user_type
-      AND login_id = p_login_id
-      AND password = p_password
-      AND is_deleted = 0;
-END ;;
+-- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validate_login`(
+--     IN p_user_type VARCHAR(10),
+--     IN p_login_id VARCHAR(100),
+--     IN p_password VARCHAR(255)
+-- )
+-- BEGIN
+--     -- Fetch matching user
+--     SELECT 
+--         reg_id,
+--         user_type,
+--         full_name,
+--         email,
+--         mobile_no,
+--         gender,
+--         state_id,
+--         city_id,
+--         qualification_id,
+--         department_id,
+--         available_day_id,
+--         shifttime_id,
+--         profile_img_path,
+--         certificate_doc_path,
+--         is_present,
+--         pass_entry,
+--         sewa_location_id,
+--         remark,
+--         created_datetime,
+--         updated_datetime,
+--         total_exp,
+--         prev_sewa_perform,
+--         recom_by,
+--         samagam_held_in
+--     FROM registration_tbl
+--     WHERE user_type = p_user_type
+--       AND login_id = p_login_id
+--       AND password = p_password
+--       AND is_deleted = 0;
+-- END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
