@@ -19,187 +19,187 @@
 -- Table structure for table `available_day_tbl`
 --
 
-DROP TABLE IF EXISTS `available_day_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `available_day_tbl` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `available_day` varchar(100) NOT NULL,
-  `created_datetime` datetime NOT NULL,
-  `updated_datetime` datetime NOT NULL,
-  `updated_by` int NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- DROP TABLE IF EXISTS `available_day_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `available_day_tbl` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `available_day` varchar(100) NOT NULL,
+--   `created_datetime` datetime NOT NULL,
+--   `updated_datetime` datetime NOT NULL,
+--   `updated_by` int NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   PRIMARY KEY (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `cities`
 --
 
-DROP TABLE IF EXISTS `cities`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cities` (
-  `id` int NOT NULL,
-  `city_name` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
-  `state_id` int NOT NULL,
-  `status` tinyint NOT NULL DEFAULT '1',
-  `is_deleted` tinyint NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `cities`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `cities` (
+--   `id` int NOT NULL,
+--   `city_name` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+--   `state_id` int NOT NULL,
+--   `status` tinyint NOT NULL DEFAULT '1',
+--   `is_deleted` tinyint NOT NULL DEFAULT '0'
+-- ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `city_tbl`
 --
 
-DROP TABLE IF EXISTS `city_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `city_tbl` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `city_name` varchar(100) NOT NULL,
-  `state_id` bigint unsigned NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  PRIMARY KEY (`id`),
-  KEY `state_id` (`state_id`),
-  CONSTRAINT `city_tbl_ibfk_1` FOREIGN KEY (`state_id`) REFERENCES `state_tbl` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5742 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `city_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `city_tbl` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `city_name` varchar(100) NOT NULL,
+--   `state_id` bigint unsigned NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   PRIMARY KEY (`id`),
+--   KEY `state_id` (`state_id`),
+--   CONSTRAINT `city_tbl_ibfk_1` FOREIGN KEY (`state_id`) REFERENCES `state_tbl` (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=5742 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `department_tbl`
 --
 
-DROP TABLE IF EXISTS `department_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `department_tbl` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `department_name` varchar(100) NOT NULL,
-  `created_datetime` datetime NOT NULL,
-  `updated_datetime` datetime NOT NULL,
-  `updated_by` int NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `department_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `department_tbl` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `department_name` varchar(100) NOT NULL,
+--   `created_datetime` datetime NOT NULL,
+--   `updated_datetime` datetime NOT NULL,
+--   `updated_by` int NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   PRIMARY KEY (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `qualification_tbl`
 --
 
-DROP TABLE IF EXISTS `qualification_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `qualification_tbl` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `qualification_name` varchar(100) NOT NULL,
-  `created_datetime` datetime NOT NULL,
-  `updated_datetime` datetime NOT NULL,
-  `updated_by` int NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `qualification_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `qualification_tbl` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `qualification_name` varchar(100) NOT NULL,
+--   `created_datetime` datetime NOT NULL,
+--   `updated_datetime` datetime NOT NULL,
+--   `updated_by` int NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   PRIMARY KEY (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `registration_tbl`
 --
 
-DROP TABLE IF EXISTS `registration_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `registration_tbl` (
-  `reg_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `user_type` varchar(10) NOT NULL,
-  `login_id` varchar(100) NOT NULL,
-  `title` varchar(50) NOT NULL COMMENT 'Dr., Mr., Ms., Miss.',
-  `full_name` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `mobile_no` varchar(15) NOT NULL,
-  `dob` date NOT NULL,
-  `gender` int NOT NULL COMMENT 'Male - 1, Female - 2, Others - 3',
-  `address` text NOT NULL,
-  `state_id` bigint unsigned NOT NULL,
-  `city_id` bigint unsigned NOT NULL,
-  `qualification_id` int NOT NULL,
-  `department_id` int NOT NULL,
-  `available_day_id` bigint NOT NULL,
-  `shifttime_id` bigint NOT NULL,
-  `profile_img_path` varchar(150) NOT NULL,
-  `certificate_doc_path` varchar(150) NOT NULL,
-  `is_present` tinyint NOT NULL COMMENT '0 - absent, 1 - present',
-  `pass_entry` tinyint NOT NULL COMMENT '0 - No, 1 - Yes',
-  `sewa_location_id` int NOT NULL,
-  `remark` text NOT NULL,
-  `created_datetime` datetime NOT NULL,
-  `updated_datetime` datetime NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  `total_exp` decimal(4,2) NOT NULL,
-  `prev_sewa_perform` varchar(100) NOT NULL,
-  `recom_by` varchar(100) NOT NULL,
-  `samagam_held_in` varchar(100) NOT NULL,
-  PRIMARY KEY (`reg_id`),
-  KEY `registration_tbl_state_id_foreign` (`state_id`),
-  KEY `registration_tbl_city_id_foreign` (`city_id`),
-  CONSTRAINT `registration_tbl_city_id_foreign` FOREIGN KEY (`city_id`) REFERENCES `city_tbl` (`id`),
-  CONSTRAINT `registration_tbl_state_id_foreign` FOREIGN KEY (`state_id`) REFERENCES `state_tbl` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `registration_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `registration_tbl` (
+--   `reg_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `user_type` varchar(10) NOT NULL,
+--   `login_id` varchar(100) NOT NULL,
+--   `title` varchar(50) NOT NULL COMMENT 'Dr., Mr., Ms., Miss.',
+--   `full_name` varchar(100) NOT NULL,
+--   `email` varchar(100) NOT NULL,
+--   `password` varchar(255) NOT NULL,
+--   `mobile_no` varchar(15) NOT NULL,
+--   `dob` date NOT NULL,
+--   `gender` int NOT NULL COMMENT 'Male - 1, Female - 2, Others - 3',
+--   `address` text NOT NULL,
+--   `state_id` bigint unsigned NOT NULL,
+--   `city_id` bigint unsigned NOT NULL,
+--   `qualification_id` int NOT NULL,
+--   `department_id` int NOT NULL,
+--   `available_day_id` bigint NOT NULL,
+--   `shifttime_id` bigint NOT NULL,
+--   `profile_img_path` varchar(150) NOT NULL,
+--   `certificate_doc_path` varchar(150) NOT NULL,
+--   `is_present` tinyint NOT NULL COMMENT '0 - absent, 1 - present',
+--   `pass_entry` tinyint NOT NULL COMMENT '0 - No, 1 - Yes',
+--   `sewa_location_id` int NOT NULL,
+--   `remark` text NOT NULL,
+--   `created_datetime` datetime NOT NULL,
+--   `updated_datetime` datetime NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   `total_exp` decimal(4,2) NOT NULL,
+--   `prev_sewa_perform` varchar(100) NOT NULL,
+--   `recom_by` varchar(100) NOT NULL,
+--   `samagam_held_in` varchar(100) NOT NULL,
+--   PRIMARY KEY (`reg_id`),
+--   KEY `registration_tbl_state_id_foreign` (`state_id`),
+--   KEY `registration_tbl_city_id_foreign` (`city_id`),
+--   CONSTRAINT `registration_tbl_city_id_foreign` FOREIGN KEY (`city_id`) REFERENCES `city_tbl` (`id`),
+--   CONSTRAINT `registration_tbl_state_id_foreign` FOREIGN KEY (`state_id`) REFERENCES `state_tbl` (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `sewalocation_tbl`
 --
 
-DROP TABLE IF EXISTS `sewalocation_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `sewalocation_tbl` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `sewalocation_name` varchar(100) NOT NULL,
-  `created_datetime` datetime NOT NULL,
-  `updated_datetime` datetime NOT NULL,
-  `updated_by` int NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `sewalocation_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `sewalocation_tbl` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `sewalocation_name` varchar(100) NOT NULL,
+--   `created_datetime` datetime NOT NULL,
+--   `updated_datetime` datetime NOT NULL,
+--   `updated_by` int NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   PRIMARY KEY (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `shifttime_tbl`
 --
 
-DROP TABLE IF EXISTS `shifttime_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `shifttime_tbl` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `shifttime` varchar(100) NOT NULL,
-  `created_datetime` datetime NOT NULL,
-  `updated_datetime` datetime NOT NULL,
-  `updated_by` int NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `shifttime_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `shifttime_tbl` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `shifttime` varchar(100) NOT NULL,
+--   `created_datetime` datetime NOT NULL,
+--   `updated_datetime` datetime NOT NULL,
+--   `updated_by` int NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   PRIMARY KEY (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `state_tbl`
 --
 
-DROP TABLE IF EXISTS `state_tbl`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `state_tbl` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `state_name` varchar(100) NOT NULL,
-  `country_id` bigint unsigned NOT NULL,
-  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS `state_tbl`;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!50503 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE `state_tbl` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `state_name` varchar(100) NOT NULL,
+--   `country_id` bigint unsigned NOT NULL,
+--   `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '0 - no, 1 - yes',
+--   PRIMARY KEY (`id`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping routines for database 'snm_dispensary'
