@@ -1,11 +1,12 @@
-# 🏥 SNM Medical Service Management System
+# 🏥 SNM Medical
 
 ![Node.js](https://img.shields.io/badge/Node.js-v18+-green)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue)
 ![Express](https://img.shields.io/badge/Express.js-4.x-lightgrey)
+
 <!-- ![License](https://img.shields.io/badge/License-MIT-yellow) -->
 
-A comprehensive **medical dispensary and staff management system** built with modern web technologies. Features secure authentication, department management, duty chart tracking, and administrative reporting capabilities.
+A comprehensive **SNM medical dispensary** built with modern web technologies. Features secure authentication, department management, duty chart tracking, and administrative reporting capabilities.
 
 ## 📋 Table of Contents
 
@@ -38,6 +39,7 @@ A comprehensive **medical dispensary and staff management system** built with mo
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **Node.js** (v18+) - Runtime environment
 - **Express.js** (v4.x) - Web framework
 - **MySQL** (v8.0+) - Database
@@ -47,12 +49,14 @@ A comprehensive **medical dispensary and staff management system** built with mo
 - **Helmet** - Security middleware
 
 ### Frontend
+
 - **React.js** / **Next.js** - UI framework
 - **Tailwind CSS** - Styling
 - **Axios** - HTTP client
 - **React Router** - Navigation
 
 ### Development Tools
+
 - **Visual Studio Code** - Code editor
 - **MySQL Workbench** - Database management
 - **Postman** - API testing
@@ -68,7 +72,7 @@ Before you begin, ensure you have the following installed:
 - [MySQL Workbench](https://dev.mysql.com/downloads/workbench/) (for database management)
 - [Express.js](https://expressjs.com/) (v4.x)
 - [Git](https://git-scm.com/downloads) (for version control)
-- [GitHub Desktop](https://desktop.github.com/download/) — Free desktop client 
+- [GitHub Desktop](https://desktop.github.com/download/) — Free desktop client
 - [Visual Studio Code](https://code.visualstudio.com/download) (recommended)
 - [Postman](https://www.postman.com/downloads/) (for API testing)
 
@@ -161,7 +165,7 @@ REACT_APP_APP_NAME=SNM Medical System
 mysql -u root -p
 
 -- Create database
-CREATE DATABASE IF NOT EXISTS snm_dispensary 
+CREATE DATABASE IF NOT EXISTS snm_dispensary
 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Use the database
@@ -188,35 +192,39 @@ SHOW PROCEDURE STATUS WHERE Db = 'snm_dispensary';
 ## 🔗 API Endpoints
 
 ### Authentication
-| Endpoint | Method | Description | Auth Required |
-|----------|--------|-------------|---------------|
-| `/api/auth/login` | POST | User login | No |
-| `/api/auth/forgot-password` | POST | Forgot password | No |
-| `/api/auth/reset-password` | POST | Reset password | No |
+
+| Endpoint                    | Method | Description     | Auth Required |
+| --------------------------- | ------ | --------------- | ------------- |
+| `/api/auth/login`           | POST   | User login      | No            |
+| `/api/auth/forgot-password` | POST   | Forgot password | No            |
+| `/api/auth/reset-password`  | POST   | Reset password  | No            |
 
 ### Registration
-| Endpoint | Method | Description | Auth Required |
-|----------|--------|-------------|---------------|
-| `/api/registration/register` | POST | Register new user | No |
-| `/api/registration/check-email` | POST | Check if email exists | No |
-| `/api/registration/dropdown-data` | GET | Get master data for dropdowns | No |
-| `/api/registration/cities/:stateId` | GET | Get cities by state ID | No |
+
+| Endpoint                            | Method | Description                   | Auth Required |
+| ----------------------------------- | ------ | ----------------------------- | ------------- |
+| `/api/registration/register`        | POST   | Register new user             | No            |
+| `/api/registration/check-email`     | POST   | Check if email exists         | No            |
+| `/api/registration/dropdown-data`   | GET    | Get master data for dropdowns | No            |
+| `/api/registration/cities/:stateId` | GET    | Get cities by state ID        | No            |
 
 ### Dashboard
-| Endpoint | Method | Description | Auth Required |
-|----------|--------|-------------|---------------|
-| `/api/dashboard/profile` | GET | Get user profile | Yes |
-| `/api/dashboard/profile` | PUT | Update user profile | Yes |
-| `/api/dashboard/stats` | GET | Get dashboard statistics | Yes |
-| `/api/dashboard/summary` | GET | Get admin summary | Yes |
-| `/api/dashboard/users` | GET | Get filtered users | Yes |
+
+| Endpoint                 | Method | Description              | Auth Required |
+| ------------------------ | ------ | ------------------------ | ------------- |
+| `/api/dashboard/profile` | GET    | Get user profile         | Yes           |
+| `/api/dashboard/profile` | PUT    | Update user profile      | Yes           |
+| `/api/dashboard/stats`   | GET    | Get dashboard statistics | Yes           |
+| `/api/dashboard/summary` | GET    | Get admin summary        | Yes           |
+| `/api/dashboard/users`   | GET    | Get filtered users       | Yes           |
 
 ### Duty Chart
-| Endpoint | Method | Description | Auth Required |
-|----------|--------|-------------|---------------|
-| `/api/dutychart/filter` | GET | Get filtered duty chart | Yes |
-| `/api/dutychart/stats` | GET | Get duty chart statistics | Yes |
-| `/api/dutychart/presence/:userId` | PUT | Update staff presence | Yes |
+
+| Endpoint                          | Method | Description               | Auth Required |
+| --------------------------------- | ------ | ------------------------- | ------------- |
+| `/api/dutychart/filter`           | GET    | Get filtered duty chart   | Yes           |
+| `/api/dutychart/stats`            | GET    | Get duty chart statistics | Yes           |
+| `/api/dutychart/presence/:userId` | PUT    | Update staff presence     | Yes           |
 
 <!-- ## 📁 Project Structure
 
@@ -265,7 +273,8 @@ snm-medical-system/
 │   └── DEPLOYMENT.md
 ├── README.md
 └── LICENSE -->
-```
+
+````
 
 ## 🎯 Usage
 
@@ -278,13 +287,15 @@ snm-medical-system/
 
    # macOS/Linux
    sudo systemctl start mysql
-   ```
+````
 
 2. **Start Backend Server**
+
    ```bash
    cd backend
    npm run dev
    ```
+
    Server will start on `http://localhost:5000`
 
 3. **Start Frontend Development Server**
@@ -325,6 +336,7 @@ Import the Postman collection from `docs/postman_collection.json` to test all AP
 ### Common Issues
 
 **1. MySQL Connection Error**
+
 ```bash
 # Check if MySQL is running
 # Windows: services.msc -> MySQL80
@@ -335,6 +347,7 @@ Import the Postman collection from `docs/postman_collection.json` to test all AP
 ```
 
 **2. Port Already in Use**
+
 ```bash
 # Windows - Find and kill process on port 5000
 netstat -ano | findstr :5000
@@ -347,6 +360,7 @@ lsof -ti:5000 | xargs kill -9
 ```
 
 **3. Missing Stored Procedures**
+
 ```sql
 -- Check if procedures exist
 SHOW PROCEDURE STATUS WHERE Db = 'snm_dispensary';
@@ -356,6 +370,7 @@ mysql -u root -p snm_dispensary < database/procedures.sql
 ```
 
 **4. JWT Token Issues**
+
 ```bash
 # Ensure JWT_SECRET is at least 32 characters
 # Clear browser storage/cookies
@@ -401,21 +416,20 @@ We welcome contributions! Please follow these steps:
 - Write unit tests for new features
 - Update documentation for API changes
 
-
 ## 🙏 Acknowledgments
 
 - Built with modern web technologies
 - Inspired by healthcare management needs
 - Designed for scalability and security
 
-## 📞 Support
+<!-- ## 📞 Support
 
 For support and questions:
 
 - 📧 **Email**: support@snm-medical.com
 - 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/snm-medical-system/issues)
 - 📖 **Documentation**: [Wiki](https://github.com/yourusername/snm-medical-system/wiki)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/snm-medical-system/discussions)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/snm-medical-system/discussions) -->
 
 ---
 
@@ -423,4 +437,4 @@ For support and questions:
 
 ---
 
-*Last updated: October 4, 2025*
+<!-- _Last updated: October 4, 2025_ -->
