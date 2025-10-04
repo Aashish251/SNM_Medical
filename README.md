@@ -81,7 +81,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/snm-medical-system.git
+git clone https://github.com/Aashish251/SNM_Medical/tree/main
 cd snm-medical-system
 ```
 
