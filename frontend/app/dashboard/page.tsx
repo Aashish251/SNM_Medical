@@ -136,7 +136,7 @@ export default function Dashboard() {
           return;
         }
 
-        console.log('🔍 Fetching dashboard data...');
+        console.log(' Fetching dashboard data...');
 
         // Fetch user profile and dashboard stats
         const [profileResponse, statsResponse] = await Promise.all([
@@ -239,7 +239,7 @@ export default function Dashboard() {
   //  Logout function
   const handleLogout = async () => {
     try {
-      console.log('🔍 Logging out user...');
+      console.log(' Logging out user...');
       localStorage.clear();
       sessionStorage.clear();
 
@@ -302,12 +302,12 @@ export default function Dashboard() {
 
   //  Handle navigation with sign-out
   const handleTabClick = (id: string) => {
-    console.log('🔍 Navigation clicked:', id);
+    console.log(' Navigation clicked:', id);
 
     if (id === 'reports') {
       setShowReports(!showReports);
     } else if (id === 'sign-out') {
-      console.log('🔍 Sign out clicked');
+      console.log(' Sign out clicked');
       handleLogout();
     } else {
       setActiveTab(id);

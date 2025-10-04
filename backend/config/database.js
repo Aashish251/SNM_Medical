@@ -9,11 +9,8 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0,
-  timeout: 60000,           
-  reconnect: true           
+  queueLimit: 0
 });
-
 
 const promisePool = pool.promise();
 
@@ -21,6 +18,11 @@ const testConnection = async () => {
   try {
     const connection = await promisePool.getConnection();
     console.log('MySQL Database connected successfully to snm_dispensary');
+    
+    // Test a simple query
+    const [rows] = await connection.execute('SELECT 1 as test');
+    console.log('Database query test successful');
+    
     connection.release();
     return true;
   } catch (error) {
@@ -28,6 +30,15 @@ const testConnection = async () => {
     return false;
   }
 };
+
+// Handle pool events for better monitoring
+pool.on('connection', (connection) => {
+  console.log('New database connection established');
+});
+
+pool.on('error', (err) => {
+  console.error('Database pool error:', err.message);
+});
 
 module.exports = {
   pool,

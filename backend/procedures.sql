@@ -349,16 +349,16 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
--- CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_city_details`(
---     IN p_state_id BIGINT UNSIGNED
--- )
--- BEGIN
---     SELECT id, city_name, state_id
---     FROM city_tbl
---     WHERE state_id = p_state_id 
---     AND is_deleted = 0  -- ✅ FIXED: Use correct column name
---     ORDER BY city_name;
--- END ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_city_details`(
+    IN p_state_id BIGINT UNSIGNED
+)
+BEGIN
+    SELECT id, city_name, state_id
+    FROM city_tbl
+    WHERE state_id = p_state_id 
+    AND is_deleted = 0  -- ✅ FIXED: Use correct column name
+    ORDER BY city_name;
+END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
