@@ -1,0 +1,9 @@
+export const SNM_WEBSITE_LOGO = "/img/snmlogo.jpeg";
+export const HOME_HERO_BANNER_IMAGE1 = "/img/SD02.jpg";
+export const HOME_HERO_BANNER_IMAGE2 = "/img/matasudikshaji.png";
+export const HOME_HERO_BANNER_IMAGE3 = "/img/satgurumataji1.png";
+export const HOME_HERO_BANNER_IMAGE4 = "/img/SD03.jpg";
+export const HOME_HERO_ABOUT_IMAGE1 = "/img/babaji.jpg";
+export const HOME_HERO_ABOUT_IMAGE2 = "/img/snmd.jpg";
+export const HOME_HERO_ABOUT_IMAGE3 = "/img/blood_donation.jpg";
+export const HOME_HERO_ABOUT_IMAGE4 = "/img/snm1.png";
