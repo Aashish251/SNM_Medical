@@ -1,0 +1,134 @@
+import React from "react";
+import { UseFormReturn } from "react-hook-form";
+import { TextField } from "@shared/components/FormInputs/TextField";
+import { FormData, Role } from "../hooks/useLoginForm";
+import { RoleButton } from "./RoleButton";
+
+interface LoginFormProps {
+  form: UseFormReturn<FormData>;
+  role: Role;
+  handleRoleChange: (role: Role) => void;
+  onSubmit: (data: FormData) => Promise<void>;
+  loading: boolean;
+  error: string;
+}
+
+export const LoginForm: React.FC<LoginFormProps> = ({
+  form,
+  role,
+  handleRoleChange,
+  onSubmit,
+  loading,
+  error,
+}) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {/* Role Selector */}
+      <div className="flex justify-center gap-2 flex-wrap mb-2">
+        <RoleButton
+          roleName="Admin"
+          currentRole={role}
+          onClick={handleRoleChange}
+          loading={loading}
+        />
+        <RoleButton
+          roleName="Medical Staff"
+          currentRole={role}
+          onClick={handleRoleChange}
+          loading={loading}
+        />
+      </div>
+
+      {/* Email */}
+      <TextField
+        label="Email"
+        placeholder="Enter your email"
+        type="email"
+        required
+        register={register("email", {
+          required: "Email is required",
+          pattern: {
+            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: "Invalid email format",
+          },
+        })}
+        error={errors.email}
+      />
+
+      {/* Password */}
+      <TextField
+        label="Password"
+        placeholder="Enter your password"
+        type="password"
+        required
+        register={register("password", {
+          required: "Password is required",
+          minLength: { value: 6, message: "Minimum 6 characters" },
+        })}
+        error={errors.password}
+      />
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs">
+          {error}
+        </div>
+      )}
+
+      {/* Forgot Password */}
+      <div className="text-right">
+        <a
+          href="/forgot-password"
+          className="text-xs sm:text-sm text-teal-600 hover:underline"
+        >
+          Forgot password?
+        </a>
+      </div>
+
+      {/* Submit Button */}
+      <button
+        type="submit"
+        disabled={loading}
+        className={`w-full py-2 rounded-full bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-200 shadow-md text-white font-bold text-base transition-transform duration-300 ${
+          loading
+            ? "opacity-70 cursor-not-allowed"
+            : "hover:scale-105 hover:from-purple-600 hover:to-indigo-600"
+        }`}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center">
+            <svg
+              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            Signing In...
+          </span>
+        ) : (
+          "Sign In"
+        )}
+      </button>
+    </form>
+  );
+};
