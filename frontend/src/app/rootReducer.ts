@@ -1,19 +1,25 @@
 import { combineReducers } from "@reduxjs/toolkit";
-import storage from "redux-persist/lib/storage";
 import { persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
+
+// API Slices
 import { loginApi } from "@features/login/services/loginApi";
-import authReducer from "@features/login/redux/authSlice";
+import { RegisterApi } from "@features/register/services";
+
+// Feature Reducers
+import authReducer from "@features/login/redux/authSlice"
 
 const rootReducer = combineReducers({
   [loginApi.reducerPath]: loginApi.reducer,
+  [RegisterApi.reducerPath]: RegisterApi.reducer,
   auth: authReducer,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"],
+  whitelist: ["auth"], // Only persist auth slice
 };
 
+// Export persisted reducer
 export const persistedReducer = persistReducer(persistConfig, rootReducer);
-

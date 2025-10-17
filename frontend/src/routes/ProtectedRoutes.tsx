@@ -10,7 +10,7 @@ export const ProtectedRoutes = [
     key="dashboard"
     path="/admin/dashboard"
     element={
-      <ProtectedRoute isAuthenticated={true}>
+      <ProtectedRoute>
         <Dashboard />
       </ProtectedRoute>
     }
@@ -19,7 +19,7 @@ export const ProtectedRoutes = [
     key="duty-chart"
     path="/admin/duty-chart"
     element={
-      <ProtectedRoute isAuthenticated={true}>
+      <ProtectedRoute>
         <DutyChart />
       </ProtectedRoute>
     }

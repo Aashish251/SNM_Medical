@@ -1,65 +1,43 @@
-import React, { useState } from "react";
-import { FieldErrorText, RequiredMark } from "./FormHelpers";
+import * as React from "react";
 import { UseFormRegisterReturn, FieldError } from "react-hook-form";
-import { Button } from "@shared/components/ui/button";
+import { Label } from "@shared/components/ui/label"; // ShadCN Label
+import { Input } from "@shared/components/ui/input"; // ShadCN Input
+import { cn } from "@shared/lib/utils"; // Optional: Tailwind merge helper
 
 interface FileUploadFieldProps {
-    label: string;
-    register: UseFormRegisterReturn;
-    required?: boolean;
-    error?: FieldError | null;
-    accept?: string;
+  label: string;
+  register: UseFormRegisterReturn;
+  required?: boolean;
+  accept?: string;
+  error?: FieldError | null;
 }
 
 export const FileUploadField = ({
-    label,
-    register,
-    required,
-    error,
-    accept = "image/*",
+  label,
+  register,
+  required,
+  accept = "image/*",
+  error,
 }: FileUploadFieldProps) => {
-    const [fileName, setFileName] = useState<string>("No file chosen");
+  return (
+    <div className="space-y-1">
+      <Label className="block text-sm font-medium text-gray-700">
+        {label} {required && <span className="text-red-500">*</span>}
+      </Label>
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        setFileName(file ? file.name : "No file chosen");
-    };
+      <Input
+        type="file"
+        accept={accept}
+        {...register}
+        className={cn(
+          "h-auto border border-gray-300 rounded-md px-3 py-2 file:border-0 file:rounded-sm file:bg-blue-100 file:mr-3 file:px-4 file:py-2 file:cursor-pointer",
+          error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+        )}
+      />
 
-    return (
-        <div className="space-y-2">
-            <label className="block font-medium text-sm text-gray-700">
-                {label} {required && <RequiredMark />}
-            </label>
-
-            <div className="flex items-center gap-3">
-                {/* Hidden input field */}
-                <input
-                    type="file"
-                    id={label.replace(/\s+/g, "_").toLowerCase()}
-                    accept={accept}
-                    className="hidden"
-                    {...register}
-                    onChange={handleChange}
-                />
-
-                {/* Custom styled button */}
-                <label
-                    htmlFor={label.replace(/\s+/g, "_").toLowerCase()}
-                    className="cursor-pointer"
-                >
-                    <Button type="button" variant="default">
-                        Choose File
-                    </Button>
-                </label>
-
-                {/* Display selected filename */}
-                <span className="text-gray-600 text-sm truncate max-w-[200px]">
-                    {fileName}
-                </span>
-            </div>
-
-            {/* Error message */}
-            <FieldErrorText message={error?.message} />
-        </div>
-    );
+      {error?.message && (
+        <p className="text-sm text-red-500 mt-1">{error.message}</p>
+      )}
+    </div>
+  );
 };

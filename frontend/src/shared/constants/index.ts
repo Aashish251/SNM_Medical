@@ -6,3 +6,6 @@ export const SNM_SITE_LOGO_URL = "https://www.nirankari.org/wp-content/uploads/2
 export const SNM_SITE_ADDRESS = "Sant Nirankari Bhavan, Mahul Rd, Chembur Colony, Chembur, Mumbai, Maharashtra 400074";
 export const SNM_SITE_PHONE = "+91 8898209852";
 export const SNM_SITE_EMAIL = "snmdispensary@gmail.com";
+export const SNM_LOGIN_PAGE_TITLE = "Welcome to Medical Sewa";
+export const SNM_LOGIN_PAGE_DNG = "Dhan Nirankar Ji";
+

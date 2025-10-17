@@ -10,7 +10,7 @@ import {
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
-const Footer = () => {
+const Footer = () => { 
   const services = [
     {
       title: "Free Health Check-ups",

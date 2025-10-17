@@ -2,24 +2,16 @@ import { configureStore } from "@reduxjs/toolkit";
 import { persistStore } from "redux-persist";
 import { persistedReducer } from "./rootReducer";
 import { loginApi } from "@features/login/services/loginApi";
+import { RegisterApi } from "@features/register/services";
 
 export const store = configureStore({
   reducer: persistedReducer,
   // @ts-expect-error - RTK Query middleware compatibility with redux-persist
   middleware: (getDefaultMiddleware) => {
     const middleware = getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [
-          "persist/PERSIST",
-          "persist/REHYDRATE",
-          "persist/REGISTER",
-          "persist/FLUSH",
-          "persist/PAUSE",
-          "persist/PURGE",
-        ],
-      },
+      serializableCheck: false,
     });
-    return middleware.concat(loginApi.middleware);
+    return middleware.concat(loginApi.middleware, RegisterApi.middleware);
   },
 });
 
