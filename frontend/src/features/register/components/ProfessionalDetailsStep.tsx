@@ -1,10 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@shared/components/ui/button";
-import {
-  SelectField
-} from "@shared/components/FormInputs/SelectField";
+import { SelectField } from "@shared/components/FormInputs/SelectField";
 import { DUMMY } from "../config";
-import { FileUploadField, TextField } from "@shared/components/FormInputs";
+import {
+  FileUploadField,
+  RequiredMark,
+  TextField,
+} from "@shared/components/FormInputs";
+import { Label } from "@shared/components/ui/label";
+import { Controller } from "react-hook-form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@shared/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@shared/components/ui/command";
+import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 
 export const ProfessionalDetailsStep = ({
   form,
@@ -12,33 +29,45 @@ export const ProfessionalDetailsStep = ({
   nextStep,
   prevStep,
 }: any) => {
-  const { control, register, formState: { errors } } = form;
+  const {
+    control,
+    register,
+    watch,
+    formState: { errors },
+  } = form;
+  const qualifications = Array.isArray(dropdownOption?.data?.qualifications)
+    ? dropdownOption.data.qualifications
+    : [];
+
+  const departments = Array.isArray(dropdownOption?.data?.departments)
+    ? dropdownOption.data.departments
+    : [];
 
   return (
     <>
       <h3 className="text-2xl font-bold mb-6">Professional Details</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <SelectField
-          label="Highest Qualification"
-          name="qualificationId"
+        <SearchableSelect
           control={control}
-          options={dropdownOption?.data?.qualifications || []}
+          name="qualificationId"
+          label="Qualification"
+          options={qualifications}
           labelKey="qualification_name"
           valueKey="id"
           required
-          placeholder="Select Qualification"
+          placeholder="Select qualification"
         />
 
-        <SelectField
-          label="Department"
-          name="departmentId"
+        <SearchableSelect
           control={control}
-          options={dropdownOption?.data?.departments || []}
+          name="departmentId"
+          label="Department"
+          options={departments}
           labelKey="department_name"
           valueKey="id"
           required
-          placeholder="Select Department"
+          placeholder="Select department"
         />
 
         <SelectField
@@ -46,8 +75,8 @@ export const ProfessionalDetailsStep = ({
           name="availability"
           control={control}
           options={DUMMY.availabilities}
-          labelKey="title"
-          valueKey="id"
+          labelKey="label"
+          valueKey="value"
           required
           placeholder="Select Availability"
         />
@@ -57,8 +86,8 @@ export const ProfessionalDetailsStep = ({
           name="shift"
           control={control}
           options={DUMMY.shifts}
-          labelKey="title"
-          valueKey="id"
+          labelKey="label"
+          valueKey="value"
           required
           placeholder="Select Shift"
         />

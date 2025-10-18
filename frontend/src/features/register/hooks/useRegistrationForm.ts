@@ -53,21 +53,24 @@ export const useRegistrationForm = () => {
   }, [birthdate, setValue]);
 
   useEffect(() => {
-    const fetchCities = async (id: number) => {
-      try {
-        const result = await triggerGetCitiesByState({ stateId: id }).unwrap();
-        setCities(result?.data || []);
-      } catch {
-        setCities([]);
-      }
-    };
-    const id = Number(stateId);
-    if (id) fetchCities(id);
-    else {
+  const fetchCities = async (id: number) => {
+    try {
+      const result = await triggerGetCitiesByState({ stateId: id }).unwrap();
+      setCities(result?.data?.cities || []);
+    } catch (error) {
+      console.error("Failed to fetch cities", error);
       setCities([]);
-      setValue("cityId", "");
     }
-  }, [stateId, triggerGetCitiesByState, setValue]);
+  };
+
+  const id = Number(stateId);
+  if (id) fetchCities(id);
+  else {
+    setCities([]);
+    setValue("cityId", "");
+  }
+}, [stateId, setValue]);
+
 
   const nextStep = async () => {
     

@@ -1,12 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@shared/components/ui/button";
-import {
-  TextField,
-} from "@shared/components/FormInputs/TextField";
+import { TextField } from "@shared/components/FormInputs/TextField";
 import { DUMMY } from "../config";
-import { UseFormReturn } from "react-hook-form";
+import { Controller, UseFormReturn } from "react-hook-form";
 import { FormValues, CityItem } from "../type";
-import { FileUploadField, SelectField, TextareaField } from "@shared/components/FormInputs";
+import {
+  FileUploadField,
+  RequiredMark,
+  SelectField,
+  TextareaField,
+} from "@shared/components/FormInputs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@shared/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@shared/components/ui/command";
+import { Label } from "@shared/components/ui/label";
+import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 
 interface PersonalDetailsStepProps {
   form: UseFormReturn<FormValues>;
@@ -29,7 +46,12 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     control,
     register,
     formState: { errors },
+    watch,
   } = form;
+
+  const states = Array.isArray(dropdownOption?.data?.states)
+    ? dropdownOption.data.states
+    : [];
 
   return (
     <>
@@ -42,8 +64,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           name="title"
           control={control}
           options={DUMMY.titles}
-          valueKey="id"
-          labelKey="title"
+          valueKey="value"
+          labelKey="label"
           required
           placeholder="Select title"
         />
@@ -80,8 +102,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           name="gender"
           control={control}
           options={DUMMY.genders}
-          valueKey="id"
-          labelKey="title"
+          valueKey="value"
+          labelKey="label"
           required
           placeholder="Select gender"
         />
@@ -101,7 +123,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           error={errors.email}
         />
 
-        {/* Birthdate + Age */}
+        {/* Birthdate & Age */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <TextField
             label="Birthdate"
@@ -123,28 +145,28 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           />
         </div>
 
-        {/* State */}
-        <SelectField
-          label="State"
-          name="stateId"
+        {/* State (Searchable with Popover) */}
+        <SearchableSelect
           control={control}
-          options={dropdownOption?.data?.states || []}
-          valueKey="id"
+          name="stateId"
+          label="State"
+          options={states}
           labelKey="state_name"
+          valueKey="id"
           required
-          placeholder="Select State"
+          placeholder="Select state"
         />
 
-        {/* City */}
-        <SelectField
-          label="City"
-          name="cityId"
+        {/* City (Searchable with Popover) */}
+        <SearchableSelect
           control={control}
+          name="cityId"
+          label="City"
           options={cities}
-          valueKey="id"
           labelKey="city_name"
+          valueKey="id"
           required
-          placeholder={citiesLoading ? "Loading cities..." : "Select City"}
+          placeholder="Select city"
         />
 
         {/* Profile Picture */}
@@ -168,8 +190,9 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         </div>
       </div>
 
+      {/* Buttons */}
       <div className="mt-8 flex justify-end gap-4">
-        <Button variant="secondary" onClick={() => reset()}>
+        <Button variant="secondary" onClick={reset}>
           Reset
         </Button>
         <Button onClick={nextStep}>Next</Button>

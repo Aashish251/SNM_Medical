@@ -11,6 +11,7 @@ interface TextFieldProps {
     error?: FieldError | null;
     type?: string;
     readOnly?: boolean;
+    autoComplete?:string;
 }
 
 export const TextField = ({
@@ -18,6 +19,7 @@ export const TextField = ({
     register,
     placeholder,
     required,
+    autoComplete,
     error,
     type = "text",
     readOnly = false,
@@ -31,6 +33,7 @@ export const TextField = ({
                 type={type}
                 placeholder={placeholder}
                 readOnly={readOnly}
+                autoComplete={autoComplete}
                 {...register} // 👈 use register as an object
             />
             <FieldErrorText message={error?.message} />

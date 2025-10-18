@@ -23,10 +23,16 @@ export interface CitiesByStateRequest {
   stateId: number;
 }
 
+interface GetCitiesByStateResponse {
+  cities: CityItem[];
+  count: number;
+}
+
+
 export interface CitiesByStateResponse {
   success: boolean;
   message: string;
-  data: CityItem[];
+  data: GetCitiesByStateResponse;
 }
 
 export interface StateOption {
@@ -49,6 +55,12 @@ export interface RegistrationDropdownResponse {
         qualifications: string[];
     };
 }
+
+interface GetCitiesByStateResponse {
+  cities: CityItem[];
+  count: number;
+}
+
 
 
 export type FormValues = {

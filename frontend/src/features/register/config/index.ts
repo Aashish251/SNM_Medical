@@ -7,40 +7,27 @@ export const STEPS = [
 ];
 
 export const DUMMY = {
-  states: ["UP", "Maharastra", "Delhi"],
-  cities: {
-    UP: [
-      { id: "Lucknow", name: "Lucknow" },
-      { id: "Varanasi", name: "Varanasi" },
-    ],
-    DL: [
-      { id: "NewDelhi", name: "New Delhi" },
-      { id: "KarolBagh", name: "Karol Bagh" },
-    ],
-  } as Record<string, City[]>,
-  departments: ["General Medicine", "Pediatrics", "Orthopedics", "Dentistry"],
-  qualifications: ["MBBS", "BDS", "BSc Nursing", "Pharmacy", "Physiotherapy"],
   availabilities: [
-    { id: 1, title: "Weekdays" },
-    { id: 2, title: "Weekends" },
-    { id: 3, title: "Both" },
+    { id: 1, label: "Weekdays", value: "Weekdays" },
+    { id: 2, label: "Weekends", value: "Weekends" },
+    { id: 3, label: "Both", value: "Both" },
   ],
   shifts: [
-    { id: 1, title: "Morning" },
-    { id: 2, title: "Afternoon" },
-    { id: 3, title: "Evening" },
-    { id: 4, title: "Night" },
+    { id: 1, label: "Morning", value: "Morning" },
+    { id: 2, label: "Afternoon", value: "Afternoon" },
+    { id: 3, label: "Evening", value: "Evening" },
+    { id: 4, label: "Night" , value: "Night"},
   ],
   titles: [
-    { id: 1, title: "Mr" },
-    { id: 2, title: "Mrs" },
-    { id: 3, title: "Ms" },
-    { id: 4, title: "Dr" },
+    { id: 1, label: "Mr", value: "Mr" },
+    { id: 2, label: "Mrs", value: "Mrs" },
+    { id: 3, label: "Ms", value: "Ms" },
+    { id: 4, label: "Dr", value: "Dr" },
   ],
   genders: [
-    { id: 1, title: "Male" },
-    { id: 2, title: "Female" },
-    { id: 3, title: "Other" },
+    { id: 1, label: "Male", value: "Male" },
+    { id: 2, label: "Female", value: "Female" },
+    { id: 3, label: "Other", value: "Other" },
   ],
 };
 

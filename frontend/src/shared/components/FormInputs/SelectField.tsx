@@ -11,20 +11,17 @@ import { RequiredMark, FieldErrorText } from "./FormHelpers";
 import { Controller, Control, FieldValues, Path } from "react-hook-form";
 
 interface SelectOption {
-  id: number;
+  id: number | string;
   [key: string]: any;
-  state_name?: string;
-  department_name?: string;
-  qualification_name?: string;
 }
 
 interface SelectFieldProps<T extends FieldValues> {
   label: string;
   name: Path<T>;
   control: Control<T>;
-  options: SelectOption[];
-  valueKey?: keyof SelectOption;  
-  labelKey?: keyof SelectOption;  
+  options?: SelectOption[];
+  valueKey?: keyof SelectOption;  // e.g., "value"
+  labelKey?: keyof SelectOption;  // e.g., "title"
   placeholder?: string;
   required?: boolean;
 }
@@ -33,9 +30,9 @@ export const SelectField = <T extends FieldValues>({
   label,
   name,
   control,
-  options,
+  options = [],
   valueKey = "id",
-  labelKey = getDefaultLabelKey(options),
+  labelKey = "title",
   placeholder = "Select",
   required = false,
 }: SelectFieldProps<T>) => {
@@ -53,22 +50,23 @@ export const SelectField = <T extends FieldValues>({
         rules={{ required: required ? `${label} is required` : false }}
         render={({ field, fieldState }) => (
           <>
-            <Select 
-              onValueChange={(val) => field.onChange(Number(val))} 
-              value={field.value ? String(field.value) : ""}
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || ""}
             >
               <SelectTrigger id={id}>
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
               <SelectContent>
-                {options?.map((opt) => (
-                  <SelectItem 
-                    key={opt[valueKey]} 
-                    value={String(opt[valueKey])}
-                  >
-                    {opt[labelKey]}
-                  </SelectItem>
-                ))}
+                {Array.isArray(options) &&
+                  options.map((opt) => (
+                    <SelectItem
+                      key={opt[valueKey]}
+                      value={String(opt[valueKey])}
+                    >
+                      {opt[labelKey]}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
@@ -81,13 +79,3 @@ export const SelectField = <T extends FieldValues>({
     </div>
   );
 };
-
-function getDefaultLabelKey(options: SelectOption[]): keyof SelectOption {
-  if (!options?.length) return "name";
-  
-  const firstOption = options[0];
-  if ("state_name" in firstOption) return "state_name";
-  if ("department_name" in firstOption) return "department_name";
-  if ("qualification_name" in firstOption) return "qualification_name";
-  return "name";
-}

@@ -1,9 +1,13 @@
 import React from "react";
 import { Button } from "@shared/components/ui/button";
-import { TextareaField,TextField } from "@shared/components/FormInputs";
+import { TextareaField, TextField } from "@shared/components/FormInputs";
 
 export const LoginDetailsStep = ({ form, prevStep }: any) => {
-  const { register, watch, formState: { errors } } = form;
+  const {
+    register,
+    watch,
+    formState: { errors },
+  } = form;
 
   return (
     <>
@@ -13,6 +17,7 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
         <TextField
           label="Password"
           type="password"
+          autoComplete="new-password"
           required
           register={register("password", {
             required: "Password is required",
@@ -25,6 +30,7 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
         <TextField
           label="Confirm Password"
           type="password"
+          autoComplete="new-password"
           required
           register={register("confirmPassword", {
             required: "Confirm password",
