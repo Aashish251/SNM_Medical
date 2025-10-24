@@ -50,15 +50,19 @@ exports.getUserProfile = async (userId) => {
   if (users.length === 0) throw new Error('User not found');
   const user = users[0];
 
-  const location = user.city_name && user.state_name
-    ? `${user.city_name}, ${user.state_name}`
-    : user.state_name || 'Not specified';
+  // Support both 'dob' and 'date_of_birth' column names
+  const birthDate = user.dob || user.date_of_birth
+    ? new Date(user.dob || user.date_of_birth)
+    : null;
 
-  const birthDate = user.dob ? new Date(user.dob) : null;
   const age = birthDate
     ? new Date().getFullYear() - birthDate.getFullYear() -
       (new Date() < new Date(birthDate.setFullYear(new Date().getFullYear())) ? 1 : 0)
     : null;
+
+  const location = user.city_name && user.state_name
+    ? `${user.city_name}, ${user.state_name}`
+    : user.state_name || 'Not specified';
 
   return {
     id: user.reg_id,
@@ -75,11 +79,13 @@ exports.getUserProfile = async (userId) => {
     address: user.address || 'Not provided',
     age,
     gender: user.gender === 1 ? 'Male' : user.gender === 2 ? 'Female' : 'Other',
+    dateOfBirth: birthDate ? birthDate.toISOString().split('T')[0] : null, 
     experience: user.total_exp || 0,
     previousSewa: user.prev_sewa_perform || 'None',
     recommendedBy: user.recom_by || 'Not specified',
   };
 };
+
 
 /**
  * Fetch all users (for admin dashboard) with filters and pagination.

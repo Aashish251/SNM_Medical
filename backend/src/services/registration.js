@@ -3,6 +3,11 @@ const { promisePool } = require('../config/database');
 const { sanitizeInput } = require('../utils/sanitize');
 const { validators } = require('../utils/validators');
 
+/** Safely fallback undefined to null or other types */
+function safe(val, fallback = null) {
+  return val !== undefined ? val : fallback;
+}
+
 /**
  * Get dropdown data (states, departments, qualifications)
  */
@@ -11,7 +16,6 @@ exports.getDropdownData = async () => {
     const [states] = await promisePool.execute('CALL sp_get_state_details(?)', [null]);
     const [departments] = await promisePool.execute('CALL sp_get_department_by_id(?)', [0]);
     const [qualifications] = await promisePool.execute('CALL sp_get_qualification_by_id(?)', [0]);
-
     return {
       states: states[0] || [],
       departments: departments[0] || [],
@@ -43,12 +47,10 @@ exports.getCitiesByState = async (stateId) => {
 exports.checkEmailExists = async (email) => {
   const cleanEmail = sanitizeInput(email.toLowerCase());
   if (!validators.email(cleanEmail)) throw new Error('Invalid email format');
-
   const [rows] = await promisePool.execute(
     'SELECT reg_id FROM registration_tbl WHERE email = ? AND is_deleted = 0',
     [cleanEmail]
   );
-
   return rows.length > 0;
 };
 
@@ -74,47 +76,43 @@ exports.registerUser = async (body) => {
     experience = 0,
     lastSewa = '',
     recommendedBy = '',
-    samagamHeldIn = '', // ✅ required
+    samagamHeldIn = '', // required
   } = body;
 
   // Step 1: Sanitize input
   const data = {
-    fullName: sanitizeInput(fullName),
-    email: sanitizeInput(email?.toLowerCase()),
-    mobileNo: sanitizeInput(mobileNo),
-    address: sanitizeInput(address),
-    userType: sanitizeInput(userType),
-    title: sanitizeInput(title),
-    lastSewa: sanitizeInput(lastSewa),
-    recommendedBy: sanitizeInput(recommendedBy),
-    samagamHeldIn: sanitizeInput(samagamHeldIn),
+    fullName: sanitizeInput(fullName) || '',
+    email: sanitizeInput(email?.toLowerCase()) || '',
+    mobileNo: sanitizeInput(mobileNo) || '',
+    address: sanitizeInput(address) || '',
+    userType: sanitizeInput(userType) || 'ms',
+    title: sanitizeInput(title) || 'Mr',
+    lastSewa: sanitizeInput(lastSewa) || '',
+    recommendedBy: sanitizeInput(recommendedBy) || '',
+    samagamHeldIn: sanitizeInput(samagamHeldIn) || '',
   };
 
   // Step 2: Validation
   if (!data.fullName || !data.email || !password || !data.mobileNo)
     throw new Error('Full name, email, password, and mobile number are required');
-
   if (!validators.email(data.email))
     throw new Error('Invalid email address');
-
   if (!validators.mobile(data.mobileNo))
     throw new Error('Invalid mobile number');
-
   if (!validators.password(password))
     throw new Error('Password must be at least 8 characters long');
-
   if (password !== confirmPassword)
     throw new Error('Passwords do not match');
+  if (!dateOfBirth)
+    throw new Error('Date of birth is required');
 
   // Step 3: Check duplicates
   const [[existingEmail], [existingMobile]] = await Promise.all([
     promisePool.execute('SELECT reg_id FROM registration_tbl WHERE email = ? AND is_deleted = 0', [data.email]),
     promisePool.execute('SELECT reg_id FROM registration_tbl WHERE mobile_no = ? AND is_deleted = 0', [data.mobileNo]),
   ]);
-
   if (existingEmail.length > 0)
     throw new Error('Email already registered');
-
   if (existingMobile.length > 0)
     throw new Error('Mobile number already registered');
 
@@ -130,28 +128,42 @@ exports.registerUser = async (body) => {
         : 3
       : gender;
 
-  const connection = await promisePool.getConnection();
+  const paramArr = [
+    'INSERT', 0,
+    data.userType || 'ms',
+    loginId || '',
+    data.title || 'Mr',
+    data.fullName,
+    data.email,
+    hashedPassword,
+    data.mobileNo,
+    dateOfBirth, // never null now
+    genderValue,
+    data.address,
+    parseInt(stateId) || 0,
+    parseInt(cityId) || 0,
+    parseInt(qualificationId) || 0,
+    parseInt(departmentId) || 0,
+    1, 1, '', '',
+    1, 0, 1, '',
+    parseFloat(experience) || 0.0,
+    data.lastSewa,
+    data.recommendedBy,
+    data.samagamHeldIn,
+    0
+  ];
 
+  // Final cleanup: enforce no undefined
+  for (let i = 0; i < paramArr.length; ++i) {
+    if (paramArr[i] === undefined) paramArr[i] = null;
+  }
+
+  const connection = await promisePool.getConnection();
   try {
-    // ✅ Make sure order matches your stored procedure parameters exactly
     await connection.execute(
       `CALL sp_save_user_profile(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        'INSERT', 0,
-        data.userType, loginId, data.title, data.fullName, data.email,
-        hashedPassword, data.mobileNo, dateOfBirth || null, genderValue,
-        data.address || '', parseInt(stateId) || 0, parseInt(cityId) || 0,
-        parseInt(qualificationId) || 0, parseInt(departmentId) || 0,
-        1, 1, '', '',
-        1, 0, 1, '',
-        parseFloat(experience) || 0.0,
-        data.lastSewa || '',
-        data.recommendedBy || '',
-        data.samagamHeldIn || '', // ✅ now included!
-        0,
-      ]
+      paramArr
     );
-
     return {
       success: true,
       message: 'Registration successful!',
@@ -170,6 +182,9 @@ exports.registerUser = async (body) => {
   }
 };
 
+/**
+ * Create a user with file paths (optional for admin upload etc)
+ */
 exports.createUser = async (data, filePaths) => {
   const {
     fullName,
@@ -189,54 +204,66 @@ exports.createUser = async (data, filePaths) => {
     experience = 0,
     lastSewa = '',
     recommendedBy = '',
-    samagamHeldIn = '', // ✅ add this field
+    samagamHeldIn = '',
   } = data;
+  const dob = data.dateOfBirth || data.birthdate || null;
+
+  if (!dob) {
+    throw new Error('Date of birth is required');
+  }
 
   if (password !== confirmPassword) throw new Error('Passwords do not match');
 
   const hashedPassword = await bcrypt.hash(password, 12);
   const loginId = `${userType}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
+  // Convert gender text → number
+  let genderValue = 1;
+  if (typeof gender === 'string') {
+    const lower = gender.toLowerCase();
+    if (lower === 'female') genderValue = 2;
+    else if (lower === 'other' || lower === 'others') genderValue = 3;
+  }
+
+  const paramArr = [
+    'INSERT', 0,
+    userType || 'ms',
+    loginId || '',
+    title || 'Mr',
+    fullName || '',
+    email || '',
+    hashedPassword,
+    mobileNo || '',
+    dob, // ✅ Corrected: now always has a valid date
+    genderValue,
+    address || '',
+    parseInt(stateId) || 0,
+    parseInt(cityId) || 0,
+    parseInt(qualificationId) || 0,
+    parseInt(departmentId) || 0,
+    1, 1, '', '',
+    1, 0, 1, '',
+    parseFloat(experience) || 0.0,
+    lastSewa || '',
+    recommendedBy || '',
+    samagamHeldIn || '',
+    0
+  ];
+
+  for (let i = 0; i < paramArr.length; ++i) {
+    if (paramArr[i] === undefined) paramArr[i] = null;
+  }
+
   const [result] = await promisePool.execute(
     `CALL sp_save_user_profile(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'INSERT',
-      0,
-      userType,
-      loginId,
-      title,
-      fullName,
-      email,
-      hashedPassword,
-      mobileNo,
-      dateOfBirth,
-      gender,
-      address,
-      parseInt(stateId) || 0,
-      parseInt(cityId) || 0,
-      parseInt(qualificationId) || 0,
-      parseInt(departmentId) || 0,
-      1,
-      1,
-      '',
-      '',
-      1,
-      0,
-      1,
-      '',
-      parseFloat(experience) || 0.0,
-      lastSewa || '',
-      recommendedBy || '',
-      samagamHeldIn || '', // ✅ FIX — prevents null error
-      0,
-    ]
+    paramArr
   );
 
   return {
     email,
     fullName,
-    profileImage: filePaths.profileImagePath,
-    certificate: filePaths.certificatePath,
+    profileImage: filePaths.profileImagePath || '',
+    certificate: filePaths.certificatePath || '',
   };
 };
 

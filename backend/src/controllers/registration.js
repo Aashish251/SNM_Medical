@@ -42,10 +42,10 @@ exports.registerUser = async (req, res) => {
   try {
     const files = req.files;
     const profileImagePath = files?.profileImage
-      ? `uploads/profile/${files.profileImage[0].filename}`
+      ? `/uploads/profile/${files.profileImage[0].filename}`
       : null;
     const certificatePath = files?.certificate
-      ? `uploads/certificates/${files.certificate[0].filename}`
+      ? `/uploads/certificates/${files.certificate[0].filename}`
       : null;
 
     const result = await registrationService.createUser(req.body, {
