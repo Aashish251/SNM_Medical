@@ -234,7 +234,7 @@ exports.createUser = async (data, filePaths) => {
     email || '',
     hashedPassword,
     mobileNo || '',
-    dob, // ✅ Corrected: now always has a valid date
+    dob, 
     genderValue,
     address || '',
     parseInt(stateId) || 0,
