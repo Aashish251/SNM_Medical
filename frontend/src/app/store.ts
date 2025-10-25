@@ -3,6 +3,7 @@ import { persistStore } from "redux-persist";
 import { persistedReducer } from "./rootReducer";
 import { loginApi } from "@features/login/services/loginApi";
 import { RegisterApi } from "@features/register/services";
+import { AdminApi } from "@features/admin/dashboard/services/adminApi";
 import { api } from "@lib/api";
 
 export const store = configureStore({
@@ -12,7 +13,12 @@ export const store = configureStore({
     const middleware = getDefaultMiddleware({
       serializableCheck: false,
     });
-    return middleware.concat(loginApi.middleware, RegisterApi.middleware, api.middleware);
+    return middleware.concat(
+      loginApi.middleware,
+      RegisterApi.middleware,
+      api.middleware,
+      AdminApi.middleware
+    );
   },
 });
 

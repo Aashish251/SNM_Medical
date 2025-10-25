@@ -42,32 +42,64 @@ import {
 // -------------------------
 
 const publicNav: NavLink[] = [
-  { href: SNM_NAV_HOME_LINK, text: SNM_NAV_HOME_LABEL, type: SNM_PUBLIC_USERTYPE },
-  { href: SNM_NAV_ABOUT_LINK, text: SNM_NAV_ABOUT_LABEL, type: SNM_PUBLIC_USERTYPE },
-  { href: SNM_NAV_CONTACT_LINK, text: SNM_NAV_CONTACT_LABEL, type: SNM_PUBLIC_USERTYPE },
-  { href: SNM_NAV_GALLERY_LINK, text: SNM_NAV_GALLERY_LABEL, type: SNM_PUBLIC_USERTYPE },
+  {
+    href: SNM_NAV_HOME_LINK,
+    text: SNM_NAV_HOME_LABEL,
+    type: SNM_PUBLIC_USERTYPE,
+  },
+  {
+    href: SNM_NAV_CONTACT_LINK,
+    text: SNM_NAV_CONTACT_LABEL,
+    type: SNM_PUBLIC_USERTYPE,
+  },
 ];
 
 const msNav: NavLink[] = [
-  { href: SNM_NAV_MS_DASHBOARD_LINK, text: SNM_NAV_MS_DASHBOARD_LABEL, type: SNM_MS_USERTYPE },
-  { href: SNM_NAV_MS_UPDATE_PROFILE_LINK, text: SNM_NAV_MS_UPDATE_PROFILE_LABEL, type: SNM_MS_USERTYPE },
+  {
+    href: SNM_NAV_MS_UPDATE_PROFILE_LINK,
+    text: SNM_NAV_MS_UPDATE_PROFILE_LABEL,
+    type: SNM_MS_USERTYPE,
+  },
 ];
 
 const reportsNav: NavLink = {
   text: SNM_NAV_ADMIN_REPORT_LABEL,
   type: SNM_ADMIN_USERTYPE,
   children: [
-    { href: SNM_NAV_ADMIN_DAILY_REPORT_LINK, text: SNM_NAV_ADMIN_DAILY_REPORT_LABEL, type: SNM_ADMIN_USERTYPE },
-    { href: SNM_NAV_ADMIN_REGISTRATION_REPORT_LINK, text: SNM_NAV_ADMIN_REGISTRATION_REPORT_LABEL, type: SNM_ADMIN_USERTYPE },
-    { href: SNM_NAV_ADMIN_MASTER_REPORT_LINK, text: SNM_NAV_ADMIN_MASTER_REPORT_LABEL, type: SNM_ADMIN_USERTYPE },
+    {
+      href: SNM_NAV_ADMIN_DAILY_REPORT_LINK,
+      text: SNM_NAV_ADMIN_DAILY_REPORT_LABEL,
+      type: SNM_ADMIN_USERTYPE,
+    },
+    {
+      href: SNM_NAV_ADMIN_REGISTRATION_REPORT_LINK,
+      text: SNM_NAV_ADMIN_REGISTRATION_REPORT_LABEL,
+      type: SNM_ADMIN_USERTYPE,
+    },
+    {
+      href: SNM_NAV_ADMIN_MASTER_REPORT_LINK,
+      text: SNM_NAV_ADMIN_MASTER_REPORT_LABEL,
+      type: SNM_ADMIN_USERTYPE,
+    },
   ],
 };
 
 const adminNav: NavLink[] = [
-  { href: SNM_NAV_ADMIN_DASHBOARD_LINK, text: SNM_NAV_ADMIN_DASHBOARD_LABEL, type: SNM_ADMIN_USERTYPE },
-  { href: SNM_NAV_ADMIN_UPDATE_PROFILE_LINK, text: SNM_NAV_ADMIN_UPDATE_PROFILE_LABEL, type: SNM_ADMIN_USERTYPE },
-  { href: SNM_NAV_ADMIN_MASTER_SEARCH_LINK, text: SNM_NAV_ADMIN_MASTER_SEARCH_LABEL, type: SNM_ADMIN_USERTYPE },
-  { href: SNM_NAV_ADMIN_DUTY_CHART_LINK, text: SNM_NAV_ADMIN_DUTY_CHART_LABEL, type: SNM_ADMIN_USERTYPE },
+  {
+    href: SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
+    text: SNM_NAV_ADMIN_UPDATE_PROFILE_LABEL,
+    type: SNM_ADMIN_USERTYPE,
+  },
+  {
+    href: SNM_NAV_ADMIN_MASTER_SEARCH_LINK,
+    text: SNM_NAV_ADMIN_MASTER_SEARCH_LABEL,
+    type: SNM_ADMIN_USERTYPE,
+  },
+  {
+    href: SNM_NAV_ADMIN_DUTY_CHART_LINK,
+    text: SNM_NAV_ADMIN_DUTY_CHART_LABEL,
+    type: SNM_ADMIN_USERTYPE,
+  },
   reportsNav,
 ];
 
@@ -75,11 +107,7 @@ const adminNav: NavLink[] = [
 // 🔹 Helper Function
 // -------------------------
 
-const buildNavLinks = (): NavLink[] => [
-  ...publicNav,
-  ...msNav,
-  ...adminNav,
-];
+const buildNavLinks = (): NavLink[] => [...publicNav, ...msNav, ...adminNav];
 
 // -------------------------
 // 🔹 Final Navigation Map
