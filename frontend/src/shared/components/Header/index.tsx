@@ -1,123 +1,221 @@
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { useLocation } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { navLinksByPage } from "@shared/config/navlinks";
-import { NavLink } from "@shared/types/NavLinksType";
-import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { IoIosArrowDown, IoIosArrowUp, IoMdClose } from "react-icons/io";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@app/store";
 import { SNM_WEBSITE_LOGO } from "@assets/index";
-import { SNM_SITE_LOGO_TITLE } from "@shared/constants";
+import {
+  SNM_NAV_HOME_LINK,
+  SNM_NAV_LOGIN_LABEL,
+  SNM_NAV_LOGIN_LINK,
+  SNM_NAV_LOGOUT_LABEL,
+  SNM_PUBLIC_USERTYPE,
+  SNM_SITE_LOGO_TITLE,
+} from "@shared/constants";
+import { navLinksByPage } from "@shared/config/navlinks";
+import { Button } from "../ui/button";
+import { signOut } from "@features/login/redux/authSlice";
+
+const MobileDrawer = ({
+  isOpen,
+  onClose,
+  navLinks,
+  handleLogout,
+  isAuthenticated,
+  openDropdown,
+  toggleDropdown,
+}: any) => (
+  <AnimatePresence>
+    {isOpen && (
+      <>
+        <motion.div
+          className="fixed inset-0 z-40"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
+        <motion.div
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ duration: 0.3 }}
+          className="fixed right-0 top-0 h-full w-72 z-50 bg-gradient-to-b from-purple-800 to-pink-700 text-white p-4 shadow-lg"
+        >
+          <div className="font-bold text-lg mb-4 flex justify-between w-full">
+            {SNM_SITE_LOGO_TITLE}
+            <button
+              onClick={onClose}
+              className="block text-center text-sm text-white"
+            >
+              <IoMdClose className="text-[25px] cursor-pointer" />
+            </button>
+          </div>
+
+          <div className="flex flex-col space-y-1">
+            {navLinks.map((link: any, index: number) =>
+              link.children && link.children.length > 0 ? (
+                <div key={index}>
+                  <button
+                    className="flex justify-between w-full px-4 py-3 text-left hover:bg-purple-600/30 transition"
+                    onClick={() => toggleDropdown(link.text)}
+                  >
+                    {link.text}
+                    {openDropdown === link.text ? (
+                      <IoIosArrowUp />
+                    ) : (
+                      <IoIosArrowDown />
+                    )}
+                  </button>
+                  {openDropdown === link.text && (
+                    <div className="bg-purple-900/80 rounded-md">
+                      {link.children.map((child: any) => (
+                        <Link
+                          key={child.href}
+                          to={child.href}
+                          className="block px-6 py-2 text-sm hover:bg-purple-700/50 transition"
+                          onClick={onClose}
+                        >
+                          {child.text}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={index}
+                  to={link.href}
+                  className="block px-4 py-3 hover:bg-purple-600/30 transition"
+                  onClick={onClose}
+                >
+                  {link.text}
+                </Link>
+              )
+            )}
+          </div>
+
+          <div className="mt-4">
+            {isAuthenticated ? (
+              <Button
+                className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
+                onClick={() => {
+                  onClose();
+                  handleLogout();
+                }}
+              >
+                {SNM_NAV_LOGOUT_LABEL}
+              </Button>
+            ) : (
+              <Link
+                to={SNM_NAV_LOGIN_LINK}
+                className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
+                onClick={onClose}
+              >
+                {SNM_NAV_LOGIN_LABEL}
+              </Link>
+            )}
+          </div>
+        </motion.div>
+      </>
+    )}
+  </AnimatePresence>
+);
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const pathname = location.pathname;
-  const navLinks: NavLink[] = navLinksByPage[pathname] || navLinksByPage["/"];
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isSignedIn
+  );
+  const authUserType = useSelector((state: RootState) => state.auth.userType);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+  const rawNavLinks =
+    navLinksByPage[pathname] || navLinksByPage[SNM_NAV_HOME_LINK];
 
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", checkMobile);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpenDropdown(null);
+  const filteredNavLinks = rawNavLinks
+    .filter(
+      (link) => link.type === authUserType || link.type === SNM_PUBLIC_USERTYPE
+    )
+    .map((link) => {
+      if (link.children) {
+        const filteredChildren = link.children.filter(
+          (child) =>
+            child.type === authUserType || child.type === SNM_PUBLIC_USERTYPE
+        );
+        return { ...link, children: filteredChildren };
       }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      return link;
+    });
 
   const toggleDropdown = (menu: string) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
 
+  const handleLogout = () => {
+    dispatch(signOut());
+    navigate(SNM_NAV_LOGIN_LINK);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled
-          ? "bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-400 shadow-xl py-1 md:py-2"
-          : "bg-gradient-to-r from-purple-700/90 via-pink-500/90 to-yellow-400/90 py-2 md:py-4"
+    <>
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-400 shadow-xl py-4 md:py-2"
+            : "bg-gradient-to-r from-purple-700/90 via-pink-500/90 to-yellow-400/90 py-4 md:py-4"
         }`}
-    >
-      <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          {/* Logo and Title */}
+      >
+        <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-4">
             <img
               src={SNM_WEBSITE_LOGO}
               alt={SNM_SITE_LOGO_TITLE}
-              width={isMobile ? 40 : 50}
-              height={isMobile ? 40 : 50}
-              className="rounded-full border-2 border-white shadow-lg"
+              className="w-10 h-10 rounded-full border-2 border-white shadow-lg"
             />
             <Link
-              to="/"
-              className="text-lg md:text-xl lg:text-2xl font-serif font-bold text-white tracking-tight"
+              to={SNM_NAV_HOME_LINK}
+              className="text-xl font-serif font-bold text-white"
             >
               {SNM_SITE_LOGO_TITLE}
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
-            {navLinks.slice(0, -1).map((link, index) =>
-              link.children ? (
-                <div
-                  key={`${link.text}-${index}`}
-                  className="relative"
-                  ref={dropdownRef}
-                >
+          {/* ✅ Desktop Menu */}
+          <div className="hidden md:flex items-center space-x-4">
+            {filteredNavLinks.map((link: any, index: number) =>
+              link.children && link.children.length > 0 ? (
+                <div key={index} className="relative group">
                   <button
-                    type="button"
                     onClick={() => toggleDropdown(link.text)}
-                    className="flex items-center gap-1 px-4 py-2 rounded-full text-white font-bold hover:bg-white hover:text-purple-700 transition"
+                    className="flex items-center gap-1 px-4 py-2 text-white font-semibold hover:text-yellow-200 transition"
                   >
                     {link.text}
-                    <span className="inline-block">
-                      {openDropdown === link.text ? (
-                        <IoIosArrowUp className="transition-transform duration-200" />
-                      ) : (
-                        <IoIosArrowDown className="transition-transform duration-200" />
-                      )}
-                    </span>
+                    {openDropdown === link.text ? (
+                      <IoIosArrowUp />
+                    ) : (
+                      <IoIosArrowDown />
+                    )}
                   </button>
-
-                  {/* Dropdown Menu */}
                   {openDropdown === link.text && (
-                    <div className="absolute bg-white shadow-lg rounded mt-2 z-50">
-                      {link.children.map((child) => (
+                    <div className="absolute left-0 top-full mt-2 bg-white text-black shadow rounded-md z-50">
+                      {link.children.map((child: any) => (
                         <Link
                           key={child.href}
                           to={child.href}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-4 py-2 hover:bg-gray-200"
                           onClick={() => setOpenDropdown(null)}
                         >
                           {child.text}
@@ -128,129 +226,71 @@ const Header = () => {
                 </div>
               ) : (
                 <Link
-                  key={`${link.href}-${index}`}
+                  key={index}
                   to={link.href}
-                  className="px-4 py-2 rounded-full text-sm font-bold text-white hover:bg-white hover:text-purple-700 transition"
+                  className="px-4 py-2 text-white font-semibold hover:text-yellow-200 transition"
                 >
                   {link.text}
                 </Link>
               )
             )}
-            {/* Login Button */}
-            <motion.div whileHover={{ scale: 1.05 }} className="hidden md:block">
+
+            {isAuthenticated ? (
+              <div className="relative">
+                <Button
+                  onClick={handleLogout}
+                  className="bg-white text-purple-700 font-bold px-4 py-2 rounded-full shadow hover:bg-purple-100 transition"
+                >
+                  {SNM_NAV_LOGOUT_LABEL}
+                </Button>
+              </div>
+            ) : (
               <Link
-                to="/login"
-                className="bg-white text-indigo-700 px-4 py-1.5 lg:px-5 lg:py-2 rounded-full text-xs lg:text-sm font-bold shadow-md hover:bg-indigo-50 transition-colors duration-300"
+                to={SNM_NAV_LOGIN_LINK}
+                className="bg-white text-purple-700 font-bold px-4 py-2 rounded-full shadow hover:bg-purple-100 transition"
               >
-                Login
+                {SNM_NAV_LOGIN_LABEL}
               </Link>
-            </motion.div>
-          </div>
-
-
-
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center">
-            <motion.div whileHover={{ scale: 1.05 }}>
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-white focus:outline-none"
-                aria-label="Toggle menu"
-              >
-                <svg
-                  className="w-7 h-7"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d={
-                      isMenuOpen
-                        ? "M6 18L18 6M6 6l12 12"
-                        : "M4 6h16M4 12h16M4 18h16"
-                    }
-                  />
-                </svg>
-              </button>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{
-            height: isMenuOpen ? "auto" : 0,
-            opacity: isMenuOpen ? 1 : 0,
-          }}
-          transition={{ duration: 0.3 }}
-          className={`md:hidden overflow-hidden ${isMenuOpen ? "block" : "hidden"
-            }`}
-        >
-          <div className="pt-4 pb-3 flex flex-col bg-gradient-to-b from-purple-800 to-pink-700 rounded-lg mt-2">
-            {navLinks.map((link, index) =>
-              link.children ? (
-                <div
-                  key={`mobile-${link.text}-${index}`}
-                  className="relative"
-                  ref={dropdownRef}
-                >
-                  {/* Parent Button */}
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown(link.text)}
-                    className="flex w-full justify-between items-center px-4 py-3 text-base font-medium text-white hover:bg-purple-600/30 transition"
-                  >
-                    {link.text}
-                    {openDropdown === link.text ? (
-                      <IoIosArrowUp />
-                    ) : (
-                      <IoIosArrowDown />
-                    )}
-                  </button>
-
-                  {/* Dropdown Items */}
-                  {openDropdown === link.text && (
-                    <div className="flex flex-col bg-purple-900/80">
-                      {link.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          to={child.href}
-                          className="px-6 py-2 text-sm text-white hover:bg-purple-700/50 transition"
-                          onClick={() => {
-                            setOpenDropdown(null);
-                            setIsMenuOpen(false);
-                          }}
-                        >
-                          {child.text}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <motion.div
-                  key={`mobile-${link.href}-${index}`}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <Link
-                    to={link.href}
-                    className="block px-4 py-3 text-base font-medium text-white hover:bg-purple-600/30 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {link.text}
-                  </Link>
-                </motion.div>
-              )
             )}
           </div>
-        </motion.div>
-      </div>
-    </motion.div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="text-white focus:outline-none"
+            >
+              <svg
+                className="w-7 h-7"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ✅ Mobile Drawer with filtered links */}
+      <MobileDrawer
+        isOpen={drawerOpen}
+        isAuthenticated={isAuthenticated}
+        onClose={() => {
+          setDrawerOpen(false);
+        }}
+        handleLogout={handleLogout}
+        navLinks={filteredNavLinks}
+        openDropdown={openDropdown}
+        toggleDropdown={toggleDropdown}
+      />
+    </>
   );
 };
 

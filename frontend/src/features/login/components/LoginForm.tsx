@@ -3,6 +3,13 @@ import { UseFormReturn } from "react-hook-form";
 import { TextField } from "@shared/components/FormInputs/TextField";
 import { FormData, Role } from "../hooks/useLoginForm";
 import { RoleButton } from "./RoleButton";
+import {
+  SNM_ADMIN_USERTYPE,
+  SNM_ADMIN_USERTYPE_LABEL,
+  SNM_MS_USERTYPE,
+  SNM_MS_USERTYPE_LABEL,
+  SNM_NAV_FORGOT_PASSWORD_LINK,
+} from "@shared/constants";
 
 interface LoginFormProps {
   form: UseFormReturn<FormData>;
@@ -10,7 +17,6 @@ interface LoginFormProps {
   handleRoleChange: (role: Role) => void;
   onSubmit: (data: FormData) => Promise<void>;
   loading: boolean;
-  error: string;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
@@ -19,7 +25,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   handleRoleChange,
   onSubmit,
   loading,
-  error,
 }) => {
   const {
     register,
@@ -32,13 +37,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {/* Role Selector */}
       <div className="flex justify-center gap-2 flex-wrap mb-2">
         <RoleButton
-          roleName="Admin"
+          roleName={SNM_ADMIN_USERTYPE}
+          label={SNM_ADMIN_USERTYPE_LABEL}
           currentRole={role}
           onClick={handleRoleChange}
           loading={loading}
         />
         <RoleButton
-          roleName="Medical Staff"
+          roleName={SNM_MS_USERTYPE}
+          label={SNM_MS_USERTYPE_LABEL}
           currentRole={role}
           onClick={handleRoleChange}
           loading={loading}
@@ -74,17 +81,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         error={errors.password}
       />
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-xs">
-          {error}
-        </div>
-      )}
-
       {/* Forgot Password */}
       <div className="text-right">
         <a
-          href="/forgot-password"
+          href={SNM_NAV_FORGOT_PASSWORD_LINK}
           className="text-xs sm:text-sm text-teal-600 hover:underline"
         >
           Forgot password?

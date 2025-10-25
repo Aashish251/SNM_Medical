@@ -1,5 +1,6 @@
 export type NavLink = {
-    href: string;
+    href?: string;
     text: string;
+    type:string;
     children?: NavLink[]; 
 };

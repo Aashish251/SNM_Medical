@@ -3,13 +3,22 @@ import { motion } from "framer-motion";
 import { SNM_WEBSITE_LOGO } from "@assets/index";
 import { useLoginForm } from "./hooks/useLoginForm";
 import { LoginForm } from "./components/LoginForm";
-import { SNM_LOGIN_PAGE_DNG, SNM_LOGIN_PAGE_TITLE } from "@shared/constants";
+import {
+  SNM_ADMIN_USERTYPE,
+  SNM_DONT_HAVE_ACCOUNT,
+  SNM_LOGIN_PAGE_ADMIN_SUBTITLE,
+  SNM_LOGIN_PAGE_DNG,
+  SNM_LOGIN_PAGE_MEDICAL_STAFF_SUBTITLE,
+  SNM_LOGIN_PAGE_TITLE,
+  SNM_NAV_REGISTER_LINK,
+  SNM_SIGNUP_LABEL_TITLE,
+} from "@shared/constants";
 
 const Login = () => {
-  const { form, role, handleRoleChange, onSubmit, loading, error } =
+  const { form, role, handleRoleChange, onSubmit, loading } =
     useLoginForm();
 
-    
+    console.log("hii",role, SNM_ADMIN_USERTYPE)
 
   return (
     <div className="bg-[#f9f9f6] min-h-screen flex flex-col overflow-hidden">
@@ -36,7 +45,9 @@ const Login = () => {
               </h1>
 
               <p className="text-center text-gray-600 text-sm sm:text-base">
-                Sign in to your {role} account.
+                {role == SNM_ADMIN_USERTYPE
+                  ? SNM_LOGIN_PAGE_ADMIN_SUBTITLE
+                  : SNM_LOGIN_PAGE_MEDICAL_STAFF_SUBTITLE}
               </p>
 
               <LoginForm
@@ -45,7 +56,6 @@ const Login = () => {
                 handleRoleChange={handleRoleChange}
                 onSubmit={onSubmit}
                 loading={loading}
-                error={error}
               />
             </motion.div>
           </div>
@@ -62,15 +72,15 @@ const Login = () => {
             </motion.h2>
 
             <p className="text-xs sm:text-sm font-light tracking-wider text-center">
-              Don't have an account?
+              {SNM_DONT_HAVE_ACCOUNT}
             </p>
 
             <motion.div whileHover={{ scale: 1.05 }}>
               <a
-                href="/register"
+                href={SNM_NAV_REGISTER_LINK}
                 className="border-2 border-white px-5 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-bold hover:bg-white hover:text-indigo-700 transition-all duration-300 shadow-lg text-center"
               >
-                Sign Up / Registration
+                {SNM_SIGNUP_LABEL_TITLE}
               </a>
             </motion.div>
 

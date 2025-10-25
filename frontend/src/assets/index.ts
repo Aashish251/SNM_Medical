@@ -7,3 +7,4 @@ export const HOME_HERO_ABOUT_IMAGE1 = "/img/babaji.jpg";
 export const HOME_HERO_ABOUT_IMAGE2 = "/img/snmd.jpg";
 export const HOME_HERO_ABOUT_IMAGE3 = "/img/blood_donation.jpg";
 export const HOME_HERO_ABOUT_IMAGE4 = "/img/snm1.png";
+export const DEFAUTL_PROFILE_IMAGE = "img/default-avatar.png"

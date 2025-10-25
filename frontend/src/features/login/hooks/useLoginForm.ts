@@ -7,8 +7,14 @@ import { useNavigate } from "react-router-dom";
 import { useLoginUserMutation } from "../services/loginApi";
 import { useDispatch } from "react-redux";
 import { signIn } from "../redux/authSlice";
+import {
+  SNM_ADMIN_USERTYPE,
+  SNM_MS_USERTYPE,
+  SNM_NAV_ADMIN_DASHBOARD_LINK,
+  SNM_NAV_MS_DASHBOARD_LINK,
+} from "@shared/constants";
 
-export type Role = "Admin" | "Medical Staff";
+export type Role = "admin" | "ms";
 
 export interface FormData {
   email: string;
@@ -17,8 +23,7 @@ export interface FormData {
 
 export const useLoginForm = () => {
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<Role>("Admin");
-  const [error, setError] = useState("");
+  const [role, setRole] = useState<Role>(SNM_ADMIN_USERTYPE);
   const [triggerLoginUser] = useLoginUserMutation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -26,7 +31,6 @@ export const useLoginForm = () => {
 
   const handleRoleChange = (selectedRole: Role) => {
     setRole(selectedRole);
-    if (error) setError("");
   };
 
   const onSubmit = async (data: FormData) => {
@@ -35,7 +39,8 @@ export const useLoginForm = () => {
 
       const payload = {
         ...data,
-        role: role === "Admin" ? "admin" : "ms",
+        role:
+          role === SNM_ADMIN_USERTYPE ? SNM_ADMIN_USERTYPE : SNM_MS_USERTYPE,
       };
 
       const response = await toast.promise(triggerLoginUser(payload).unwrap(), {
@@ -44,17 +49,24 @@ export const useLoginForm = () => {
         error: "Login failed",
       });
 
+      const { token, user } = response.data;
+
       dispatch(
         signIn({
-          token: response?.token,
+          token,
+          userType: user.userType,
           isSignedIn: true,
         })
       );
 
-      navigate(role === "Admin" ? "/admin/dashboard" : "/dashboard");
+      if (user.userType === SNM_ADMIN_USERTYPE) {
+        navigate(SNM_NAV_ADMIN_DASHBOARD_LINK);
+      } else {
+        navigate(SNM_NAV_MS_DASHBOARD_LINK);
+      }
     } catch (err: any) {
       console.error("Login failed:", err);
-      toast.error(err?.data?.message || "Something went wrong");
+      toast.error(err?.data?.message || err?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -65,8 +77,6 @@ export const useLoginForm = () => {
     role,
     setRole,
     loading,
-    error,
-    setError,
     handleRoleChange,
     onSubmit,
   };

@@ -7,20 +7,6 @@ import {
   RequiredMark,
   TextField,
 } from "@shared/components/FormInputs";
-import { Label } from "@shared/components/ui/label";
-import { Controller } from "react-hook-form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@shared/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@shared/components/ui/command";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 
 export const ProfessionalDetailsStep = ({

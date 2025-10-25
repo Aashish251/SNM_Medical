@@ -1,12 +1,14 @@
 export interface AuthState {
-    isSignedIn: boolean;
-    error: string | null;
-    token?: string;
+  isSignedIn: boolean;
+  error: string | null;
+  userType: string;
+  token?: string;
 }
 
 export interface SignInPayload {
-    token: string;
-    isSignedIn: boolean;
+  token: string;
+  userType: string;
+  isSignedIn: boolean;
 }
 
 export interface LoginRequest {
