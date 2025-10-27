@@ -49,20 +49,21 @@ export const useLoginForm = () => {
         error: "Login failed",
       });
 
-      const { token, user } = response.data;
+      const { token, user } = response?.data;
 
       dispatch(
         signIn({
           token,
           userType: user.userType,
+          userDetails: user,
           isSignedIn: true,
         })
       );
 
       if (user.userType === SNM_ADMIN_USERTYPE) {
-        navigate(SNM_NAV_ADMIN_DASHBOARD_LINK);
+        navigate(SNM_NAV_ADMIN_DASHBOARD_LINK, { replace: true });
       } else {
-        navigate(SNM_NAV_MS_DASHBOARD_LINK);
+        navigate(SNM_NAV_MS_DASHBOARD_LINK, { replace: true });
       }
     } catch (err: any) {
       console.error("Login failed:", err);

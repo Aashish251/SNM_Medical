@@ -79,7 +79,6 @@ const AdminDashboard: React.FC = () => {
       <ChartsSection
         barData={chartData.barData}
         doughnutData={chartData.doughnutData}
-        selectedMonth="OCT 2025"
       />
     </DashboardLayout>
   );

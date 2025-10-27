@@ -4,8 +4,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { IoIosArrowDown, IoIosArrowUp, IoMdClose } from "react-icons/io";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@app/store";
-import { SNM_WEBSITE_LOGO } from "@assets/index";
+import { DEFAULT_PROFILE_IMAGE, SNM_WEBSITE_LOGO } from "@assets/index";
 import {
+  SNM_ADMIN_USERTYPE,
   SNM_NAV_HOME_LINK,
   SNM_NAV_LOGIN_LABEL,
   SNM_NAV_LOGIN_LINK,
@@ -13,14 +14,36 @@ import {
   SNM_PUBLIC_USERTYPE,
   SNM_SITE_LOGO_TITLE,
 } from "@shared/constants";
-import { navLinksByPage } from "@shared/config/navlinks";
+import {
+  adminNav,
+  msNav,
+  navLinksByPage,
+  publicNav,
+} from "@shared/config/navlinks";
 import { Button } from "../ui/button";
 import { signOut } from "@features/login/redux/authSlice";
 
+// ✅ Shadcn Components
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+
+// ✅ Mobile Drawer remains unchanged
 const MobileDrawer = ({
   isOpen,
   onClose,
   navLinks,
+  userName,
   handleLogout,
   isAuthenticated,
   openDropdown,
@@ -44,11 +67,10 @@ const MobileDrawer = ({
           className="fixed right-0 top-0 h-full w-72 z-50 bg-gradient-to-b from-purple-800 to-pink-700 text-white p-4 shadow-lg"
         >
           <div className="font-bold text-lg mb-4 flex justify-between w-full">
-            {SNM_SITE_LOGO_TITLE}
-            <button
-              onClick={onClose}
-              className="block text-center text-sm text-white"
-            >
+           <span className="text-white font-semibold transition capitalize">
+                  {userName && `${userName} Ji`}
+                </span>
+            <button onClick={onClose}>
               <IoMdClose className="text-[25px] cursor-pointer" />
             </button>
           </div>
@@ -123,10 +145,12 @@ const MobileDrawer = ({
   </AnimatePresence>
 );
 
+// ✅ Header with Shadcn Profile Dropdown
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -135,6 +159,9 @@ const Header = () => {
     (state: RootState) => state.auth.isSignedIn
   );
   const authUserType = useSelector((state: RootState) => state.auth.userType);
+  const loggedInUserDetails = useSelector(
+    (state: RootState) => state.auth.userDetails
+  );
 
   const rawNavLinks =
     navLinksByPage[pathname] || navLinksByPage[SNM_NAV_HOME_LINK];
@@ -154,6 +181,9 @@ const Header = () => {
       return link;
     });
 
+  const filteredDashboardNav =
+    authUserType === SNM_ADMIN_USERTYPE ? adminNav : msNav;
+
   const toggleDropdown = (menu: string) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
@@ -162,6 +192,10 @@ const Header = () => {
     dispatch(signOut());
     navigate(SNM_NAV_LOGIN_LINK);
   };
+
+  useEffect(() => {
+    setActiveMenu(pathname);
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -174,11 +208,12 @@ const Header = () => {
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-400 shadow-xl py-4 md:py-2"
-            : "bg-gradient-to-r from-purple-700/90 via-pink-500/90 to-yellow-400/90 py-4 md:py-4"
+            ? "bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-400 shadow-lg py-2"
+            : "bg-gradient-to-r from-purple-700/90 via-pink-500/90 to-yellow-400/90 py-4"
         }`}
       >
         <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          {/* Left Logo */}
           <div className="flex items-center gap-2 md:gap-4">
             <img
               src={SNM_WEBSITE_LOGO}
@@ -195,56 +230,81 @@ const Header = () => {
 
           {/* ✅ Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            {filteredNavLinks.map((link: any, index: number) =>
-              link.children && link.children.length > 0 ? (
-                <div key={index} className="relative group">
-                  <button
-                    onClick={() => toggleDropdown(link.text)}
-                    className="flex items-center gap-1 px-4 py-2 text-white font-semibold hover:text-yellow-200 transition"
-                  >
-                    {link.text}
-                    {openDropdown === link.text ? (
-                      <IoIosArrowUp />
-                    ) : (
-                      <IoIosArrowDown />
-                    )}
-                  </button>
-                  {openDropdown === link.text && (
-                    <div className="absolute left-0 top-full mt-2 bg-white text-black shadow rounded-md z-50">
-                      {link.children.map((child: any) => (
-                        <Link
-                          key={child.href}
-                          to={child.href}
-                          className="block px-4 py-2 hover:bg-gray-200"
-                          onClick={() => setOpenDropdown(null)}
-                        >
-                          {child.text}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  key={index}
-                  to={link.href}
-                  className="px-4 py-2 text-white font-semibold hover:text-yellow-200 transition"
-                >
-                  {link.text}
-                </Link>
-              )
+            {publicNav.map((link: any, index: number) => (
+              <Link
+                key={index}
+                to={link.href}
+                className={`px-4 py-2 text-white font-semibold ${
+                  activeMenu === link.href && "text-yellow-200"
+                } hover:text-yellow-200 transition`}
+              >
+                {link.text}
+              </Link>
+            ))}
+
+            {/* ✅ Profile Dropdown (Shadcn UI) */}
+            {isAuthenticated && (
+              <>
+                <span className=" py-2 text-white font-semibold transition capitalize">
+                  {loggedInUserDetails?.name && `Welcome ${loggedInUserDetails?.name} Ji`}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="focus:outline-none">
+                      <Avatar className="w-10 h-10 ring-2 ring-white cursor-pointer">
+                        <AvatarImage
+                          src={DEFAULT_PROFILE_IMAGE}
+                          alt="User Avatar"
+                        />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent className="w-48 mt-2 bg-gradient-to-b from-purple-800 to-pink-700 text-white shadow-lg rounded-md font-semibold transition">
+                    {filteredDashboardNav.map((link) => {
+                      if (link.children && link.children.length > 0) {
+                        return (
+                          <DropdownMenuSub key={link.text}>
+                            <DropdownMenuSubTrigger>
+                              {link.text}
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                              <DropdownMenuSubContent>
+                                {link.children.map((child) => (
+                                  <DropdownMenuItem
+                                    key={child.href}
+                                    onClick={() => navigate(child.href)}
+                                  >
+                                    {child.text}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                          </DropdownMenuSub>
+                        );
+                      } else {
+                        return (
+                          <DropdownMenuItem
+                            key={link.href}
+                            onClick={() => navigate(link.href)}
+                          >
+                            {link.text}
+                          </DropdownMenuItem>
+                        );
+                      }
+                    })}
+
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             )}
 
-            {isAuthenticated ? (
-              <div className="relative">
-                <Button
-                  onClick={handleLogout}
-                  className="bg-white text-purple-700 font-bold px-4 py-2 rounded-full shadow hover:bg-purple-100 transition"
-                >
-                  {SNM_NAV_LOGOUT_LABEL}
-                </Button>
-              </div>
-            ) : (
+            {!isAuthenticated && (
               <Link
                 to={SNM_NAV_LOGIN_LINK}
                 className="bg-white text-purple-700 font-bold px-4 py-2 rounded-full shadow hover:bg-purple-100 transition"
@@ -278,15 +338,14 @@ const Header = () => {
         </div>
       </header>
 
-      {/* ✅ Mobile Drawer with filtered links */}
+      {/* ✅ Mobile Drawer */}
       <MobileDrawer
         isOpen={drawerOpen}
         isAuthenticated={isAuthenticated}
-        onClose={() => {
-          setDrawerOpen(false);
-        }}
+        onClose={() => setDrawerOpen(false)}
         handleLogout={handleLogout}
         navLinks={filteredNavLinks}
+        userName={loggedInUserDetails?.name}
         openDropdown={openDropdown}
         toggleDropdown={toggleDropdown}
       />

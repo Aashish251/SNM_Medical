@@ -1,4 +1,5 @@
 import { SNM_WEBSITE_LOGO } from "@assets/index";
+import { publicNav } from "@shared/config/navlinks";
 import {
   SNM_SITE_ADDRESS,
   SNM_SITE_EMAIL,
@@ -10,7 +11,7 @@ import {
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
-const Footer = () => { 
+const Footer = () => {
   const services = [
     {
       title: "Free Health Check-ups",
@@ -27,7 +28,7 @@ const Footer = () => {
     },
   ];
   return (
-    <footer className="bg-gray-900 text-white pt-16 pb-2">
+    <footer className="bg-gray-900 text-white pt-16 pb-2 mt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-4 lg:px-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
@@ -64,14 +65,14 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-6">Quick Links</h3>
             <ul className="space-y-3">
-              {["Home", "Contact"].map((link) => (
-                <li key={link}>
+              {publicNav.map((link, index) => (
+                <li key={index}>
                   <motion.div whileHover={{ scale: 1.05 }}>
                     <Link
-                      to={`/${link.toLowerCase()}`}
+                      to={link.href}
                       className="text-gray-400 hover:text-white transition-colors"
                     >
-                      {link}
+                      {link.text}
                     </Link>
                   </motion.div>
                 </li>

@@ -61,13 +61,13 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
           );
 
           return (
-            <Popover open={openPopover} onOpenChange={setOpenPopover}>
+            <Popover open={openPopover} onOpenChange={setOpenPopover} >
               <PopoverTrigger asChild>
                 <Button variant="outline" role="combobox" className="w-full justify-between">
                   {selectedOption ? selectedOption[labelKey] : placeholder}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0 max-h-72 overflow-auto">
+              <PopoverContent className="w-full p-0 max-h-72 overflow-hidden">
                 <Command>
                   <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
                   <CommandList>

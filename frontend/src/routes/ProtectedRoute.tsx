@@ -5,6 +5,7 @@ import { RootState } from "@app/store";
 import {
   SNM_NAV_LOGIN_LINK,
   SNM_NAV_HOME_LINK,
+  SNM_NAV_MS_DASHBOARD_LINK,
 } from "@shared/constants";
 
 interface ProtectedRouteProps {

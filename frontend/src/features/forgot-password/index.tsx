@@ -102,12 +102,7 @@ const ForgetPassword: React.FC = () => {
             </div>
           </form>
 
-          {/* Dummy Credentials Placeholder */}
-          <div className="text-sm text-purple-700 space-y-2 text-left mt-6">
-            <p>Username: <span className="underline">______________________</span></p>
-            <p>Password: <span className="underline">______________________</span></p>
-          </div>
-
+          
           {/* Sign In Link */}
           <div className="text-center text-gray-500 mt-4">
             <Link to="/login" className="text-sm text-teal-600 hover:underline">

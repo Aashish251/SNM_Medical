@@ -1,14 +1,24 @@
+export interface userObject {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+  userType?: string;
+}
+
 export interface AuthState {
   isSignedIn: boolean;
   error: string | null;
-  userType: string;
+  userType?: string;
   token?: string;
+  userDetails?: userObject | null;
 }
 
 export interface SignInPayload {
   token: string;
-  userType: string;
+  userType?: string;
   isSignedIn: boolean;
+  userDetails?: userObject | null;
 }
 
 export interface LoginRequest {
@@ -22,5 +32,6 @@ export interface LoginResponse {
     id: string;
     name: string;
     email: string;
+    userType?: string;
   };
 }

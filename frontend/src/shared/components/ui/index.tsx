@@ -12,3 +12,6 @@ export * from "./select";
 export * from "./skeleton";
 export * from "./spinner";
 export * from "./textarea";
+export * from "./checkbox";
+export * from "./dropdown-menu";
+export * from "./collapsible";
