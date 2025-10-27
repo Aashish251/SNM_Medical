@@ -2,9 +2,9 @@ const mysql = require('mysql2');
 
 // Create connection pool with correct MySQL2 options
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'root',
+  host: process.env.DB_HOST || 'snm-dispensary.c6n262qos6l8.us-east-1.rds.amazonaws.com',
+  user: process.env.DB_USER || 'admin',
+  password: process.env.DB_PASSWORD || '5FJPD564gQjOuVckTdrk',
   database: process.env.DB_NAME || 'snm_dispensary',
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
