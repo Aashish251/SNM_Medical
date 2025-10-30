@@ -10,6 +10,7 @@ import {
   SNM_MS_USERTYPE_LABEL,
   SNM_NAV_FORGOT_PASSWORD_LINK,
 } from "@shared/constants";
+import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 
 interface LoginFormProps {
   form: UseFormReturn<FormData>;
@@ -69,14 +70,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       />
 
       {/* Password */}
-      <TextField
+      <PasswordField
         label="Password"
-        placeholder="Enter your password"
-        type="password"
         required
+        placeholder="Enter your password"
         register={register("password", {
           required: "Password is required",
-          minLength: { value: 6, message: "Minimum 6 characters" },
+          minLength: {
+            value: 6,
+            message: "Password must be at least 6 characters",
+          },
         })}
         error={errors.password}
       />

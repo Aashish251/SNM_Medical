@@ -4,39 +4,46 @@ import { FieldErrorText, RequiredMark } from "./FormHelpers";
 import { UseFormRegisterReturn, FieldError } from "react-hook-form";
 
 interface TextFieldProps {
-    label: string;
-    register: UseFormRegisterReturn;
-    placeholder?: string;
-    required?: boolean;
-    error?: FieldError | null;
-    type?: string;
-    readOnly?: boolean;
-    autoComplete?:string;
+  label: string;
+  register: UseFormRegisterReturn;
+  placeholder?: string;
+  required?: boolean;
+  error?: FieldError | null;
+  type?: string;
+  readOnly?: boolean;
+  value?: string | number;
+  autoComplete?: string;
+  className?: string;
 }
 
 export const TextField = ({
-    label,
-    register,
-    placeholder,
-    required,
-    autoComplete,
-    error,
-    type = "text",
-    readOnly = false,
+  label,
+  register,
+  placeholder,
+  required = false,
+  autoComplete,
+  value,
+  error,
+  type = "text",
+  readOnly = false,
+  className = "",
 }: TextFieldProps) => {
-    return (
-        <div className="space-y-2">
-            <label>
-                {label} {required && <RequiredMark />}
-            </label>
-            <Input
-                type={type}
-                placeholder={placeholder}
-                readOnly={readOnly}
-                autoComplete={autoComplete}
-                {...register} // 👈 use register as an object
-            />
-            <FieldErrorText message={error?.message} />
-        </div>
-    );
+  const inputProps = value ? { defaultValue: value } : {};
+
+  return (
+    <div className={`space-y-2 ${className}`}>
+      <label className="text-sm font-medium text-gray-700">
+        {label} {required && <RequiredMark />}
+      </label>
+      <Input
+        type={type}
+        placeholder={placeholder}
+        readOnly={readOnly}
+        autoComplete={autoComplete}
+        {...register}
+        {...inputProps}
+      />
+      <FieldErrorText message={error?.message} />
+    </div>
+  );
 };

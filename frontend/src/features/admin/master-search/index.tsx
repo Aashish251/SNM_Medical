@@ -4,6 +4,13 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@shared/components/ui";
 import { DataTable } from "@shared/components/DataTable/DataTable";
 import { DUMMY, userTableConfig } from "./config";
@@ -11,6 +18,7 @@ import { useForm, Controller } from "react-hook-form";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 import { useGetRegistrationDropdownDataQuery } from "@features/register/services";
 import { SelectField, CheckboxField } from "@shared/components/FormInputs";
+import DataTablePagination from "@shared/components/DataTable/DataTablePagination";
 
 interface User {
   id: number;
@@ -36,6 +44,9 @@ export default function MasterSearchPage() {
     column: null as string | null,
     direction: "asc" as "asc" | "desc",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageLimit, setPageLimit] = useState(10);
+  const totalPages = 8;
 
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
 
@@ -151,6 +162,15 @@ export default function MasterSearchPage() {
       approved: false,
     },
   ]);
+
+  const totalRecords = users.length;
+  const pageCount = Math.ceil(totalRecords / pageLimit);
+
+  // Slice data to show only current page (example logic, do with API ideally!)
+  const pagedUsers = users.slice(
+    (currentPage - 1) * pageLimit,
+    currentPage * pageLimit
+  );
 
   // Handlers
   const onSearch = (data: any) => console.log("Filter data submitted:", data);
@@ -384,6 +404,16 @@ export default function MasterSearchPage() {
           />
         </div>
       </section>
+      <DataTablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageLimit={pageLimit}
+        onLimitChange={(limit) => {
+          setPageLimit(limit);
+          setCurrentPage(1);
+        }}
+        onPageChange={setCurrentPage}
+      />
     </main>
   );
 }

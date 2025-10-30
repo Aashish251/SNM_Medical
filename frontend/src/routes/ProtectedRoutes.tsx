@@ -13,18 +13,21 @@ import {
   SNM_NAV_MS_UPDATE_PROFILE_LINK,
 } from "@shared/constants";
 
+// common pages
+const UpdateProfile = lazy(() => import("@features/update-profile"));
+
 // Medical Staff
 const MSDashboard = lazy(() => import("@features/medical-staff/msdashboard"));
-const MSUpdateProfile = lazy(() => import("@features/medical-staff/msupdate-profile"));
 
 // Admin
 const AdminDashboard = lazy(() => import("@features/admin/dashboard"));
 const AdminDutyChart = lazy(() => import("@features/admin/duty-chart"));
 const AdminMasterSearch = lazy(() => import("@features/admin/master-search"));
-const AdminUpdateProfile = lazy(() => import("@features/admin/update-profile"));
 const AdminMasterReport = lazy(() => import("@features/admin/master-report"));
 const AdminDailyReport = lazy(() => import("@features/admin/daily-report"));
-const AdminRegistrationReport = lazy(() => import("@features/admin/registration-report"));
+const AdminRegistrationReport = lazy(
+  () => import("@features/admin/registration-report")
+);
 
 export const ProtectedRoutes = [
   // Medical Staff routes
@@ -37,10 +40,10 @@ export const ProtectedRoutes = [
     }
   />,
   <Route
-    path={SNM_NAV_MS_UPDATE_PROFILE_LINK}
+    path={`${SNM_NAV_MS_UPDATE_PROFILE_LINK}/:id`}
     element={
       <ProtectedRoute allowedRole="ms">
-        <MSUpdateProfile />
+        <UpdateProfile />
       </ProtectedRoute>
     }
   />,
@@ -63,10 +66,10 @@ export const ProtectedRoutes = [
     }
   />,
   <Route
-    path={SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}
+    path={`${SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}/:id`}
     element={
       <ProtectedRoute allowedRole="admin">
-        <AdminUpdateProfile />
+        <UpdateProfile />
       </ProtectedRoute>
     }
   />,

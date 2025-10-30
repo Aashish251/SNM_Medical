@@ -84,10 +84,6 @@ export type FormValues = {
 
   password: string;
   confirmPassword: string;
-  favoriteFood: string;
-  childhoodNickname: string;
-  motherMaidenName: string;
-  hobbies: string;
   userType: "admin" | "ms";
   remark: string;
 };

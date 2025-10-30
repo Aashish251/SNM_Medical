@@ -18,8 +18,6 @@ const Login = () => {
   const { form, role, handleRoleChange, onSubmit, loading } =
     useLoginForm();
 
-    console.log("hii",role, SNM_ADMIN_USERTYPE)
-
   return (
     <div className="bg-[#f9f9f6] min-h-screen flex flex-col overflow-hidden">
       <div className="pt-24 flex-1 flex flex-col lg:flex-row items-center justify-center w-full px-4 sm:px-6 lg:px-8">

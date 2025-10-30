@@ -17,13 +17,15 @@ interface SelectOption {
 
 interface SelectFieldProps<T extends FieldValues> {
   label: string;
-  name?: Path<T>;
+  name: Path<T>;
   control: Control<T>;
   options?: SelectOption[];
-  valueKey?: keyof SelectOption;  // e.g., "value"
-  labelKey?: keyof SelectOption;  // e.g., "title"
+  valueKey?: keyof SelectOption;  // e.g. "value" or "id"
+  labelKey?: keyof SelectOption;  // e.g. "label" or "title"
   placeholder?: string;
   required?: boolean;
+  readOnly?: boolean;
+  className?: string;
 }
 
 export const SelectField = <T extends FieldValues>({
@@ -35,11 +37,13 @@ export const SelectField = <T extends FieldValues>({
   labelKey = "title",
   placeholder = "Select",
   required = false,
+  readOnly = false,
+  className = "",
 }: SelectFieldProps<T>) => {
   const id = `select-${name.replace(/\./g, "-")}`;
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       <Label htmlFor={id} className="text-sm font-medium text-gray-700">
         {label} {required && <RequiredMark />}
       </Label>
@@ -48,18 +52,33 @@ export const SelectField = <T extends FieldValues>({
         name={name}
         control={control}
         rules={{ required: required ? `${label} is required` : false }}
-        render={({ field, fieldState }) => (
-          <>
-            <Select
-              onValueChange={field.onChange}
-              value={field.value || ""}
-            >
-              <SelectTrigger id={id}>
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.isArray(options) &&
-                  options.map((opt) => (
+        render={({ field, fieldState }) => {
+          // Ensure value is always a string for Select
+          const currentValue = field.value
+            ? String(field.value)
+            : "";
+
+          return (
+            <>
+              <Select
+                disabled={readOnly}
+                onValueChange={field.onChange}
+                value={currentValue}
+              >
+                <SelectTrigger id={id}>
+                  <SelectValue placeholder={placeholder}>
+                    {
+                      // ✅ show label of prefilled value if available
+                      options.find(
+                        (opt) =>
+                          String(opt[valueKey]) === currentValue
+                      )?.[labelKey] || placeholder
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+
+                <SelectContent>
+                  {options.map((opt) => (
                     <SelectItem
                       key={opt[valueKey]}
                       value={String(opt[valueKey])}
@@ -67,14 +86,15 @@ export const SelectField = <T extends FieldValues>({
                       {opt[labelKey]}
                     </SelectItem>
                   ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
 
-            {fieldState.error?.message && (
-              <FieldErrorText message={fieldState.error.message} />
-            )}
-          </>
-        )}
+              {fieldState.error?.message && (
+                <FieldErrorText message={fieldState.error.message} />
+              )}
+            </>
+          );
+        }}
       />
     </div>
   );

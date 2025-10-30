@@ -7,10 +7,13 @@ import { RootState } from "@app/store";
 import { DEFAULT_PROFILE_IMAGE, SNM_WEBSITE_LOGO } from "@assets/index";
 import {
   SNM_ADMIN_USERTYPE,
+  SNM_MS_USERTYPE,
+  SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
   SNM_NAV_HOME_LINK,
   SNM_NAV_LOGIN_LABEL,
   SNM_NAV_LOGIN_LINK,
   SNM_NAV_LOGOUT_LABEL,
+  SNM_NAV_MS_UPDATE_PROFILE_LINK,
   SNM_PUBLIC_USERTYPE,
   SNM_SITE_LOGO_TITLE,
 } from "@shared/constants";
@@ -37,6 +40,7 @@ import {
   DropdownMenuSubContent,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { handleNavigate } from "@shared/config/common";
 
 // ✅ Mobile Drawer remains unchanged
 const MobileDrawer = ({
@@ -47,103 +51,110 @@ const MobileDrawer = ({
   handleLogout,
   isAuthenticated,
   openDropdown,
+  loggedInUserDetailesId,
   toggleDropdown,
-}: any) => (
-  <AnimatePresence>
-    {isOpen && (
-      <>
-        <motion.div
-          className="fixed inset-0 z-40"
-          onClick={onClose}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        />
-        <motion.div
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ duration: 0.3 }}
-          className="fixed right-0 top-0 h-full w-72 z-50 bg-gradient-to-b from-purple-800 to-pink-700 text-white p-4 shadow-lg"
-        >
-          <div className="font-bold text-lg mb-4 flex justify-between w-full">
-           <span className="text-white font-semibold transition capitalize">
-                  {userName && `${userName} Ji`}
-                </span>
-            <button onClick={onClose}>
-              <IoMdClose className="text-[25px] cursor-pointer" />
-            </button>
-          </div>
+}: any) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 z-40"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.3 }}
+            className="fixed right-0 top-0 h-full w-72 z-50 bg-gradient-to-b from-purple-800 to-pink-700 text-white p-4 shadow-lg"
+          >
+            <div className="font-bold text-lg mb-4 flex justify-between w-full">
+              <span className="text-white font-semibold transition capitalize">
+                {userName && `${userName} Ji`}
+              </span>
+              <button onClick={onClose}>
+                <IoMdClose className="text-[25px] cursor-pointer" />
+              </button>
+            </div>
 
-          <div className="flex flex-col space-y-1">
-            {navLinks.map((link: any, index: number) =>
-              link.children && link.children.length > 0 ? (
-                <div key={index}>
-                  <button
-                    className="flex justify-between w-full px-4 py-3 text-left hover:bg-purple-600/30 transition"
-                    onClick={() => toggleDropdown(link.text)}
+            <div className="flex flex-col space-y-1">
+              {navLinks.map((link: any, index: number) =>
+                link.children && link.children.length > 0 ? (
+                  <div key={index}>
+                    <button
+                      className="flex justify-between w-full px-4 py-3 text-left hover:bg-purple-600/30 transition"
+                      onClick={() => toggleDropdown(link.text)}
+                    >
+                      {link.text}
+                      {openDropdown === link.text ? (
+                        <IoIosArrowUp />
+                      ) : (
+                        <IoIosArrowDown />
+                      )}
+                    </button>
+                    {openDropdown === link.text && (
+                      <div className="bg-purple-900/80 rounded-md">
+                        {link.children.map((child: any) => (
+                          <Link
+                            key={child.href}
+                            to={child.href}
+                            className="block px-6 py-2 text-sm hover:bg-purple-700/50 transition"
+                            onClick={onClose}
+                          >
+                            {child.text}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    key={index}
+                    to={handleNavigate(
+                      link.href,
+                      isAuthenticated,
+                      loggedInUserDetailesId
+                    )}
+                    className="block px-4 py-3 hover:bg-purple-600/30 transition"
+                    onClick={onClose}
                   >
                     {link.text}
-                    {openDropdown === link.text ? (
-                      <IoIosArrowUp />
-                    ) : (
-                      <IoIosArrowDown />
-                    )}
-                  </button>
-                  {openDropdown === link.text && (
-                    <div className="bg-purple-900/80 rounded-md">
-                      {link.children.map((child: any) => (
-                        <Link
-                          key={child.href}
-                          to={child.href}
-                          className="block px-6 py-2 text-sm hover:bg-purple-700/50 transition"
-                          onClick={onClose}
-                        >
-                          {child.text}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  </Link>
+                )
+              )}
+            </div>
+
+            <div className="mt-4">
+              {isAuthenticated ? (
+                <Button
+                  className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
+                  onClick={() => {
+                    onClose();
+                    handleLogout();
+                  }}
+                >
+                  {SNM_NAV_LOGOUT_LABEL}
+                </Button>
               ) : (
                 <Link
-                  key={index}
-                  to={link.href}
-                  className="block px-4 py-3 hover:bg-purple-600/30 transition"
+                  to={SNM_NAV_LOGIN_LINK}
+                  className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
                   onClick={onClose}
                 >
-                  {link.text}
+                  {SNM_NAV_LOGIN_LABEL}
                 </Link>
-              )
-            )}
-          </div>
-
-          <div className="mt-4">
-            {isAuthenticated ? (
-              <Button
-                className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
-                onClick={() => {
-                  onClose();
-                  handleLogout();
-                }}
-              >
-                {SNM_NAV_LOGOUT_LABEL}
-              </Button>
-            ) : (
-              <Link
-                to={SNM_NAV_LOGIN_LINK}
-                className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
-                onClick={onClose}
-              >
-                {SNM_NAV_LOGIN_LABEL}
-              </Link>
-            )}
-          </div>
-        </motion.div>
-      </>
-    )}
-  </AnimatePresence>
-);
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
 
 // ✅ Header with Shadcn Profile Dropdown
 const Header = () => {
@@ -246,7 +257,8 @@ const Header = () => {
             {isAuthenticated && (
               <>
                 <span className=" py-2 text-white font-semibold transition capitalize">
-                  {loggedInUserDetails?.name && `Welcome ${loggedInUserDetails?.name} Ji`}
+                  {loggedInUserDetails?.name &&
+                    `Welcome ${loggedInUserDetails?.name} Ji`}
                 </span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -266,11 +278,14 @@ const Header = () => {
                       if (link.children && link.children.length > 0) {
                         return (
                           <DropdownMenuSub key={link.text}>
-                            <DropdownMenuSubTrigger>
+                            <DropdownMenuSubTrigger
+                              className="hover:text-black data-[state=open]:bg-white 
+              data-[state=open]:text-black"
+                            >
                               {link.text}
                             </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
-                              <DropdownMenuSubContent>
+                              <DropdownMenuSubContent className="w-48 mt-2 bg-gradient-to-b from-purple-800 to-pink-700 text-white shadow-lg rounded-md font-semibold transition">
                                 {link.children.map((child) => (
                                   <DropdownMenuItem
                                     key={child.href}
@@ -287,7 +302,15 @@ const Header = () => {
                         return (
                           <DropdownMenuItem
                             key={link.href}
-                            onClick={() => navigate(link.href)}
+                            onClick={() =>
+                              navigate(
+                                handleNavigate(
+                                  link.href,
+                                  authUserType,
+                                  loggedInUserDetails.id
+                                )
+                              )
+                            }
                           >
                             {link.text}
                           </DropdownMenuItem>
@@ -347,6 +370,7 @@ const Header = () => {
         navLinks={filteredNavLinks}
         userName={loggedInUserDetails?.name}
         openDropdown={openDropdown}
+        loggedInUserDetailesId={loggedInUserDetails?.id}
         toggleDropdown={toggleDropdown}
       />
     </>

@@ -1,5 +1,6 @@
 import { TableConfig } from "@shared/components/DataTable/DataTable";
 import { Button } from "@shared/components/ui/button";
+import { Link } from "react-router-dom";
 
 export interface User {
   id: number;
@@ -15,6 +16,7 @@ export interface User {
   passEntry: string;
   isPresent: string;
   approved: boolean;
+  certificate: string;
 }
 
 export const userTableConfig: TableConfig<User> = {
@@ -33,8 +35,19 @@ export const userTableConfig: TableConfig<User> = {
       ),
   },
   columns: [
-    { key: "regId", header: "Reg ID", sortable: true },
-    { key: "name", header: "Name", sortable: true },
+    {
+      key: "name",
+      header: "Name",
+      sortable: true,
+      render: (user: User) => (
+        <Link
+          to={`/admin/update-profile/${user.id}`}
+          className="text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2"
+        >
+          {user.name}
+        </Link>
+      ),
+    },
     { key: "contact", header: "Contact" },
     { key: "qualification", header: "Qualification" },
     { key: "sewaLocation", header: "Sewa Location" },
@@ -45,6 +58,11 @@ export const userTableConfig: TableConfig<User> = {
     { key: "passEntry", header: "Pass Entry" },
     { key: "isPresent", header: "Is Present" },
     { key: "sewaLocation", header: "Sewa Location" },
+    {
+      key: "certificate",
+      header: "Certificate",
+      render: (user: User) => <span>View</span>,
+    },
   ],
   statusColumn: {
     key: "approved",
