@@ -1,28 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@shared/components/ui/button";
 import { TextField } from "@shared/components/FormInputs/TextField";
 import { DUMMY } from "../config";
-import { Controller, UseFormReturn } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { FormValues, CityItem } from "../type";
 import {
   FileUploadField,
-  RequiredMark,
   SelectField,
   TextareaField,
 } from "@shared/components/FormInputs";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@shared/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@shared/components/ui/command";
-import { Label } from "@shared/components/ui/label";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 
 interface PersonalDetailsStepProps {

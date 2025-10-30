@@ -17,7 +17,7 @@ interface SelectOption {
 
 interface SelectFieldProps<T extends FieldValues> {
   label: string;
-  name: Path<T>;
+  name?: Path<T>;
   control: Control<T>;
   options?: SelectOption[];
   valueKey?: keyof SelectOption;  // e.g., "value"

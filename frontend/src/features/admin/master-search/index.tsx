@@ -6,11 +6,11 @@ import {
   CollapsibleContent,
 } from "@shared/components/ui";
 import { DataTable } from "@shared/components/DataTable/DataTable";
-import { columns, DUMMY } from "./config";
+import { DUMMY, userTableConfig } from "./config";
 import { useForm, Controller } from "react-hook-form";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 import { useGetRegistrationDropdownDataQuery } from "@features/register/services";
-import { SelectField,CheckboxField } from "@shared/components/FormInputs";
+import { SelectField, CheckboxField } from "@shared/components/FormInputs";
 
 interface User {
   id: number;
@@ -25,11 +25,17 @@ interface User {
   birthdate: string;
   passEntry: string;
   isPresent: string;
+  approved: boolean;
 }
 
 export default function MasterSearchPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [showUserRole, setShowUserRole] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
+  const [sortState, setSortState] = useState({
+    column: null as string | null,
+    direction: "asc" as "asc" | "desc",
+  });
 
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
 
@@ -48,8 +54,21 @@ export default function MasterSearchPage() {
       cityId: "",
       availabilityId: "",
       passEntry: "",
+      isPresent: "",
     },
   });
+
+  const states = Array.isArray(dropdownOption?.data?.states)
+    ? dropdownOption.data.states
+    : [];
+
+  const qualifications = Array.isArray(dropdownOption?.data?.qualifications)
+    ? dropdownOption.data.qualifications
+    : [];
+
+  const departments = Array.isArray(dropdownOption?.data?.departments)
+    ? dropdownOption.data.departments
+    : [];
 
   // ✅ User Role Form
   const defaultRoleValues = DUMMY.UserRoleChecks.reduce(
@@ -84,6 +103,52 @@ export default function MasterSearchPage() {
       birthdate: "15/10/1988",
       passEntry: "Yes",
       isPresent: "Yes",
+      approved: true,
+    },
+    {
+      id: 2,
+      regId: "2",
+      name: "Pratik Kanaujiya",
+      contact: "8965747852",
+      qualification: "IT",
+      sewaLocation: "D2",
+      shiftTime: "All",
+      department: "Admin",
+      email: "p.k@gmail.com",
+      birthdate: "25/20/2988",
+      passEntry: "Yes",
+      isPresent: "Yes",
+      approved: true,
+    },
+    {
+      id: 3,
+      regId: "3",
+      name: "Pratik Kanaujiya",
+      contact: "8965747853",
+      qualification: "IT",
+      sewaLocation: "D3",
+      shiftTime: "All",
+      department: "Admin",
+      email: "p.k@gmail.com",
+      birthdate: "35/30/3988",
+      passEntry: "Yes",
+      isPresent: "Yes",
+      approved: true,
+    },
+    {
+      id: 4,
+      regId: "4",
+      name: "Pratik Kanaujiya",
+      contact: "8965747854",
+      qualification: "IT",
+      sewaLocation: "D4",
+      shiftTime: "All",
+      department: "Admin",
+      email: "p.k@gmail.com",
+      birthdate: "45/40/4988",
+      passEntry: "Yes",
+      isPresent: "Yes",
+      approved: false,
     },
   ]);
 
@@ -91,6 +156,9 @@ export default function MasterSearchPage() {
   const onSearch = (data: any) => console.log("Filter data submitted:", data);
   const onExport = () => console.log("Exporting filtered data...");
   const onRoleSubmit = (data: any) => console.log("User Role updated:", data);
+
+  console.log("Selected IDs:", selectedIds);
+  console.log("Sort State:", sortState);
 
   return (
     <main className="container mx-auto px-4 pt-[120px] md:pt-[90px] lg:pt-[100px]">
@@ -132,8 +200,8 @@ export default function MasterSearchPage() {
               <SearchableSelect
                 control={filterControl}
                 name="departmentId"
-                label="Department"
-                options={dropdownOption?.data?.departments}
+                label=""
+                options={departments}
                 labelKey="department_name"
                 valueKey="id"
                 placeholder="Select department"
@@ -142,8 +210,8 @@ export default function MasterSearchPage() {
               <SearchableSelect
                 control={filterControl}
                 name="qualificationId"
-                label="Qualification"
-                options={dropdownOption?.data?.qualifications}
+                label=""
+                options={qualifications}
                 labelKey="qualification_name"
                 valueKey="id"
                 placeholder="Select qualification"
@@ -152,17 +220,37 @@ export default function MasterSearchPage() {
               <SearchableSelect
                 control={filterControl}
                 name="sewaLocation"
-                label="Sewa Location"
+                label=""
                 options={DUMMY.SevaLocation}
                 labelKey="label"
                 valueKey="value"
                 placeholder="Select sewa location"
               />
 
+              <SearchableSelect
+                control={filterControl}
+                name="stateId"
+                label=""
+                options={states}
+                labelKey="state_name"
+                valueKey="id"
+                placeholder="Select state"
+              />
+
+              <SearchableSelect
+                control={filterControl}
+                name="cityId"
+                label=""
+                options={dropdownOption?.data?.states}
+                labelKey="city_name"
+                valueKey="id"
+                placeholder="Select city"
+              />
+
               <SelectField
                 control={filterControl}
                 name="passEntry"
-                label="Pass Entry"
+                label=""
                 options={DUMMY.PassEntry}
                 labelKey="label"
                 valueKey="value"
@@ -171,14 +259,13 @@ export default function MasterSearchPage() {
 
               <SelectField
                 control={filterControl}
-                name="availabilityId"
-                label="Availability"
-                options={DUMMY.availabilities}
+                name="isPresent"
+                label=""
+                options={DUMMY.IsPresent}
                 labelKey="label"
                 valueKey="value"
-                placeholder="Select availability"
+                placeholder="Select is present"
               />
-
               <button
                 type="submit"
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full"
@@ -233,21 +320,21 @@ export default function MasterSearchPage() {
               <SearchableSelect
                 control={roleControl}
                 name="sewaLocation"
-                label="Sewa Location"
+                label=""
                 options={DUMMY.SevaLocation}
                 labelKey="label"
                 valueKey="value"
                 placeholder="Select sewa location"
               />
 
-              <SelectField
+              <SearchableSelect
                 control={roleControl}
                 name="samagamHeldIn"
-                label="Samagam Held In"
+                label=""
                 options={DUMMY.SamagamHeldIn}
                 labelKey="label"
                 valueKey="value"
-                placeholder="Select samagam location"
+                placeholder="Select samagam held in"
               />
 
               <Controller
@@ -284,7 +371,17 @@ export default function MasterSearchPage() {
       {/* 📋 Users Table */}
       <section className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <DataTable columns={columns} data={users} />
+          <DataTable
+            data={users}
+            config={userTableConfig}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            sortState={sortState}
+            onSortChange={(col, dir) => {
+              console.log("Sorted:", { col, dir });
+              setSortState({ column: col, direction: dir });
+            }}
+          />
         </div>
       </section>
     </main>
