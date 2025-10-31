@@ -1,4 +1,4 @@
-import { n } from "node_modules/framer-motion/dist/types.d-DsEeKk6G";
+import { b, n } from "node_modules/framer-motion/dist/types.d-DsEeKk6G";
 
 export type City = { id: string; name: string };
 
@@ -88,6 +88,7 @@ export type FormValues = {
   childhoodNickname: string;
   motherMaidenName: string;
   hobbies: string;
+  is_approved: number | string | boolean;
   userType: "admin" | "ms";
   remark: string;
 };

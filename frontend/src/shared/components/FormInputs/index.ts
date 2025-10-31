@@ -5,3 +5,4 @@ export * from "./FileUploadField";
 export * from "./FormHelpers";
 export * from "./SearchableSelect";
 export * from "./CheckboxField";
+export * from "./PasswordField";

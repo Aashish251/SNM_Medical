@@ -19,7 +19,7 @@ const Login = () => {
     useLoginForm();
 
   return (
-    <div className="bg-[#f9f9f6] min-h-screen flex flex-col overflow-hidden">
+    <div className="bg-[#f9f9f6] min-h-screen flex flex-col overflow-hidden space-y-6">
       <div className="pt-24 flex-1 flex flex-col lg:flex-row items-center justify-center w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-1 w-full max-w-5xl mx-auto shadow-2xl rounded-3xl bg-white/60 flex-col lg:flex-row max-h-[90vh] overflow-hidden">
           {/* Left Section */}

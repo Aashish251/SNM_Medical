@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@shared/components/ui/input";
 import { FieldErrorText, RequiredMark } from "./FormHelpers";
 import { UseFormRegisterReturn, FieldError } from "react-hook-form";
-import { Eye, EyeOff } from "lucide-react"; // 👁️ Import icons
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@shared/components/ui/button";
 
 interface PasswordFieldProps {
@@ -55,11 +55,11 @@ export const PasswordField = ({
           type="button"
           variant="ghost"
           size="icon"
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-600 hover:text-gray-800"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-gray-600 hover:text-gray-800"
           onClick={() => setShowPassword((prev) => !prev)}
           tabIndex={-1}
         >
-          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          {showPassword ? <EyeOff size={25} /> : <Eye size={25} />}
         </Button>
       </div>
 
