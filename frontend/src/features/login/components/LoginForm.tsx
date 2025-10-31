@@ -9,7 +9,7 @@ import {
   SNM_MS_USERTYPE,
   SNM_MS_USERTYPE_LABEL,
   SNM_NAV_FORGOT_PASSWORD_LINK,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 
 interface LoginFormProps {

@@ -11,7 +11,7 @@ import {
   SNM_DONT_HAVE_ACCOUNT,
   SNM_NAV_REGISTER_LINK,
   SNM_SIGNUP_LABEL_TITLE,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 
 type SecurityQuestions = {
   email: string;

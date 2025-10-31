@@ -1,6 +1,6 @@
 import React from "react";
 import { Role } from "../hooks/useLoginForm";
-import { SNM_ADMIN_USERTYPE } from "@shared/constants";
+import { SNM_ADMIN_USERTYPE } from "@shared/constants/index.constant";
 
 interface RoleButtonProps {
   roleName: Role;

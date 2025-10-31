@@ -7,16 +7,13 @@ import { RootState } from "@app/store";
 import { DEFAULT_PROFILE_IMAGE, SNM_WEBSITE_LOGO } from "@assets/index";
 import {
   SNM_ADMIN_USERTYPE,
-  SNM_MS_USERTYPE,
-  SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
   SNM_NAV_HOME_LINK,
   SNM_NAV_LOGIN_LABEL,
   SNM_NAV_LOGIN_LINK,
   SNM_NAV_LOGOUT_LABEL,
-  SNM_NAV_MS_UPDATE_PROFILE_LINK,
   SNM_PUBLIC_USERTYPE,
   SNM_SITE_LOGO_TITLE,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 import {
   adminNav,
   msNav,
@@ -33,7 +30,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuPortal,

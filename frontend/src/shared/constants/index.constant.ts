@@ -6,15 +6,33 @@ export const SNM_SITE_LOGO_URL = "https://www.nirankari.org/wp-content/uploads/2
 export const SNM_SITE_ADDRESS = "Sant Nirankari Bhavan, Mahul Rd, Chembur Colony, Chembur, Mumbai, Maharashtra 400074";
 export const SNM_SITE_PHONE = "+91 8898209852";
 export const SNM_SITE_EMAIL = "snmdispensary@gmail.com";
+
+// Login Page
 export const SNM_LOGIN_PAGE_TITLE = "Welcome to Medical Sewa";
 export const SNM_LOGIN_PAGE_DNG = "Dhan Nirankar Ji";
 export const SNM_LOGIN_PAGE_ADMIN_SUBTITLE = "Sign in to your Admin account."
 export const SNM_LOGIN_PAGE_MEDICAL_STAFF_SUBTITLE = "Sign in to your Medical Staff account."
 export const SNM_DONT_HAVE_ACCOUNT="Don't have an account?"
-export const SNM_SIGNUP_LABEL_TITLE="Sign Up / Registration"
+export const SNM_LOGIN_LABEL_TITLE="Sign Up / Registration"
 export const SNM_MS_USERTYPE_LABEL="Medical Staff"
 export const SNM_ADMIN_USERTYPE_LABEL="Admin"
 
+// Home Page
+export const HOME_ABOUT_PAGE_TITLE="About Medical Sewa"
+export const HOME_ABOUT_PAGE_CONTENT="A Sant Nirankari Mission initiative providing compassionate healthcare services to underserved communities"
+export const HOME_ABOUT_BUTTON_LABEL="Learn More"
+export const HOME_ABOUT_SECTION_TITLE = "Serving Humanity with Divine Inspiration";
+export const HOME_ABOUT_SECTION_CONTENT = `Medical Sewa is a healthcare initiative by Sant Nirankari Mission dedicated to providing quality medical
+            services to all sections of society. Inspired by the teachings of Satguru Mata Sudiksha Ji Maharaj, we
+            strive to serve humanity with compassion and dedication.`;
+
+// Contact Page
+export const SNM_CONTACT_PAGE_HEADING="Contact Us"
+export const SNM_CONTACT_PAGE_SUBHEADING="Have questions or need assistance? Reach out to our team and we'll get back to you as soon as possible."
+export const SNM_CONTACT_PAGE_FORM_TITLE_LABEL="Send Us a Message"
+export const SNM_CONTACT_PAGE_FORM_SUCCESS_MESSAGE="Thank you for your message! We'll get back to you soon."
+
+{/** Routes and Labels start */}
 // User Type
 export const SNM_ADMIN_USERTYPE="admin"
 export const SNM_MS_USERTYPE="ms"
@@ -59,6 +77,8 @@ export const SNM_NAV_ADMIN_REGISTRATION_REPORT_LABEL="Registration Report"
 export const SNM_NAV_ADMIN_REGISTRATION_REPORT_LINK="/admin/registration-report"
 export const SNM_NAV_ADMIN_MASTER_REPORT_LABEL="Master Report"
 export const SNM_NAV_ADMIN_MASTER_REPORT_LINK="/admin/master-report"
+
+{/** Routes and Labels end */}
 
 
 

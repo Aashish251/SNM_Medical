@@ -32,7 +32,7 @@ import {
   SNM_NAV_ADMIN_DASHBOARD_LABEL,
   SNM_NAV_MS_DASHBOARD_LINK,
   SNM_NAV_MS_DASHBOARD_LABEL,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 
 // -------------------------
 // 🔹 Reusable Navigation Groups

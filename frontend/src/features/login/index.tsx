@@ -11,8 +11,8 @@ import {
   SNM_LOGIN_PAGE_MEDICAL_STAFF_SUBTITLE,
   SNM_LOGIN_PAGE_TITLE,
   SNM_NAV_REGISTER_LINK,
-  SNM_SIGNUP_LABEL_TITLE,
-} from "@shared/constants";
+  SNM_LOGIN_LABEL_TITLE,
+} from "@shared/constants/index.constant";
 
 const Login = () => {
   const { form, role, handleRoleChange, onSubmit, loading } =
@@ -78,7 +78,7 @@ const Login = () => {
                 href={SNM_NAV_REGISTER_LINK}
                 className="border-2 border-white px-5 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-bold hover:bg-white hover:text-indigo-700 transition-all duration-300 shadow-lg text-center"
               >
-                {SNM_SIGNUP_LABEL_TITLE}
+                {SNM_LOGIN_LABEL_TITLE}
               </a>
             </motion.div>
 

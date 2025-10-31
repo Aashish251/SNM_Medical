@@ -4,7 +4,7 @@ import {
   SNM_NAV_HOME_LINK,
   SNM_NAV_LOGIN_LINK,
   SNM_NAV_REGISTER_LINK,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 import React, { lazy } from "react";
 import { Route } from "react-router-dom";
 import AuthRedirect from "./AuthRedirect";

@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { HOME_ABOUT_TITLE, HOME_ABOUT_CONTENT } from "../config"
+import { HOME_ABOUT_TITLE, HOME_ABOUT_CONTENT } from "../config";
+import {
+  HOME_ABOUT_PAGE_CONTENT,
+  HOME_ABOUT_PAGE_TITLE,
+  HOME_ABOUT_SECTION_CONTENT,
+  HOME_ABOUT_SECTION_TITLE,
+} from "@shared/constants/index.constant";
 
 interface AboutSectionProps {
   aboutImages: string[];
@@ -20,14 +26,15 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
   return (
     <section className="py-16 bg-white">
       <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">About Medical Sewa</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          {HOME_ABOUT_PAGE_TITLE}
+        </h2>
         <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-pink-500 mx-auto mb-6" />
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          A Sant Nirankari Mission initiative providing compassionate healthcare services to underserved communities
+          {HOME_ABOUT_PAGE_CONTENT}
         </p>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
-
         {/* Image Slider */}
         <div className="relative rounded-xl overflow-hidden shadow-xl h-80 md:h-96">
           <div
@@ -36,7 +43,11 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
           >
             {aboutImages.map((src, index) => (
               <div key={index} className="min-w-full flex-shrink-0 relative">
-                <img src={src} alt={`About Slide ${index + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={src}
+                  alt={`About Slide ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
             ))}
           </div>
@@ -45,11 +56,9 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
         {/* Content */}
         <div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
-            {HOME_ABOUT_TITLE}
+            {HOME_ABOUT_SECTION_TITLE}
           </h3>
-          <p className="text-gray-600 mb-6">
-            {HOME_ABOUT_CONTENT}
-          </p>
+          <p className="text-gray-600 mb-6">{HOME_ABOUT_SECTION_CONTENT}</p>
           <motion.div whileHover={{ scale: 1.05 }}>
             <Link
               to="/about"

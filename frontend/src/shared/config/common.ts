@@ -3,13 +3,14 @@ import {
   SNM_MS_USERTYPE,
   SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
   SNM_NAV_MS_UPDATE_PROFILE_LINK,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 
 export const handleNavigate = (
   href: string,
   authUserType: string,
   loggedInUserId: string
 ) => {
+  console.log(href, authUserType, loggedInUserId);
   if (
     href == SNM_NAV_ADMIN_UPDATE_PROFILE_LINK &&
     SNM_ADMIN_USERTYPE === authUserType
@@ -21,6 +22,7 @@ export const handleNavigate = (
   ) {
     return `${SNM_NAV_MS_UPDATE_PROFILE_LINK}/${loggedInUserId}`;
   } else {
+    console.log("No matching route found", href);
     return href;
   }
 };

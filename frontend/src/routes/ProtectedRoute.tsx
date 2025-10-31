@@ -6,7 +6,7 @@ import {
   SNM_NAV_LOGIN_LINK,
   SNM_NAV_HOME_LINK,
   SNM_NAV_MS_DASHBOARD_LINK,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

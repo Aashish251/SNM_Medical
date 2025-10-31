@@ -12,7 +12,7 @@ import {
   SNM_MS_USERTYPE,
   SNM_NAV_ADMIN_DASHBOARD_LINK,
   SNM_NAV_MS_DASHBOARD_LINK,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 
 export type Role = "admin" | "ms";
 

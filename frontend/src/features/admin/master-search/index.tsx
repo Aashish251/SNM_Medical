@@ -4,13 +4,6 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from "@shared/components/ui";
 import { DataTable } from "@shared/components/DataTable/DataTable";
 import { DUMMY, userTableConfig } from "./config";
@@ -163,14 +156,6 @@ export default function MasterSearchPage() {
     },
   ]);
 
-  const totalRecords = users.length;
-  const pageCount = Math.ceil(totalRecords / pageLimit);
-
-  // Slice data to show only current page (example logic, do with API ideally!)
-  const pagedUsers = users.slice(
-    (currentPage - 1) * pageLimit,
-    currentPage * pageLimit
-  );
 
   // Handlers
   const onSearch = (data: any) => console.log("Filter data submitted:", data);

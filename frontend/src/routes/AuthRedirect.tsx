@@ -8,7 +8,7 @@ import {
   SNM_NAV_LOGIN_LINK,
   SNM_MS_USERTYPE,
   SNM_ADMIN_USERTYPE,
-} from "@shared/constants";
+} from "@shared/constants/index.constant";
 import { RootState } from "@app/store";
 
 const AuthRedirect = ({ children }: { children: React.ReactNode }) => {

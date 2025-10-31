@@ -43,7 +43,6 @@ export const PasswordField = ({
         <Input
           type={showPassword ? "text" : "password"}
           placeholder={placeholder}
-          minLength={16}
           readOnly={readOnly}
           autoComplete={autoComplete}
           {...register}
