@@ -55,24 +55,30 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Email */}
       <TextField
-        label="Email"
-        placeholder="Enter your email"
-        type="email"
+        label="Email ID / Contact No."
+        placeholder="Enter your email or mobile number"
         required
-        register={register("email", {
-          required: "Email is required",
-          pattern: {
-            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-            message: "Invalid email format",
+        autoComplete="off"
+        register={register("identifier", {
+          required: "Email or Contact Number is required",
+          validate: (value) => {
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            const isPhone = /^[6-9]\d{9}$/.test(value);
+            return (
+              isEmail ||
+              isPhone ||
+              "Enter a valid email or 10-digit mobile number"
+            );
           },
         })}
-        error={errors.email}
+        error={errors.identifier}
       />
 
       {/* Password */}
       <PasswordField
         label="Password"
         required
+        autoComplete="off"
         placeholder="Enter your password"
         register={register("password", {
           required: "Password is required",

@@ -22,8 +22,10 @@ export interface SignInPayload {
 }
 
 export interface LoginRequest {
-  email: string;
+  email?: string;
+  contact?: string;
   password: string;
+  role: string;
 }
 
 export interface LoginResponse {

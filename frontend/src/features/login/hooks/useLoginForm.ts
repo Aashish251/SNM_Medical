@@ -17,7 +17,7 @@ import {
 export type Role = "admin" | "ms";
 
 export interface FormData {
-  email: string;
+  identifier: string;
   password: string;
 }
 
@@ -37,8 +37,14 @@ export const useLoginForm = () => {
     try {
       setLoading(true);
 
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier);
+      const isPhone = /^[6-9]\d{9}$/.test(data.identifier);
+
       const payload = {
-        ...data,
+        ...(isEmail
+          ? { email: data.identifier }
+          : { contact: data.identifier }),
+        password: data.password,
         role:
           role === SNM_ADMIN_USERTYPE ? SNM_ADMIN_USERTYPE : SNM_MS_USERTYPE,
       };

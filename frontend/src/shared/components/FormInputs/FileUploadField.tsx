@@ -1,8 +1,8 @@
 import * as React from "react";
 import { UseFormRegisterReturn, FieldError } from "react-hook-form";
-import { Label } from "@shared/components/ui/label"; // ShadCN Label
-import { Input } from "@shared/components/ui/input"; // ShadCN Input
-import { cn } from "@shared/lib/utils"; // Optional: Tailwind merge helper
+import { Label } from "@shared/components/ui/label";
+import { Input } from "@shared/components/ui/input";
+import { cn } from "@shared/lib/utils";
 
 interface FileUploadFieldProps {
   label: string;
@@ -16,7 +16,7 @@ export const FileUploadField = ({
   label,
   register,
   required,
-  accept = "image/*",
+  accept = ".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf",
   error,
 }: FileUploadFieldProps) => {
   return (
@@ -34,6 +34,11 @@ export const FileUploadField = ({
           error && "border-red-500 focus:border-red-500 focus:ring-red-500"
         )}
       />
+
+       {/* Helper Text */}
+        {/* <p className="text-xs text-gray-500">
+          Supported formats: JPG, PNG, GIF, BMP, WEBP (max 5MB)
+        </p> */}
 
       {error?.message && (
         <p className="text-sm text-red-500 mt-1">{error.message}</p>

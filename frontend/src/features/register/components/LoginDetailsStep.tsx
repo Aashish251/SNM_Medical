@@ -12,7 +12,8 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Responsive grid for inputs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full">
         <PasswordField
           label="Password"
           autoComplete="new-password"
@@ -46,6 +47,11 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
           required
           register={register("favoriteFood", {
             required: "Favorite food is required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Favorite food should contain only alphabets and spaces (no numbers or symbols)",
+            },
           })}
           placeholder="Enter favorite food"
           error={errors.favoriteFood}
@@ -56,6 +62,11 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
           required
           register={register("childhoodNickname", {
             required: "Childhood nickname is required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Childhood nickname should contain only alphabets and spaces (no numbers or symbols)",
+            },
           })}
           placeholder="Enter childhood nickname"
           error={errors.childhoodNickname}
@@ -66,6 +77,11 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
           required
           register={register("motherMaidenName", {
             required: "Mother's maiden name is required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Mother's maiden name should contain only alphabets and spaces (no numbers or symbols)",
+            },
           })}
           placeholder="Enter mother's maiden name"
           error={errors.motherMaidenName}
@@ -76,17 +92,24 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
           required
           register={register("hobbies", {
             required: "Hobbies are required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Hobbies should contain only alphabets and spaces (no numbers or symbols)",
+            },
           })}
           placeholder="What are your hobbies?"
           error={errors.hobbies}
         />
 
-        <p className="col-span-2 text-red-500 text-md italic">
+        {/* Note Section - spans both columns */}
+        <p className="col-span-1 sm:col-span-2 text-red-500 text-sm sm:text-md italic mt-2">
           <strong>Note:</strong> Please remember these questions and answers, as
           they are required to recover your login ID or password if forgotten.
         </p>
 
-        <div className="col-span-2">
+        {/* Textarea Field - full width */}
+        <div className="col-span-1 sm:col-span-2">
           <TextareaField
             label="Remark (Added by Administration Team)"
             placeholder="This field will be filled by the administration team after review"
@@ -95,11 +118,18 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
         </div>
       </div>
 
-      <div className="flex justify-between mt-10">
-        <Button variant="secondary" onClick={prevStep}>
+      {/* Buttons */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mt-8 sm:mt-10 w-full">
+        <Button
+          variant="secondary"
+          onClick={prevStep}
+          className="w-full sm:w-auto px-6 py-2"
+        >
           Previous
         </Button>
-        <Button type="submit">Submit</Button>
+        <Button type="submit" className="w-full sm:w-auto px-6 py-2">
+          Submit
+        </Button>
       </div>
     </>
   );

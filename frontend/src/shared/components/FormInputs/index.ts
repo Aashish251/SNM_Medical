@@ -6,3 +6,4 @@ export * from "./FormHelpers";
 export * from "./SearchableSelect";
 export * from "./CheckboxField";
 export * from "./PasswordField";
+export * from "./NumberField";

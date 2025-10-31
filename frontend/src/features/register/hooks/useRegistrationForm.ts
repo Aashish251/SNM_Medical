@@ -18,10 +18,10 @@ export const useRegistrationForm = () => {
   const form = useForm<FormValues>({
     mode: 'onBlur',
     defaultValues: {
-      title: "Mr",
+      title: "",
       fullName: "",
       contact: "",
-      gender: "1",
+      gender: "",
       email: "",
       birthdate: "",
       age: 0,

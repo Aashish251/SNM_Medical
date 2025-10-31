@@ -14,6 +14,7 @@ interface TextFieldProps {
   value?: string | number;
   autoComplete?: string;
   className?: string;
+  maxLength?: number;
 }
 
 export const TextField = ({

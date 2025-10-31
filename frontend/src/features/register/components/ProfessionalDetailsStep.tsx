@@ -4,6 +4,7 @@ import { SelectField } from "@shared/components/FormInputs/SelectField";
 import { DUMMY } from "../config";
 import {
   FileUploadField,
+  NumberField,
   RequiredMark,
   TextField,
 } from "@shared/components/FormInputs";
@@ -30,8 +31,8 @@ export const ProfessionalDetailsStep = ({
     : [];
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="p-4 sm:p-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <SearchableSelect
           control={control}
           name="qualificationId"
@@ -76,28 +77,84 @@ export const ProfessionalDetailsStep = ({
           placeholder="Select Shift"
         />
 
-        <TextField
+        <NumberField
           label="Total Experience (Years)"
+          maxLength={3}
+          allowDecimal
           register={register("experience")}
           placeholder="Enter your experience"
         />
 
         <TextField
           label="Sewa Performed During Last Samagam"
-          register={register("lastSewa")}
+          register={register("lastSewa", {
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Last Sewa should contain only alphabets and spaces (no numbers or symbols)",
+            },
+          })}
           placeholder="Enter last Sewa performed"
+          error={errors.lastSewa}
         />
 
         <TextField
           label="Recommended By"
-          register={register("recommendedBy")}
+          register={register("recommendedBy", {
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Recommended By should contain only alphabets and spaces (no numbers or symbols)",
+            },
+          })}
           placeholder="Enter recommender's name"
+          error={errors.recommendedBy}
         />
 
         <FileUploadField
           label="Upload Certificate"
-          accept="image/*"
-          register={register("certificate")}
+          accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
+          register={register("certificate", {
+            required: "Certificate is required",
+            validate: {
+              fileType: (fileList) => {
+                if (!fileList || fileList.length === 0)
+                  return "Please upload a certificate";
+
+                const allowedExtensions = [
+                  "jpg",
+                  "jpeg",
+                  "png",
+                  "gif",
+                  "bmp",
+                  "webp",
+                  "pdf",
+                ];
+                const file = fileList[0];
+                const ext = file.name.split(".").pop()?.toLowerCase();
+
+                return (
+                  allowedExtensions.includes(ext || "") ||
+                  "File type not supported. Please upload an image (jpg, png, etc)"
+                );
+              },
+              fileSize: (fileList) => {
+                if (!fileList || fileList.length === 0) return true;
+                const file = fileList[0];
+                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+                return (
+                  file.size <= MAX_SIZE ||
+                  `File size must be under 5MB (current size: ${(
+                    file.size /
+                    1024 /
+                    1024
+                  ).toFixed(2)}MB)`
+                );
+              },
+            },
+          })}
+          error={errors.profilePic}
         />
       </div>
 
@@ -107,6 +164,6 @@ export const ProfessionalDetailsStep = ({
         </Button>
         <Button onClick={nextStep}>Next</Button>
       </div>
-    </>
+    </div>
   );
 };

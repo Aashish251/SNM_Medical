@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@shared/components/ui";
-import { TextField } from "@shared/components/FormInputs";
+import { NumberField, TextField } from "@shared/components/FormInputs";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import {
   SNM_NAV_FORGOT_PASSWORD_LABEL,
@@ -65,7 +65,7 @@ const SecurityForm: React.FC<{
           register={register("email", {
             required: "Email address is required",
             pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
               message: "Enter a valid email",
             },
           })}
@@ -73,17 +73,18 @@ const SecurityForm: React.FC<{
           error={errors.email}
         />
 
-        <TextField
-          label="Contact"
+        <NumberField
+          label="Contact Number"
           required
+          maxLength={13}
           register={register("contact", {
             required: "Contact number is required",
             pattern: {
-              value: /^[6-9][0-9]{9}$/,
-              message: "Enter a valid 10-digit number",
+              value: /^(?:\+91|91|0)?[-\s]?[6-9]\d{9}$/, // must start with 6–9 and be 10 digits
+              message: "Enter a valid 10-digit mobile number",
             },
           })}
-          placeholder="10-digit mobile number"
+          placeholder="Enter 10-digit mobile number"
           error={errors.contact}
         />
 
@@ -219,7 +220,10 @@ const ResetPasswordForm: React.FC<{ onReset: () => void }> = ({ onReset }) => {
           error={errors.confirmPassword}
         />
 
-        <Button type="submit" className="w-full py-3 rounded-lg text-lg font-semibold">
+        <Button
+          type="submit"
+          className="w-full py-3 rounded-lg text-lg font-semibold"
+        >
           Reset Password
         </Button>
       </form>

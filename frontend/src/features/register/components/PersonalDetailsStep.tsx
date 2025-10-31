@@ -6,6 +6,7 @@ import { UseFormReturn } from "react-hook-form";
 import { FormValues, CityItem } from "../type";
 import {
   FileUploadField,
+  NumberField,
   SelectField,
   TextareaField,
 } from "@shared/components/FormInputs";
@@ -28,7 +29,6 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   nextStep,
   reset,
 }) => {
-  
   const {
     control,
     register,
@@ -40,11 +40,9 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     ? dropdownOption.data.states
     : [];
 
-    
-
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="p-4 sm:p-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {/* Title */}
         <SelectField
           label="Title"
@@ -63,23 +61,33 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           required
           register={register("fullName", {
             required: "Full name is required",
+            minLength: {
+              value: 2,
+              message: "Full name must be at least 2 characters long",
+            },
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Full name should contain only alphabets and spaces (no numbers or symbols)",
+            },
           })}
           placeholder="Enter full name"
           error={errors.fullName}
         />
 
         {/* Contact */}
-        <TextField
-          label="Contact"
+        <NumberField
+          label="Contact Number"
           required
+          maxLength={13}
           register={register("contact", {
             required: "Contact number is required",
             pattern: {
-              value: /^[6-9][0-9]{9}$/,
-              message: "Enter valid 10-digit number",
+              value: /^(?:\+91|91|0)?[-\s]?[6-9]\d{9}$/, // must start with 6–9 and be 10 digits
+              message: "Enter a valid 10-digit mobile number",
             },
           })}
-          placeholder="10-digit mobile number"
+          placeholder="Enter 10-digit mobile number"
           error={errors.contact}
         />
 
@@ -102,7 +110,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           register={register("email", {
             required: "Email address is required",
             pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
               message: "Enter a valid email",
             },
           })}
@@ -122,7 +130,6 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             placeholder="Select birthdate"
             error={errors.birthdate}
           />
-
           <TextField
             label="Age"
             readOnly
@@ -132,7 +139,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           />
         </div>
 
-        {/* State (Searchable with Popover) */}
+        {/* State */}
         <SearchableSelect
           control={control}
           name="stateId"
@@ -144,7 +151,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           placeholder="Select state"
         />
 
-        {/* City (Searchable with Popover) */}
+        {/* City */}
         <SearchableSelect
           control={control}
           name="cityId"
@@ -159,12 +166,63 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         {/* Profile Picture */}
         <FileUploadField
           label="Profile Picture"
-          accept="image/*"
-          register={register("profilePic")}
+          accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
+          register={register("profilePic", {
+            validate: {
+              fileType: (fileInput) => {
+                let file: File | undefined;
+
+                if (!fileInput) {
+                  return "Please upload a profile picture";
+                }
+
+                if (fileInput instanceof FileList) {
+                  if (fileInput.length === 0) return "Please upload a profile picture";
+                  file = fileInput[0];
+                } else if (fileInput instanceof File) {
+                  file = fileInput;
+                } else {
+                  return "Please upload a profile picture";
+                }
+
+                const allowedExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"];
+                const ext = file.name.split(".").pop()?.toLowerCase();
+
+                return (
+                  allowedExtensions.includes(ext || "") ||
+                  "File type not supported. Please upload an image (jpg, png, etc)"
+                );
+              },
+              fileSize: (fileInput) => {
+                if (!fileInput) return true;
+                let file: File | undefined;
+
+                if (fileInput instanceof FileList) {
+                  if (fileInput.length === 0) return true;
+                  file = fileInput[0];
+                } else if (fileInput instanceof File) {
+                  file = fileInput;
+                } else {
+                  return true;
+                }
+
+                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+                return (
+                  file.size <= MAX_SIZE ||
+                  `File size must be under 5MB (current size: ${(
+                    file.size /
+                    1024 /
+                    1024
+                  ).toFixed(2)}MB)`
+                );
+              },
+            },
+          })}
         />
 
         {/* Address */}
-        <div className="col-span-3">
+        <div className="col-span-1 sm:col-span-2 md:col-span-3">
           <TextareaField
             label="Address"
             placeholder="Enter address"
@@ -178,12 +236,12 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
       </div>
 
       {/* Buttons */}
-      <div className="mt-8 flex justify-end gap-4">
+      <div className="mt-8 flex flex-col sm:flex-row justify-end gap-4">
         <Button variant="secondary" onClick={reset}>
           Reset
         </Button>
         <Button onClick={nextStep}>Next</Button>
       </div>
-    </>
+    </div>
   );
 };
