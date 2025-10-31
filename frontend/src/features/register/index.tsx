@@ -29,18 +29,59 @@ const Register = () => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      console.log(data)
+      console.log('Form submission data:', data);
+
+      // Validate required fields
+      const requiredFields = ['fullName', 'email', 'password', 'contact', 'birthdate'];
+      const missingFields = requiredFields.filter(field => !data[field as keyof FormValues]);
+      
+      if (missingFields.length > 0) {
+        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
       const formData = new FormData();
 
-      for (const key in data) {
-        if (key === "certificate" || key === "profilePic") {
-          const file = data[key]?.[0];
-          if (file) {
-            formData.append(key, file);
-          }
-        } else {
-          formData.append(key, data[key] as any);
-        }
+      // Required fields with field name mapping
+      const fieldMapping = {
+        contact: 'mobileNo',
+        birthdate: 'dateOfBirth'
+      };
+
+      // Required fields
+      formData.append('fullName', data.fullName);
+      formData.append('email', data.email);
+      formData.append('password', data.password);
+      formData.append('confirmPassword', data.confirmPassword || data.password);
+      formData.append('mobileNo', data.contact); // mapped from contact
+      formData.append('dateOfBirth', data.birthdate); // mapped from birthdate
+      formData.append('address', data.address || '');
+      formData.append('stateId', String(data.stateId || ''));
+      formData.append('cityId', String(data.cityId || ''));
+      formData.append('departmentId', String(data.departmentId || ''));
+      formData.append('qualificationId', String(data.qualificationId || ''));
+
+      // Optional fields
+      formData.append('title', data.title || 'Mr');
+      formData.append('gender', data.gender || '1');
+      formData.append('userType', data.userType || 'ms');
+      formData.append('experience', String(data.experience || 0));
+      formData.append('lastSewa', data.lastSewa || '');
+      formData.append('recommendedBy', data.recommendedBy || '');
+      formData.append('samagamHeldIn', '');
+
+      // Handle file uploads
+      if (data.profilePic instanceof FileList && data.profilePic.length > 0) {
+        formData.append('profilePic', data.profilePic[0]);
+      }
+      if (data.certificate instanceof FileList && data.certificate.length > 0) {
+        formData.append('certificate', data.certificate[0]);
+      }
+
+      // Debug: Log form data entries
+      console.log('FormData contents:');
+      for (const pair of (formData as any).entries()) {
+        console.log(pair[0], pair[1]);
       }
 
       await toast.promise(triggerRegisterUser(formData).unwrap(), {

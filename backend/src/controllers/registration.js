@@ -40,18 +40,32 @@ exports.checkEmail = async (req, res) => {
 
 exports.registerUser = async (req, res) => {
   try {
-    const files = req.files;
-    const profileImagePath = files?.profileImage
-      ? `/uploads/profile/${files.profileImage[0].filename}`
-      : null;
-    const certificatePath = files?.certificate
-      ? `/uploads/certificates/${files.certificate[0].filename}`
-      : null;
+    const files = req.files || {};
+    const userData = req.body || {};
 
-    const result = await registrationService.createUser(req.body, {
-      profileImagePath,
-      certificatePath,
+    // Debug log
+    console.log('Registration Data:', {
+      body: userData,
+      files: Object.keys(files),
+      contentType: req.headers['content-type']
     });
+
+    // Basic validation
+    if (!userData || Object.keys(userData).length === 0) {
+      return sendResponse(res, 400, false, 'No registration data provided');
+    }
+
+    // Build file paths
+    const filePaths = {
+      profileImagePath: files?.profilePic?.[0]
+        ? `/uploads/profile/${files.profilePic[0].filename}`
+        : null,
+      certificatePath: files?.certificate?.[0]
+        ? `/uploads/certificates/${files.certificate[0].filename}`
+        : null
+    };
+
+    const result = await registrationService.createUser(userData, filePaths);
 
     return sendResponse(res, 201, true, 'User registered successfully!', result);
   } catch (error) {

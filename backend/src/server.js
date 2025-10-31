@@ -9,7 +9,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enhanced Middleware
+// Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -17,10 +17,11 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
+    }
+  }
 }));
 
+// CORS
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
@@ -28,20 +29,16 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
-// Enhanced logging format
+// Logging (before routes)
 app.use(morgan('combined', {
   skip: function (req, res) { 
     return res.statusCode < 400 && process.env.NODE_ENV === 'production';
   }
 }));
-
-// Request logging for development
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
     console.log(` ${req.method} ${req.path} - ${new Date().toISOString()}`);
@@ -49,11 +46,22 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Routes with error handling
+/*
+  ---- DO NOT USE express.json() or express.urlencoded() BEFORE FILE ROUTES ----
+  Multer (used in registration route) will handle file/form-data parsing.
+  JSON body parsing is added after file upload routes!
+*/
+
+// Main routes (file/form-data routes first, e.g. registration)
 try {
+  app.use('/api/registration', require('./routes/registration')); // includes file upload endpoints
+  // Add JSON/body-parsing middleware only after above:
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // All other non-file routes
   app.use('/api/auth', require('./routes/auth'));
   app.use('/api/dashboard', require('./routes/dashboard'));
-  app.use('/api/registration', require('./routes/registration'));
   app.use('/api/search', require('./routes/search'));
   app.use('/api/dutychart', require('./routes/dutychart'));
   app.use('/api/reports', require('./routes/reports'));
@@ -81,7 +89,7 @@ app.get('/api/health/db', async (req, res) => {
   });
 });
 
-// API endpoints overview
+// API overview
 app.get('/api', (req, res) => {
   res.json({
     message: 'SNM Dispensary API',
@@ -113,7 +121,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler for unmatched routes (LAST)
+// 404 handler
 app.use('*', (req, res) => {
   console.log(` 404 - Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
@@ -137,11 +145,9 @@ app.use('*', (req, res) => {
   });
 });
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// Enhanced server startup
+// Start server/check DB
 const startServer = async () => {
   const dbConnected = await testConnection();
-  
   if (dbConnected) {
     app.listen(PORT, () => {
       console.log(` SNM Dispensary Server running on port ${PORT}`);
@@ -165,7 +171,7 @@ const startServer = async () => {
   }
 };
 
-// Graceful shutdown handling
+// Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\n Received SIGINT. Gracefully shutting down...');
   process.exit(0);

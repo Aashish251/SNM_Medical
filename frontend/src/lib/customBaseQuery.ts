@@ -14,11 +14,13 @@ export const customBaseQuery = fetchBaseQuery({
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    // Always set JSON content-type by default
-    if (!headers.has("Content-Type")) {
+    // Don't set Content-Type for FormData, let the browser handle it
+    if (!headers.has("Content-Type") && !(headers.get("x-is-form-data") === "true")) {
       headers.set("Content-Type", "application/json");
     }
-
+    
+    // Remove our custom header before sending
+    headers.delete("x-is-form-data");
     return headers;
   },
 });
