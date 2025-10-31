@@ -16,11 +16,12 @@ export const useRegistrationForm = () => {
     useLazyGetCitiesByStateQuery();
 
   const form = useForm<FormValues>({
+    mode: 'onBlur',
     defaultValues: {
-      title: "",
+      title: "Mr",
       fullName: "",
       contact: "",
-      gender: "",
+      gender: "1",
       email: "",
       birthdate: "",
       age: 0,
@@ -45,7 +46,7 @@ export const useRegistrationForm = () => {
       hobbies: "",
       profilePic: undefined,
     },
-    mode: "onTouched",
+    // Form mode is set above
   });
 
   const { watch, setValue, trigger } = form;

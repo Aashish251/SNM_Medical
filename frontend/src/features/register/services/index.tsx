@@ -37,6 +37,11 @@ export const RegisterApi = createApi({
         url: "registration/register",
         method: "POST",
         body: formData,
+        formData: true,
+        headers: {
+          "x-is-form-data": "true",
+          // Don't set Content-Type here, browser will set it with correct boundary
+        },
       }),
     }),
   }),
