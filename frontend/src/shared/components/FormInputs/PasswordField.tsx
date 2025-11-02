@@ -44,6 +44,7 @@ export const PasswordField = ({
           type={showPassword ? "text" : "password"}
           placeholder={placeholder}
           readOnly={readOnly}
+          maxLength={16}
           autoComplete={autoComplete}
           {...register}
           {...inputProps}
