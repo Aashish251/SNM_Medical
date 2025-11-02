@@ -8,18 +8,16 @@ const formData = new FormData();
 router.get('/dropdown-data', registrationController.getDropdownData);
 router.get('/cities/:stateId', registrationController.getCities);
 router.post('/check-email', registrationController.checkEmail);
+
 router.post(
   '/register',
   upload.fields([
-    { name: 'profilePic', maxCount: 1 },
-    { name: 'certificate', maxCount: 1 }
+    { name: 'profilePic', maxCount: 1 }, 
+    { name: 'certificate', maxCount: 1 },
   ]),
   registrationController.registerUser
 );
 
-// ======================================================
-// 📸 Upload Profile Image
-// ======================================================
 router.post('/upload-profile', upload.single('profileImage'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({
@@ -36,9 +34,6 @@ router.post('/upload-profile', upload.single('profileImage'), (req, res) => {
   });
 });
 
-// ======================================================
-// 📄 Upload Certificate
-// ======================================================
 router.post('/upload-certificate', upload.single('certificate'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({

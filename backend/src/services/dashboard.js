@@ -5,25 +5,35 @@ const { promisePool } = require('../config/database');
  * Fetch overall dashboard statistics.
  */
 exports.getDashboardStats = async (userId) => {
-  const [results] = await promisePool.execute('CALL sp_get_dashboard_stats()');
+  // Step 1: Fetch overall stats
+  const [overallResults] = await promisePool.execute('CALL sp_get_dashboard_stats()');
 
-  // Transform department stats to match frontend expectations
-  const departmentStats = results[2] || [];
+  // Step 2: Fetch department-wise stats
+  const [deptResults] = await promisePool.execute('CALL sp_dashboard_dept_count()');
+
+  // Extract the result sets
+  const totalUsers = overallResults[0]?.[0]?.total_users || 0;
+  const recentRegistrations = overallResults[1]?.[0]?.recent_registrations || 0;
+  const departmentStats = deptResults[0] || [];
+
+  // Step 3: Transform data for frontend
   const transformedStats = departmentStats.map((dept, index) => ({
-    title: dept.department_name || dept.title || `Department ${index + 1}`,
-    value: dept.user_count || dept.value || 0,
-    color: getDepartmentColor(dept.department_name || dept.title || `Department ${index + 1}`),
+    title: dept.title || `Department ${index + 1}`,
+    value: dept.value || 0,
+    color: getDepartmentColor(dept.title || `Department ${index + 1}`),
   }));
 
+  // Step 4: Combine both SP results
   return {
-    totalUsers: results[0]?.[0]?.total_users || 0,
-    recentRegistrations: results[1]?.[0]?.recent_registrations || 0,
-    stats: transformedStats, // Changed from departmentStats to stats
-    departmentStats: transformedStats, // Keep both for compatibility
+    totalUsers,
+    recentRegistrations,
+    stats: transformedStats,
+    departmentStats: transformedStats,
     lastUpdated: new Date().toISOString(),
     fetchedBy: userId,
   };
 };
+
 
 // Helper function to assign colors to departments
 function getDepartmentColor(departmentName) {
@@ -44,7 +54,7 @@ function getDepartmentColor(departmentName) {
  * Fetch full user profile by ID.
  */
 exports.getUserProfile = async (userId) => {
-  const [results] = await promisePool.execute('CALL sp_get_user_profile_complete(?)', [userId]);
+  const [results] = await promisePool.execute('CALL sp_get_user_profile(?)', [userId]);
   const users = results[0] || [];
 
   if (users.length === 0) throw new Error('User not found');

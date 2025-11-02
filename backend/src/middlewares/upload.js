@@ -33,7 +33,7 @@ const storage = multer.diskStorage({
     let uploadDir = 'others';
 
     switch (file.fieldname) {
-      case 'profileImage':
+      case 'profilePic':
         uploadDir = 'profile';
         break;
       case 'certificate':
@@ -43,6 +43,9 @@ const storage = multer.diskStorage({
 
     const fullPath = path.join(BASE_UPLOAD_DIR, uploadDir);
     ensureDir(fullPath);
+    
+    req.uploadSubDir = uploadDir;
+    
     cb(null, fullPath);
   },
 
@@ -50,8 +53,8 @@ const storage = multer.diskStorage({
     const timestamp = Date.now();
     const random = Math.round(Math.random() * 1e9);
     const safeOriginalName = path.basename(file.originalname, path.extname(file.originalname))
-      .replace(/\s+/g, '_') // Replace spaces
-      .replace(/[^\w\-]/g, ''); // Remove unsafe characters
+      .replace(/\s+/g, '_')
+      .replace(/[^\w\-]/g, '');
 
     const finalFileName = `${safeOriginalName}_${timestamp}_${random}${path.extname(file.originalname)}`;
     cb(null, finalFileName);
