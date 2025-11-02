@@ -36,7 +36,6 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
               <BsFillCameraFill className="text-purple-600 text-lg" />
             </div>
           </div>
-
           <div>
             <h2 className="text-2xl font-bold text-gray-800">{name}</h2>
             <div className="mt-2 flex items-center justify-center gap-2 text-gray-600">
@@ -47,7 +46,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
 
         {/* Banner */}
-        <div className="flex-1 w-full sm:h-56 md:h-64 rounded-xl overflow-hidden relative">
+        <div className="flex-1 w-full sm:h-50 md:h-100 rounded-xl overflow-hidden relative">
           <img
             src={HOME_HERO_BANNER_IMAGE3}
             alt="Banner"

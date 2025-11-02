@@ -215,7 +215,7 @@ const Header = () => {
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-400 shadow-lg py-2"
+            ? "bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-400 shadow-lg py-4"
             : "bg-gradient-to-r from-purple-700/90 via-pink-500/90 to-yellow-400/90 py-4"
         }`}
       >
