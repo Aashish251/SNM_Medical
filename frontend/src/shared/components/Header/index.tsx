@@ -261,10 +261,16 @@ const Header = () => {
                     <button className="focus:outline-none">
                       <Avatar className="w-10 h-10 ring-2 ring-white cursor-pointer">
                         <AvatarImage
-                          src={loggedInUserDetails?.name && DEFAULT_PROFILE_IMAGE}
+                          src={
+                            loggedInUserDetails?.name
+                              ? "http://localhost:5000/uploads/profile/screencapture-localhost-5173-forgot-password-2025-10-31-14_06_53_1762073999881_721790650.png"
+                              : DEFAULT_PROFILE_IMAGE
+                          }
                           alt="User Avatar"
                         />
-                        <AvatarFallback>U</AvatarFallback>
+                        <AvatarFallback>
+                          {loggedInUserDetails?.name?.[0]?.toUpperCase() || "U"}
+                        </AvatarFallback>
                       </Avatar>
                     </button>
                   </DropdownMenuTrigger>

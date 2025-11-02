@@ -39,7 +39,11 @@ app.use(
   })
 );
 
-// Logging
+// Serve uploaded files
+app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
+
+// Logging (before routes)
 app.use(
   morgan("combined", {
     skip: function (req, res) {
@@ -47,7 +51,6 @@ app.use(
     },
   })
 );
-
 if (process.env.NODE_ENV === "development") {
   app.use((req, res, next) => {
     console.log(` ${req.method} ${req.path} - ${new Date().toISOString()}`);
@@ -55,24 +58,31 @@ if (process.env.NODE_ENV === "development") {
   });
 }
 
-/* ------------------------------------------------------------
-   File upload and API routes
------------------------------------------------------------- */
+/*
+  ---- DO NOT USE express.json() or express.urlencoded() BEFORE FILE ROUTES ----
+  Multer (used in registration route) will handle file/form-data parsing.
+  JSON body parsing is added after file upload routes!
+*/
+
+// Main routes (file/form-data routes first, e.g. registration)
 try {
-  app.use("/api/registration", require("./routes/registration"));
+  app.use("/api/registration", require("./routes/registration")); // includes file upload endpoints
+  // Add JSON/body-parsing middleware only after above:
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+  // All other non-file routes
   app.use("/api/auth", require("./routes/auth"));
   app.use("/api/dashboard", require("./routes/dashboard"));
   app.use("/api/search", require("./routes/search"));
   app.use("/api/dutychart", require("./routes/dutychart"));
   app.use("/api/reports", require("./routes/reports"));
 } catch (error) {
-  console.error("❌ Error loading routes:", error.message);
+  console.error(" Error loading routes:", error.message);
+  console.error("Make sure all route files exist in the routes/ directory");
 }
 
-// Health check
+// Health check endpoints
 app.get("/health", (req, res) => {
   res.status(200).json({
     message: "SNM Dispensary Server is running!",
@@ -82,7 +92,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Database health check
 app.get("/api/health/db", async (req, res) => {
   const isConnected = await testConnection();
   res.status(isConnected ? 200 : 500).json({
@@ -115,14 +124,16 @@ app.get("/api", (req, res) => {
   });
 });
 
-// Error handling middleware
+// Error handling middleware (AFTER all routes)
 app.use((err, req, res, next) => {
   console.error("🚨 Server Error:", err);
   res.status(500).json({
     success: false,
     message: "Internal server error",
     error:
-      process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
+      process.env.NODE_ENV === "development"
+        ? err.message
+        : "Something went wrong",
     timestamp: new Date().toISOString(),
   });
 });
@@ -133,22 +144,68 @@ app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.method} ${req.originalUrl} not found`,
+    availableRoutes: [
+      "GET /api",
+      "GET /health",
+      "GET /api/health/db",
+      "POST /api/auth/login",
+      "POST /api/auth/forgot-password",
+      "POST /api/registration/register",
+      "GET /api/dashboard/stats",
+      "GET /api/search/master-search",
+      "GET /api/dutychart/filter",
+      "GET /api/reports/daily",
+      "GET /api/reports/registration",
+      "GET /api/reports/master",
+    ],
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Start server
+// Start server/check DB
 const startServer = async () => {
   const dbConnected = await testConnection();
   if (dbConnected) {
     app.listen(PORT, () => {
+      console.log(` SNM Dispensary Server running on port ${PORT}`);
+      console.log(` Database: Connected to snm_dispensary`);
+      console.log(` Medical Service Management System Ready`);
+      console.log(` Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(` Available APIs:`);
+      console.log(`   • Authentication: http://localhost:${PORT}/api/auth`);
+      console.log(
+        `   • Registration: http://localhost:${PORT}/api/registration`
+      );
+      console.log(`   • Dashboard: http://localhost:${PORT}/api/dashboard`);
+      console.log(`   • Search: http://localhost:${PORT}/api/search`);
+      console.log(`   • Dutychart: http://localhost:${PORT}/api/dutychart`);
+      console.log(`   • Reports: http://localhost:${PORT}/api/reports`);
+      console.log(`   • Health: http://localhost:${PORT}/health`);
+      console.log(`   • API Overview: http://localhost:${PORT}/api`);
+
       console.log(`✅ SNM Dispensary Server running on port ${PORT}`);
       console.log(`📁 Static files served from /uploads`);
       console.log(`🌐 Visit: http://localhost:${PORT}/uploads`);
+      
+      console.log(` Ready to accept requests!`);
     });
   } else {
-    console.error("❌ Failed to connect to the database. Server not started.");
+    console.error(
+      " Failed to connect to snm_dispensary database. Server not started."
+    );
     process.exit(1);
   }
 };
+
+// Graceful shutdown
+process.on("SIGINT", () => {
+  console.log("\n Received SIGINT. Gracefully shutting down...");
+  process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+  console.log("\nReceived SIGTERM. Gracefully shutting down...");
+  process.exit(0);
+});
 
 startServer();
