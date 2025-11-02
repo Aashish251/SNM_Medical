@@ -1,9 +1,9 @@
 import React from "react";
 import { Button } from "@shared/components/ui/button";
 import { TextField } from "@shared/components/FormInputs/TextField";
-import { DUMMY } from "../config";
+import { DUMMY } from "../../../features/register/config";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues, CityItem } from "../type";
+import { FormValues, CityItem } from "../../../features/register/type";
 import {
   FileUploadField,
   NumberField,

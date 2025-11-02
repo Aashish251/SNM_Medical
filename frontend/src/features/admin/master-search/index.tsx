@@ -10,7 +10,11 @@ import { DUMMY, userTableConfig } from "./config";
 import { useForm, Controller } from "react-hook-form";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 import { useGetRegistrationDropdownDataQuery } from "@features/register/services";
-import { SelectField, CheckboxField } from "@shared/components/FormInputs";
+import {
+  SelectField,
+  CheckboxField,
+  TextField,
+} from "@shared/components/FormInputs";
 import DataTablePagination from "@shared/components/DataTable/DataTablePagination";
 
 interface User {
@@ -39,60 +43,8 @@ export default function MasterSearchPage() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(10);
-  const totalPages = 8;
 
-  const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
-
-  // ✅ Filter Form
-  const {
-    control: filterControl,
-    handleSubmit: handleFilterSubmit,
-    reset: resetFilter,
-  } = useForm({
-    defaultValues: {
-      searchTerm: "",
-      departmentId: "",
-      qualificationId: "",
-      sewaLocation: "",
-      stateId: "",
-      cityId: "",
-      availabilityId: "",
-      passEntry: "",
-      isPresent: "",
-    },
-  });
-
-  const states = Array.isArray(dropdownOption?.data?.states)
-    ? dropdownOption.data.states
-    : [];
-
-  const qualifications = Array.isArray(dropdownOption?.data?.qualifications)
-    ? dropdownOption.data.qualifications
-    : [];
-
-  const departments = Array.isArray(dropdownOption?.data?.departments)
-    ? dropdownOption.data.departments
-    : [];
-
-  // ✅ User Role Form
-  const defaultRoleValues = DUMMY.UserRoleChecks.reduce(
-    (acc, role) => ({ ...acc, [role.name]: role.defaultChecked }),
-    {}
-  );
-
-  const {
-    control: roleControl,
-    handleSubmit: handleRoleSubmit,
-    reset: resetRoleForm,
-  } = useForm({
-    defaultValues: {
-      ...defaultRoleValues,
-      sewaLocation: "",
-      samagamHeldIn: "",
-      remark: "",
-    },
-  });
-
+  // Replace with backend data in production
   const [users] = useState<User[]>([
     {
       id: 1,
@@ -156,18 +108,69 @@ export default function MasterSearchPage() {
     },
   ]);
 
+  const totalPages = Math.max(1, Math.ceil(users.length / pageLimit));
+  const pagedUsers = users.slice(
+    (currentPage - 1) * pageLimit,
+    currentPage * pageLimit
+  );
 
-  // Handlers
+  const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
+
+  // Filter Form
+  const {
+    control: filterControl,
+    handleSubmit: handleFilterSubmit,
+    reset: resetFilter,
+  } = useForm({
+    defaultValues: {
+      searchTerm: "",
+      departmentId: "",
+      qualificationId: "",
+      sewaLocation: "",
+      stateId: "",
+      cityId: "",
+      availabilityId: "",
+      passEntry: "",
+      isPresent: "",
+    },
+  });
+
+  // User-role Form
+  const defaultRoleValues = DUMMY.UserRoleChecks.reduce(
+    (acc, role) => ({ ...acc, [role.name]: role.defaultChecked }),
+    {}
+  );
+
+  const {
+    control: roleControl,
+    handleSubmit: handleRoleSubmit,
+    reset: resetRoleForm,
+  } = useForm({
+    defaultValues: {
+      ...defaultRoleValues,
+      sewaLocation: "",
+      samagamHeldIn: "",
+      remark: "",
+    },
+  });
+
+  const states = Array.isArray(dropdownOption?.data?.states)
+    ? dropdownOption.data.states
+    : [];
+  const qualifications = Array.isArray(dropdownOption?.data?.qualifications)
+    ? dropdownOption.data.qualifications
+    : [];
+  const departments = Array.isArray(dropdownOption?.data?.departments)
+    ? dropdownOption.data.departments
+    : [];
+
   const onSearch = (data: any) => console.log("Filter data submitted:", data);
   const onExport = () => console.log("Exporting filtered data...");
   const onRoleSubmit = (data: any) => console.log("User Role updated:", data);
 
-  console.log("Selected IDs:", selectedIds);
-  console.log("Sort State:", sortState);
-
   return (
-    <main className="container mx-auto px-4 pt-[120px] md:pt-[90px] lg:pt-[100px]">
-      {/* 🔍 Filter Section */}
+    <main className="container mx-auto px-2 sm:px-4 pt-[120px] md:pt-[90px] lg:pt-[100px]">
+      {/* Filter Section */}
       <section className="bg-white rounded-lg shadow-md mb-5 overflow-hidden">
         <Collapsible open={showFilter} onOpenChange={setShowFilter}>
           <CollapsibleTrigger asChild>
@@ -183,7 +186,6 @@ export default function MasterSearchPage() {
               )}
             </button>
           </CollapsibleTrigger>
-
           <CollapsibleContent className="p-4 border-t">
             <form
               onSubmit={handleFilterSubmit(onSearch)}
@@ -273,15 +275,14 @@ export default function MasterSearchPage() {
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full col-span-1"
               >
                 Search
               </button>
-
               <button
                 type="button"
                 onClick={onExport}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 w-full"
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 w-full col-span-1"
               >
                 Export
               </button>
@@ -290,7 +291,7 @@ export default function MasterSearchPage() {
         </Collapsible>
       </section>
 
-      {/* 🧍‍♂️ User Role Section */}
+      {/* User Role Section */}
       <section className="bg-white rounded-lg shadow-md mb-5 overflow-hidden">
         <Collapsible open={showUserRole} onOpenChange={setShowUserRole}>
           <CollapsibleTrigger asChild>
@@ -306,13 +307,11 @@ export default function MasterSearchPage() {
               )}
             </button>
           </CollapsibleTrigger>
-
           <CollapsibleContent className="p-4 border-t">
             <form
               onSubmit={handleRoleSubmit(onRoleSubmit)}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center"
             >
-              {/* Multi-checkbox */}
               {DUMMY.UserRoleChecks.map((role) => (
                 <CheckboxField
                   key={role.id}
@@ -332,14 +331,23 @@ export default function MasterSearchPage() {
                 placeholder="Select sewa location"
               />
 
-              <SearchableSelect
-                control={roleControl}
+              <Controller
                 name="samagamHeldIn"
-                label=""
-                options={DUMMY.SamagamHeldIn}
-                labelKey="label"
-                valueKey="value"
-                placeholder="Select samagam held in"
+                control={roleControl}
+                rules={{
+                  required: "Samagam location is required",
+                  minLength: {
+                    value: 2,
+                    message: "Must be at least 2 characters",
+                  },
+                }}
+                render={({ field }) => (
+                  <TextField
+                    label=""
+                    placeholder="Enter Samagam location"
+                    {...field}
+                  />
+                )}
               />
 
               <Controller
@@ -357,14 +365,13 @@ export default function MasterSearchPage() {
               <button
                 type="button"
                 onClick={() => resetRoleForm()}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 w-full"
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 w-full col-span-1"
               >
                 Reset
               </button>
-
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 w-full"
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 w-full col-span-1"
               >
                 Submit
               </button>
@@ -373,32 +380,35 @@ export default function MasterSearchPage() {
         </Collapsible>
       </section>
 
-      {/* 📋 Users Table */}
-      <section className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* Users Table */}
+      <section className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
         <div className="overflow-x-auto">
           <DataTable
-            data={users}
+            data={pagedUsers}
             config={userTableConfig}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             sortState={sortState}
-            onSortChange={(col, dir) => {
-              console.log("Sorted:", { col, dir });
-              setSortState({ column: col, direction: dir });
-            }}
+            onSortChange={(col, dir) =>
+              setSortState({ column: col, direction: dir })
+            }
           />
         </div>
       </section>
-      <DataTablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageLimit={pageLimit}
-        onLimitChange={(limit) => {
-          setPageLimit(limit);
-          setCurrentPage(1);
-        }}
-        onPageChange={setCurrentPage}
-      />
+
+      {/* Pagination */}
+      <div className="py-2">
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageLimit={pageLimit}
+          onLimitChange={(limit) => {
+            setPageLimit(limit);
+            setCurrentPage(1);
+          }}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </main>
   );
 }

@@ -102,7 +102,7 @@ export const DUMMY = {
     { id: 1, name: "isPresent", label: "Is Present", defaultChecked: true },
     { id: 2, name: "passEntry", label: "Pass Entry", defaultChecked: true },
     { id: 3, name: "isAdmin", label: "Is Admin", defaultChecked: false },
-    { id: 4, name: "isActive", label: "Is Active", defaultChecked: true },
+    { id: 4, name: "isDelete", label: "Is Delete", defaultChecked: true },
   ],
   SamagamHeldIn: [
     { id: 1, label: "Delhi", value: "Delhi" },

@@ -1,11 +1,13 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Stepper } from "./components/Stepper";
 import { STEPS } from "./config";
 import { useRegistrationForm } from "./hooks/useRegistrationForm";
-import { PersonalDetailsStep } from "./components/PersonalDetailsStep";
-import { ProfessionalDetailsStep } from "./components/ProfessionalDetailsStep";
-import { LoginDetailsStep } from "./components/LoginDetailsStep";
+import {
+  Stepper,
+  PersonalDetailsStep,
+  ProfessionalDetailsStep,
+  LoginDetailsStep,
+} from "@shared/components/Registration";
 import { useRegisterUserMutation } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";

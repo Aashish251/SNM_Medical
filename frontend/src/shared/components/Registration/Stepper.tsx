@@ -1,5 +1,5 @@
 import React from "react";
-import { StepperProps } from "../type";
+import { StepperProps } from "../../../features/register/type";
 
 export const Stepper: React.FC<StepperProps> = ({
   steps,

@@ -88,7 +88,6 @@ export type FormValues = {
   childhoodNickname: string;
   motherMaidenName: string;
   hobbies: string;
-  is_approved: number | string | boolean;
   userType: "admin" | "ms";
   remark: string;
 };

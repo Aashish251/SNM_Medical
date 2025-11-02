@@ -50,7 +50,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={name}>
+      <Label htmlFor={name} className="text-sm font-medium text-gray-700">
         {label} {required && <RequiredMark />}
       </Label>
 
@@ -58,7 +58,9 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         name={name}
         control={control}
         defaultValue={value ?? ""} // ✅ prefill RHF with provided value
-        rules={required ? { required: `${label} is required`, ...rules } : rules}
+        rules={
+          required ? { required: `${label} is required`, ...rules } : rules
+        }
         render={({ field, fieldState }) => {
           // Ensure RHF picks up external default value changes
           useEffect(() => {
@@ -78,20 +80,25 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                   <Button
                     variant="outline"
                     role="combobox"
-                    className="w-full justify-between"
+                    className="w-full justify-between text-sm font-medium text-gray-700"
                     type="button"
                   >
                     {selectedOption ? selectedOption[labelKey] : placeholder}
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent className="w-full p-0 max-h-72 overflow-hidden">
+                <PopoverContent className="w-full p-0 max-h-72 overflow-hidden ">
                   <Command>
-                    <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
+                    <CommandInput
+                      placeholder={`Search ${label.toLowerCase()}...`}
+                    />
                     <CommandList>
-                      <CommandEmpty>No {label.toLowerCase()} found.</CommandEmpty>
+                      <CommandEmpty>
+                        No {label.toLowerCase()} found.
+                      </CommandEmpty>
                       {options.map((item) => (
                         <CommandItem
+                          className="text-sm font-medium text-gray-700 hover:text-grey-900"
                           key={item[valueKey]}
                           value={String(item[labelKey]).toLowerCase()}
                           onSelect={() => {

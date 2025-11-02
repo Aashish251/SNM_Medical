@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@shared/components/ui/button";
 import { SelectField } from "@shared/components/FormInputs/SelectField";
-import { DUMMY } from "../config";
+import { DUMMY } from "../../../features/register/config";
 import {
   FileUploadField,
   NumberField,
@@ -114,6 +114,7 @@ export const ProfessionalDetailsStep = ({
         <FileUploadField
           label="Upload Certificate"
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
+          required
           register={register("certificate", {
             required: "Certificate is required",
             validate: {

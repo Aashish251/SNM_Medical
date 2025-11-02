@@ -1,11 +1,13 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Stepper } from "./components/Stepper";
 import { STEPS } from "./config";
 import { useUpdateProfileForm } from "./hooks/useUpdateProfileForm";
-import { PersonalDetailsStep } from "./components/PersonalDetailsStep";
-import { ProfessionalDetailsStep } from "./components/ProfessionalDetailsStep";
-import { LoginDetailsStep } from "./components/LoginDetailsStep";
+import {
+  Stepper,
+  PersonalDetailsStep,
+  ProfessionalDetailsStep,
+  LoginDetailsStep,
+} from "@shared/components/Registration";
 import { useRegisterUserMutation } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -68,7 +70,7 @@ const UpdateProfile = () => {
         />
 
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif font-bold text-gray-800 tracking-wide">
+          <h2 className="text-3xl font-serif font-bold bg-gradient-to-r from-blue-500 to-teal-700 bg-clip-text text-transparent tracking-wide">
             {STEPS[currentStep - 1].title} Details
           </h2>
         </div>
