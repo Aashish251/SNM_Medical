@@ -1,59 +1,71 @@
-// src/services/auth.service.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const { promisePool } = require('../config/database');
-const { sanitizeInput } = require('../utils/sanitize');
-const cors = require('cors');
 const jwtConfig = require('../config/jwt');
 
-/**
- * Authenticate user and generate JWT.
- */
 exports.login = async ({ role, email, password }) => {
   if (!email || !password) throw new Error('Email and password are required');
 
-  const [rows] = await promisePool.execute(
-    'SELECT login_id, user_type, password, reg_id, full_name, email FROM registration_tbl WHERE email = ? AND is_deleted = 0',
-    [email.toLowerCase().trim()]
+  const userType = role?.toLowerCase() === 'admin' ? 'admin' : 'ms';
+  const loginId = email.trim();
+
+  console.log('\n🔍 [LOGIN DEBUG]');
+  console.log('→ Role:', userType);
+  console.log('→ Login ID:', loginId);
+
+  // Step 1: Get hashed password from DB
+  const [existingRows] = await promisePool.execute(
+    'SELECT reg_id, password FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND user_type = ? AND is_deleted = 0 AND is_approved = 1',
+    [loginId, loginId, userType]
   );
+  console.log('→ Fetched user count:', existingRows.length);
+
+  if (!existingRows.length) throw new Error('Invalid email or password');
+
+  const hashedPassword = existingRows[0].password;
+  console.log('→ Hashed Password (from DB):', hashedPassword);
+
+  // Step 2: Call SP with the same hash
+  const [spResult] = await promisePool.execute('CALL sp_validate_login(?, ?, ?)', [
+    userType,
+    loginId,
+    hashedPassword
+  ]);
+  console.log('→ SP raw result:', JSON.stringify(spResult));
+
+  const rows = spResult[0] || spResult;
+  console.log('→ SP user count:', rows.length);
 
   if (!rows.length) throw new Error('Invalid email or password');
-  const user = rows[0];
 
-  // Validate password (hash upgrade if plain text found)
-  const isHashed = user.password.startsWith('$2');
-  let isValid = false;
+  const userRow = rows[0];
 
-  if (isHashed) {
-    isValid = await bcrypt.compare(password, user.password);
-  } else if (password === user.password) {
-    // Upgrade plain text password
-    const hashed = await bcrypt.hash(password, 12);
-    await promisePool.execute(
-      'UPDATE registration_tbl SET password = ?, updated_datetime = NOW() WHERE reg_id = ?',
-      [hashed, user.reg_id]
-    );
-    isValid = true;
-  }
+  // Step 3: Validate password
+  const isValid = await bcrypt.compare(password, hashedPassword);
+  console.log('→ bcrypt.compare result:', isValid);
 
   if (!isValid) throw new Error('Invalid email or password');
 
-  // Optional: Validate role if provided
-  if (role && !validateRole(user.user_type, role)) {
-    throw new Error('You do not have permission to access this role');
-  }
+  // Step 4: Fetch full record
+  const [dbRows] = await promisePool.execute(
+    'SELECT reg_id, login_id, user_type, full_name, email FROM registration_tbl WHERE reg_id = ?',
+    [userRow.reg_id]
+  );
+  const user = dbRows[0];
+  console.log('→ Final user:', user);
 
-  // Generate token
+  // Step 5: JWT
   const token = jwt.sign(
     {
       userId: user.reg_id,
       email: user.email,
       userType: user.user_type,
     },
-    jwtConfig.secret,
-    { expiresIn: jwtConfig.expiresIn }
+    jwtConfig.secret || process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: jwtConfig.expiresIn || '1d' }
   );
+
+  console.log('✅ Login success for', user.email);
 
   return {
     token,
@@ -67,78 +79,9 @@ exports.login = async ({ role, email, password }) => {
   };
 };
 
-/**
- * Simpler login (no role validation)
- */
-exports.loginSimple = async ({ email, password }) => {
-  if (!email || !password) throw new Error('Email and password are required');
-
-  const [rows] = await promisePool.execute(
-    'SELECT login_id, user_type, password, reg_id, full_name, email FROM registration_tbl WHERE email = ? AND is_deleted = 0',
-    [email.toLowerCase().trim()]
-  );
-
-  if (!rows.length) throw new Error('Invalid email or password');
-  const user = rows[0];
-
-  const isHashed = user.password.startsWith('$2');
-  let isValid = false;
-
-  if (isHashed) {
-    isValid = await bcrypt.compare(password, user.password);
-  } else if (password === user.password) {
-    const hashed = await bcrypt.hash(password, 12);
-    await promisePool.execute(
-      'UPDATE registration_tbl SET password = ?, updated_datetime = NOW() WHERE reg_id = ?',
-      [hashed, user.reg_id]
-    );
-    isValid = true;
-  }
-
-  if (!isValid) throw new Error('Invalid email or password');
-
-  const token = jwt.sign(
-    {
-      userId: user.reg_id,
-      email: user.email,
-      userType: user.user_type,
-    },
-    jwtConfig.secret,
-    { expiresIn: jwtConfig.expiresIn }
-  );
-
-  return {
-    token,
-    user: {
-      id: user.reg_id,
-      name: user.full_name,
-      email: user.email,
-      userType: user.user_type,
-      role: user.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
-    },
-  };
-};
 
 /**
- * Forgot password (generate token and log for now).
- */
-exports.forgotPassword = async (mobile) => {
-  if (!mobile) throw new Error('Mobile number is required');
-
-  const [rows] = await promisePool.execute('CALL sp_forgot_password_by_mobile(?)', [mobile.trim()]);
-  const result = Array.isArray(rows[0]) ? rows[0] : [];
-
-  // Always respond success (for privacy)
-  if (result.length > 0) {
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    console.log(`Password reset token for ${mobile}: ${resetToken}`);
-  }
-
-  return 'If your mobile number is registered, you will receive password reset instructions shortly.';
-};
-
-/**
- * Validate role mapping between userType and requested role.
+ * Validate role mapping between userType and requested role
  */
 function validateRole(userType, requestedRole) {
   const type = userType.toLowerCase();
@@ -154,4 +97,3 @@ function validateRole(userType, requestedRole) {
     (groups.medical.includes(type) && groups.medical.includes(role))
   );
 }
-

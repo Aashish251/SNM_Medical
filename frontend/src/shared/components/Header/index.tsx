@@ -261,7 +261,7 @@ const Header = () => {
                     <button className="focus:outline-none">
                       <Avatar className="w-10 h-10 ring-2 ring-white cursor-pointer">
                         <AvatarImage
-                          src={DEFAULT_PROFILE_IMAGE}
+                          src={loggedInUserDetails?.profileImage ? `${loggedInUserDetails?.profileImage}` :DEFAULT_PROFILE_IMAGE  }}
                           alt="User Avatar"
                         />
                         <AvatarFallback>U</AvatarFallback>

@@ -48,7 +48,7 @@ export const PasswordField = ({
           autoComplete={autoComplete}
           {...register}
           {...inputProps}
-          className="pr-10" // space for the icon
+          className="pr-x`0" // space for the icon
         />
 
         {/* Toggle Button */}

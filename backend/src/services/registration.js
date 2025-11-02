@@ -126,7 +126,7 @@ exports.registerUser = async (body) => {
   if (existingMobile.length > 0) throw new Error("Mobile number already registered");
 
   // ✅ Prepare data
-  const hashedPassword = await bcrypt.hash(password, 12);
+  const hashedPassword = await bcrypt.hash(password, 60);
   const loginId = `${data.userType}_${Date.now()}_${Math.random()
     .toString(36)
     .substr(2, 5)}`;
