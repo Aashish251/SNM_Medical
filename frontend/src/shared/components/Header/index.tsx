@@ -229,7 +229,7 @@ const Header = () => {
             />
             <Link
               to={SNM_NAV_HOME_LINK}
-              className="text-xl font-serif font-bold text-white"
+              className="text-xl colors-pro\im font-serif font-bold text-white"
             >
               {SNM_SITE_LOGO_TITLE}
             </Link>
@@ -261,7 +261,7 @@ const Header = () => {
                     <button className="focus:outline-none">
                       <Avatar className="w-10 h-10 ring-2 ring-white cursor-pointer">
                         <AvatarImage
-                          src={loggedInUserDetails?.profileImage ? `${loggedInUserDetails?.profileImage}` :DEFAULT_PROFILE_IMAGE  }}
+                          src={loggedInUserDetails?.name && DEFAULT_PROFILE_IMAGE}
                           alt="User Avatar"
                         />
                         <AvatarFallback>U</AvatarFallback>
