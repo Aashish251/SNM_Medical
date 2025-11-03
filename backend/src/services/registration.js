@@ -100,16 +100,9 @@ exports.registerUser = async (body) => {
     samagamHeldIn: sanitizeInput(samagamHeldIn) || "",
   };
 
-  // ✅ Validation
-  if (!data.fullName || !data.email || !password || !data.mobileNo)
-    throw new Error("Full name, email, password, and mobile number are required");
-  if (!validators.email(data.email)) throw new Error("Invalid email address");
-  if (!validators.mobile(data.mobileNo)) throw new Error("Invalid mobile number");
-  if (!validators.password(password))
-    throw new Error("Password must be at least 8 characters long");
+  // ✅ Validation;
   if (password !== confirmPassword) throw new Error("Passwords do not match");
-  if (!dateOfBirth) throw new Error("Date of birth is required");
-
+  
   // ✅ Check duplicates
   const [[existingEmail], [existingMobile]] = await Promise.all([
     promisePool.execute(
@@ -248,9 +241,8 @@ exports.createUser = async (data = {}, filePaths = {}) => {
   const missing = requiredFields.filter((f) => !data[f]);
   if (missing.length) throw new Error(`Missing required fields: ${missing.join(", ")}`);
   if (password !== confirmPassword) throw new Error("Passwords do not match");
-  if (!validators.email(email)) throw new Error("Invalid email address");
-  if (!validators.mobile(mobileNo)) throw new Error("Invalid mobile number");
-  if (!validators.password(password)) throw new Error("Password must be at least 8 characters long");
+
+ 
 
   // Hash password
   const hashedPassword = await bcrypt.hash(password, 12);

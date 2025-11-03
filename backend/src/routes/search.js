@@ -1,24 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const authenticateToken = require('../middlewares/auth');
+const searchController = require('../controllers/searchController');
 
-// Master search endpoint
-router.get('/master-search', (req, res) => {
-  try {
-    // TODO: Implement master search functionality
-    res.json({
-      success: true,
-      message: 'Master search endpoint - implementation pending',
-      data: [],
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Search failed',
-      error: error.message
-    });
-  }
-});
+router.post('/master', authenticateToken, searchController.masterSearch);
+
+// 📤 Export grid data
+router.post('/export', authenticateToken, searchController.exportSearch);
+
+// ✅ Approve user
+router.post('/approve/:regId', authenticateToken, searchController.approveUser);
+
+// 🔄 Update selected users
+router.put('/update', authenticateToken, searchController.updateSelected);
 
 module.exports = router;

@@ -9,52 +9,55 @@ exports.login = async ({ role, email, password }) => {
   const userType = role?.toLowerCase() === 'admin' ? 'admin' : 'ms';
   const loginId = email.trim();
 
-  console.log('\n🔍 [LOGIN DEBUG]');
-  console.log('→ Role:', userType);
-  console.log('→ Login ID:', loginId);
-
-  // Step 1: Get hashed password from DB
+  // Step 1: Get user details from DB
   const [existingRows] = await promisePool.execute(
-    'SELECT reg_id, password FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND user_type = ? AND is_deleted = 0 AND is_approved = 1',
-    [loginId, loginId, userType]
+    'SELECT reg_id, password, user_type, is_approved, is_deleted FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND is_deleted = 0',
+    [loginId, loginId]
   );
-  console.log('→ Fetched user count:', existingRows.length);
-
+ 
   if (!existingRows.length) throw new Error('Invalid email or password');
 
-  const hashedPassword = existingRows[0].password;
-  console.log('→ Hashed Password (from DB):', hashedPassword);
+  const userRecord = existingRows[0];
+  const hashedPassword = userRecord.password;
 
-  // Step 2: Call SP with the same hash
+  // Step 2: Validate password first
+  const isValid = await bcrypt.compare(password, hashedPassword);
+
+  if (!isValid) throw new Error('Invalid password');
+
+  // Step 3: Check if user is approved
+  if (userRecord.is_approved !== 1) {
+    throw new Error('Your account is not yet approved. Please contact the administrator for approval.');
+  }
+
+  // Step 4: Validate role/user_type match
+  if (userRecord.user_type !== userType) {
+    const requestedRoleName = userType === 'admin' ? 'Administrator' : 'Medical Staff';
+    throw new Error(`You are not authorized to login as ${requestedRoleName}. Please contact the administrator.`);
+  }
+
+  // Step 5: Call SP with the same hash (only after all validations pass)
   const [spResult] = await promisePool.execute('CALL sp_validate_login(?, ?, ?)', [
     userType,
     loginId,
     hashedPassword
   ]);
-  console.log('→ SP raw result:', JSON.stringify(spResult));
+ 
 
   const rows = spResult[0] || spResult;
-  console.log('→ SP user count:', rows.length);
-
   if (!rows.length) throw new Error('Invalid email or password');
 
   const userRow = rows[0];
 
-  // Step 3: Validate password
-  const isValid = await bcrypt.compare(password, hashedPassword);
-  console.log('→ bcrypt.compare result:', isValid);
-
-  if (!isValid) throw new Error('Invalid email or password');
-
-  // Step 4: Fetch full record
+  // Step 6: Fetch full record
   const [dbRows] = await promisePool.execute(
     'SELECT reg_id, login_id, user_type, full_name, email FROM registration_tbl WHERE reg_id = ?',
     [userRow.reg_id]
   );
   const user = dbRows[0];
-  console.log('→ Final user:', user);
 
-  // Step 5: JWT
+
+  // Step 7: JWT
   const token = jwt.sign(
     {
       userId: user.reg_id,
@@ -79,21 +82,3 @@ exports.login = async ({ role, email, password }) => {
   };
 };
 
-
-/**
- * Validate role mapping between userType and requested role
- */
-function validateRole(userType, requestedRole) {
-  const type = userType.toLowerCase();
-  const role = requestedRole.toLowerCase();
-
-  const groups = {
-    admin: ['admin', 'administrator'],
-    medical: ['ms', 'medical', 'staff', 'sewadar', 'medical staff'],
-  };
-
-  return (
-    (groups.admin.includes(type) && groups.admin.includes(role)) ||
-    (groups.medical.includes(type) && groups.medical.includes(role))
-  );
-}
