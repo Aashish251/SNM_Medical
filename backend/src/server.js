@@ -5,10 +5,14 @@ const morgan = require("morgan");
 const { testConnection } = require("./config/database");
 require("dotenv").config();
 const path = require("path");
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger-output.json');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+// Swagger UI setup
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // ✅ __dirname works automatically in CommonJS (no need for fileURLToPath)
 const __dirnameResolved = __dirname;
 
@@ -167,27 +171,10 @@ const startServer = async () => {
   const dbConnected = await testConnection();
   if (dbConnected) {
     app.listen(PORT, () => {
-      console.log(` SNM Dispensary Server running on port ${PORT}`);
-      console.log(` Database: Connected to snm_dispensary`);
-      console.log(` Medical Service Management System Ready`);
       console.log(` Environment: ${process.env.NODE_ENV || "development"}`);
-      console.log(` Available APIs:`);
-      console.log(`   • Authentication: http://localhost:${PORT}/api/auth`);
-      console.log(
-        `   • Registration: http://localhost:${PORT}/api/registration`
-      );
-      console.log(`   • Dashboard: http://localhost:${PORT}/api/dashboard`);
-      console.log(`   • Search: http://localhost:${PORT}/api/search`);
-      console.log(`   • Dutychart: http://localhost:${PORT}/api/dutychart`);
-      console.log(`   • Reports: http://localhost:${PORT}/api/reports`);
       console.log(`   • Health: http://localhost:${PORT}/health`);
-      console.log(`   • API Overview: http://localhost:${PORT}/api`);
-
-      console.log(`✅ SNM Dispensary Server running on port ${PORT}`);
-      console.log(`📁 Static files served from /uploads`);
-      console.log(`🌐 Visit: http://localhost:${PORT}/uploads`);
-      
-      console.log(` Ready to accept requests!`);
+      console.log(`   • API Overview: http://localhost:${PORT}/api`)
+      console.log(`   • Swagger UI: http://localhost:${PORT}/api-docs`);
     });
   } else {
     console.error(

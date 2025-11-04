@@ -5,6 +5,29 @@ const path = require('path');
 const registrationController = require('../controllers/registration');
 const formData = new FormData();
 
+/**
+ * @swagger
+ * /dropdown-data:
+ *   get:
+ *     tags:
+ *       - Registration
+ *     summary: Get dropdown data (states, departments, qualifications)
+ *     description: Retrieve all dropdown master data used in registration forms.
+ *     responses:
+ *       200:
+ *         description: Successfully fetched dropdown data
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               data:
+ *                 states: [{ id: 1, name: "Karnataka" }]
+ *                 departments: [{ id: 1, name: "Cardiology" }]
+ *                 qualifications: [{ id: 1, name: "MBBS" }]
+ *       500:
+ *         description: Internal server error
+ */
+
 router.get('/dropdown-data', registrationController.getDropdownData);
 router.get('/cities/:stateId', registrationController.getCities);
 router.post('/check-email', registrationController.checkEmail);
