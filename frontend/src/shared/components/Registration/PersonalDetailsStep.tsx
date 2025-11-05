@@ -237,10 +237,10 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
 
       {/* Buttons */}
       <div className="mt-8 flex flex-col sm:flex-row justify-end gap-4">
-        <Button variant="secondary" onClick={reset}>
+        <Button className="bg-red-600 text-white" onClick={reset}>
           Reset
         </Button>
-        <Button onClick={nextStep}>Next</Button>
+        <Button onClick={nextStep} className="bg-blue-600 text-white">Next</Button>
       </div>
     </div>
   );

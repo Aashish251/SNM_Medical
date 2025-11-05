@@ -13,6 +13,7 @@ interface TextareaFieldProps {
   rows?: number;
   value?: string | number;
   className?: string;
+  disabled?:boolean;
 }
 
 export const TextareaField = ({
@@ -23,6 +24,7 @@ export const TextareaField = ({
   value,
   error,
   readOnly = false,
+  disabled=false,
   rows = 4,
   className = "",
 }: TextareaFieldProps) => {
@@ -36,6 +38,7 @@ export const TextareaField = ({
       <Textarea
         placeholder={placeholder}
         readOnly={readOnly}
+        disabled={disabled}
         rows={rows}
         {...register}
         {...inputProps}

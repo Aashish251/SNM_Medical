@@ -160,10 +160,10 @@ export const ProfessionalDetailsStep = ({
       </div>
 
       <div className="mt-8 flex justify-between">
-        <Button variant="secondary" onClick={prevStep}>
+        <Button className="bg-blue-600 text-white" onClick={prevStep}>
           Previous
         </Button>
-        <Button onClick={nextStep}>Next</Button>
+        <Button onClick={nextStep} className="bg-blue-600 text-white">Next</Button>
       </div>
     </div>
   );

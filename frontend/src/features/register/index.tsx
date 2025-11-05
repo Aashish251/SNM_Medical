@@ -80,6 +80,12 @@ const Register = () => {
       formData.append("recommendedBy", data.recommendedBy || "");
       formData.append("samagamHeldIn", "");
 
+      formData.append("favoriteFood", data.favoriteFood || "");
+      formData.append("childhoodNickname", data.childhoodNickname || "");
+      formData.append("motherMaidenName", data.motherMaidenName || "");
+      formData.append("hobbies", data.hobbies || "");
+
+
       // Handle file uploads
       if (data.profilePic instanceof FileList && data.profilePic.length > 0) {
         formData.append("profilePic", data.profilePic[0]);
@@ -89,7 +95,7 @@ const Register = () => {
       }
 
       // Debug: Log form data entries
-      console.log("FormData contents:");
+      console.log("FormData contents:", formData);
       for (const pair of (formData as any).entries()) {
         console.log(pair[0], pair[1]);
       }

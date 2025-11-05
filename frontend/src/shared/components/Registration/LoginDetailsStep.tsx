@@ -111,6 +111,7 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
         {/* Textarea Field - full width */}
         <div className="col-span-1 sm:col-span-2">
           <TextareaField
+            disabled={true}
             label="Remark (Added by Administration Team)"
             placeholder="This field will be filled by the administration team after review"
             register={register("remark")}
@@ -121,13 +122,15 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mt-8 sm:mt-10 w-full">
         <Button
-          variant="secondary"
           onClick={prevStep}
-          className="w-full sm:w-auto px-6 py-2"
+          className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white"
         >
           Previous
         </Button>
-        <Button type="submit" className="w-full sm:w-auto px-6 py-2">
+        <Button
+          type="submit"
+          className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white"
+        >
           Submit
         </Button>
       </div>
