@@ -57,11 +57,22 @@ export const userTableConfig: TableConfig<User> = {
     { key: "birthdate", header: "Birthdate", sortable: true },
     { key: "passEntry", header: "Pass Entry" },
     { key: "isPresent", header: "Is Present" },
-    { key: "sewaLocation", header: "Sewa Location" },
     {
       key: "certificate",
       header: "Certificate",
-      render: (user: User) => <span>View</span>,
+      render: (user: User) =>
+        user.certificate ? (
+          <a
+            href={user.certificate}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
+          >
+            View
+          </a>
+        ) : (
+          <span className="text-gray-400">No File</span>
+        ),
     },
   ],
   statusColumn: {

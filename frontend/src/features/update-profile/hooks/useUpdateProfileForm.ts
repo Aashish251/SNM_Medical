@@ -4,7 +4,7 @@ import { calculateAge } from "@shared/lib/utils";
 import {
   useLazyGetCitiesByStateQuery,
   useGetRegistrationDropdownDataQuery,
-} from "../services";
+} from "@shared/services/commonApi";
 import { FormValues, CityItem } from "../type";
 import { requiredFields } from "../config";
 

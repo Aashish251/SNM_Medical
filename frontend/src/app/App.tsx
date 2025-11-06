@@ -9,7 +9,7 @@ function App() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <main className="flex-1">
-         <Toaster position="top-right" toastOptions={{ duration: 2000 }} />
+         <Toaster position="top-right" toastOptions={{ duration: 6000 }} />
         <AppRoutes />
       </main>
       <Footer />

@@ -11,7 +11,7 @@ import {
 import { Button } from "@shared/components/ui/button";
 
 export interface TableColumn<T> {
-  key: keyof T ;
+  key: keyof T;
   header: string;
   sortable?: boolean;
   render?: (row: T) => React.ReactNode;
@@ -140,57 +140,73 @@ export function DataTable<T extends { id: string | number }>({
         </TableHeader>
 
         <TableBody>
-          {data.map((row, i) => {
-            const isSelected = selectedIds.includes(row.id);
-            return (
-              <TableRow
-                key={row.id}
-                className={`${
-                  isSelected
-                    ? "bg-blue-50"
-                    : i % 2 === 0
-                    ? "bg-white"
-                    : "bg-gray-50"
-                } hover:bg-blue-50 transition-colors`}
+          {data.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={
+                  config.columns.length +
+                  (config.showCheckbox ? 1 : 0) +
+                  (config.showActions ? 1 : 0) +
+                  (config.statusColumn ? 1 : 0)
+                }
+                className="text-center py-6 text-gray-500 italic"
               >
-                {/* Row checkbox */}
-                {config.showCheckbox && (
-                  <TableCell className="px-4 py-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleSelectRow(row.id)}
-                      className="h-4 w-4 cursor-pointer accent-blue-600"
-                    />
-                  </TableCell>
-                )}
+                No records found.
+              </TableCell>
+            </TableRow>
+          ) : (
+            data.map((row, i) => {
+              const isSelected = selectedIds.includes(row.id);
+              return (
+                <TableRow
+                  key={row.id}
+                  className={`${
+                    isSelected
+                      ? "bg-blue-50"
+                      : i % 2 === 0
+                      ? "bg-white"
+                      : "bg-gray-50"
+                  } hover:bg-blue-50 transition-colors`}
+                >
+                  {/* Row checkbox */}
+                  {config.showCheckbox && (
+                    <TableCell className="px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectRow(row.id)}
+                        className="h-4 w-4 cursor-pointer accent-blue-600"
+                      />
+                    </TableCell>
+                  )}
 
-                {/* Action buttons */}
-                {config.showActions && (
-                  <TableCell className="px-4 py-3 text-center">
-                    {config.actions?.render(row)}
-                  </TableCell>
-                )}
+                  {/* Action buttons */}
+                  {config.showActions && (
+                    <TableCell className="px-4 py-3 text-center">
+                      {config.actions?.render(row)}
+                    </TableCell>
+                  )}
 
-                {/* Columns */}
-                {config.columns.map((col) => (
-                  <TableCell
-                    key={col.key.toString()}
-                    className="px-4 py-3 text-gray-700"
-                  >
-                    {col.render ? col.render(row) : (row[col.key] as any)}
-                  </TableCell>
-                ))}
+                  {/* Columns */}
+                  {config.columns.map((col) => (
+                    <TableCell
+                      key={col.key.toString()}
+                      className="px-4 py-3 text-gray-700"
+                    >
+                      {col.render ? col.render(row) : (row[col.key] as any)}
+                    </TableCell>
+                  ))}
 
-                {/* Status */}
-                {config.statusColumn && (
-                  <TableCell className="px-4 py-3 text-center">
-                    {config.statusColumn.render?.(row)}
-                  </TableCell>
-                )}
-              </TableRow>
-            );
-          })}
+                  {/* Status */}
+                  {config.statusColumn && (
+                    <TableCell className="px-4 py-3 text-center">
+                      {config.statusColumn.render?.(row)}
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })
+          )}
         </TableBody>
       </Table>
     </div>

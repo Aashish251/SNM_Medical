@@ -9,29 +9,8 @@ import {
 export const RegisterApi = createApi({
   reducerPath: "RegisterApi",
   baseQuery: customBaseQuery,
-  tagTypes: ["RegistrationDropdown", "Cities"],
+  tagTypes: [],
   endpoints: (builder) => ({
-    getRegistrationDropdownData: builder.query<
-      RegistrationDropdownResponse,
-      void
-    >({
-      query: () => ({
-        url: "/registration/dropdown-data",
-        method: "GET",
-      }),
-      providesTags: ["RegistrationDropdown"],
-    }),
-
-    getCitiesByState: builder.query<
-      CitiesByStateResponse,
-      CitiesByStateRequest
-    >({
-      query: ({ stateId }) => ({
-        url: `/registration/cities/${stateId}`,
-        method: "GET",
-      }),
-      providesTags: ["Cities"],
-    }),
     registerUser: builder.mutation<any, FormData>({
       query: (formData) => ({
         url: "registration/register",
@@ -48,7 +27,5 @@ export const RegisterApi = createApi({
 });
 
 export const {
-  useGetRegistrationDropdownDataQuery,
-  useLazyGetCitiesByStateQuery,
   useRegisterUserMutation,
 } = RegisterApi;

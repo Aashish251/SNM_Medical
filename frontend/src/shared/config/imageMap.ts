@@ -44,4 +44,5 @@ export const imageMap: Record<string, string> = {
   Physiotherapy: DEPT_PHYSIOTHERAPY,
   Registration: DEPT_REGISTRATION,
   Stores: DEPT_PHARMACY,
+  Doctors: DEPT_DOCTORS,
 };

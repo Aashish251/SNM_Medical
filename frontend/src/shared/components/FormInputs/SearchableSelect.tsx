@@ -31,7 +31,7 @@ interface SearchableSelectProps {
   placeholder?: string;
   required?: boolean;
   rules?: any;
-  value?: number | string; // ✅ optional prefilled value
+  value?: number | string;
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -57,21 +57,20 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
       <Controller
         name={name}
         control={control}
-        defaultValue={value ?? ""} // ✅ prefill RHF with provided value
-        rules={
-          required ? { required: `${label} is required`, ...rules } : rules
-        }
+        defaultValue={value ?? ""}
+        rules={required ? { required: `${label} is required`, ...rules } : rules}
         render={({ field, fieldState }) => {
-          // Ensure RHF picks up external default value changes
+          // ✅ Safe effect for controlled prefill
           useEffect(() => {
             if (value && !field.value) {
               field.onChange(value);
             }
           }, [value]);
 
-          const selectedOption = options.find(
-            (opt) => opt[valueKey] === field.value
-          );
+          // ✅ Compute selected option safely
+          const selectedOption = Array.isArray(options)
+            ? options.find((opt) => opt[valueKey] === field.value)
+            : null;
 
           return (
             <>
@@ -87,36 +86,39 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent className="w-full p-0 max-h-72 overflow-hidden ">
+                <PopoverContent className="w-full p-0 max-h-72 overflow-hidden">
                   <Command>
                     <CommandInput
-                      placeholder={`Search ${label.toLowerCase()}...`}
+                      placeholder={`Search ${label?.toLowerCase()}...`}
                     />
                     <CommandList>
-                      <CommandEmpty>
-                        No {label.toLowerCase()} found.
-                      </CommandEmpty>
-                      {options.map((item) => (
-                        <CommandItem
-                          className="text-sm font-medium text-gray-700 hover:text-grey-900"
-                          key={item[valueKey]}
-                          value={String(item[labelKey]).toLowerCase()}
-                          onSelect={() => {
-                            field.onChange(item[valueKey]);
-                            setOpenPopover(false);
-                          }}
-                        >
-                          {item[labelKey]}
-                        </CommandItem>
-                      ))}
+                      {Array.isArray(options) && options.length > 0 ? (
+                        options.map((item) => (
+                          <CommandItem
+                            className="text-sm font-medium text-gray-700 hover:text-grey-900"
+                            key={item[valueKey]}
+                            value={String(item[labelKey])?.toLowerCase()}
+                            onSelect={() => {
+                              field.onChange(item[valueKey]);
+                              setOpenPopover(false);
+                            }}
+                          >
+                            {item[labelKey]}
+                          </CommandItem>
+                        ))
+                      ) : (
+                        <CommandEmpty>
+                          No {label?.toLowerCase()} found.
+                        </CommandEmpty>
+                      )}
                     </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
 
-              {fieldState.error && (
+              {fieldState?.error && (
                 <p className="text-sm text-red-500 mt-1">
-                  {fieldState.error.message}
+                  {fieldState?.error?.message}
                 </p>
               )}
             </>

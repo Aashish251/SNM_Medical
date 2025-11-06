@@ -5,6 +5,8 @@ import { loginApi } from "@features/login/services/loginApi";
 import { RegisterApi } from "@features/register/services";
 import { AdminApi } from "@features/admin/dashboard/services/adminApi";
 import { api } from "@lib/api";
+import { MasterSearchApi } from "@features/admin/master-search/services/masterSearchApi";
+import { CommonApi } from "@shared/services/commonApi";
 
 export const store = configureStore({
   reducer: persistedReducer,
@@ -17,7 +19,9 @@ export const store = configureStore({
       loginApi.middleware,
       RegisterApi.middleware,
       api.middleware,
-      AdminApi.middleware
+      AdminApi.middleware,
+      MasterSearchApi.middleware,
+      CommonApi.middleware
     );
   },
 });

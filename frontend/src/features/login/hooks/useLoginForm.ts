@@ -72,7 +72,7 @@ export const useLoginForm = () => {
         navigate(SNM_NAV_MS_DASHBOARD_LINK, { replace: true });
       }
     } catch (err: any) {
-      console.error("Login failed:", err);
+      // console.error("Login failed:", err);
       toast.error(err?.data?.message || err?.message || "Something went wrong");
     } finally {
       setLoading(false);

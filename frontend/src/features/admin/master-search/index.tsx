@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import {
   Collapsible,
@@ -9,13 +9,18 @@ import { DataTable } from "@shared/components/DataTable/DataTable";
 import { DUMMY, userTableConfig } from "./config";
 import { useForm, Controller } from "react-hook-form";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
-import { useGetRegistrationDropdownDataQuery } from "@features/register/services";
+import {
+  useGetRegistrationDropdownDataQuery,
+  useLazyGetCitiesByStateQuery,
+} from "@shared/services/commonApi";
 import {
   SelectField,
   CheckboxField,
   TextField,
 } from "@shared/components/FormInputs";
 import DataTablePagination from "@shared/components/DataTable/DataTablePagination";
+import { useMasterSearchMutation } from "./services/masterSearchApi";
+import { toast } from "@shared/lib/toast";
 
 interface User {
   id: number;
@@ -35,6 +40,7 @@ interface User {
 
 export default function MasterSearchPage() {
   const [showFilter, setShowFilter] = useState(false);
+  const [cities, setCities] = useState([]);
   const [showUserRole, setShowUserRole] = useState(false);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [sortState, setSortState] = useState({
@@ -43,70 +49,10 @@ export default function MasterSearchPage() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(10);
-
-  // Replace with backend data in production
-  const [users] = useState<User[]>([
-    {
-      id: 1,
-      regId: "1",
-      name: "Pratik Kanaujiya",
-      contact: "8965747851",
-      qualification: "IT",
-      sewaLocation: "D1",
-      shiftTime: "All",
-      department: "Admin",
-      email: "p.k@gmail.com",
-      birthdate: "15/10/1988",
-      passEntry: "Yes",
-      isPresent: "Yes",
-      approved: true,
-    },
-    {
-      id: 2,
-      regId: "2",
-      name: "Pratik Kanaujiya",
-      contact: "8965747852",
-      qualification: "IT",
-      sewaLocation: "D2",
-      shiftTime: "All",
-      department: "Admin",
-      email: "p.k@gmail.com",
-      birthdate: "25/20/2988",
-      passEntry: "Yes",
-      isPresent: "Yes",
-      approved: true,
-    },
-    {
-      id: 3,
-      regId: "3",
-      name: "Pratik Kanaujiya",
-      contact: "8965747853",
-      qualification: "IT",
-      sewaLocation: "D3",
-      shiftTime: "All",
-      department: "Admin",
-      email: "p.k@gmail.com",
-      birthdate: "35/30/3988",
-      passEntry: "Yes",
-      isPresent: "Yes",
-      approved: true,
-    },
-    {
-      id: 4,
-      regId: "4",
-      name: "Pratik Kanaujiya",
-      contact: "8965747854",
-      qualification: "IT",
-      sewaLocation: "D4",
-      shiftTime: "All",
-      department: "Admin",
-      email: "p.k@gmail.com",
-      birthdate: "45/40/4988",
-      passEntry: "Yes",
-      isPresent: "Yes",
-      approved: false,
-    },
-  ]);
+  const [triggerMasterSearch] = useMasterSearchMutation();
+  const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
+  const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
+  const [users, setUsers] = useState<User[]>([]);
 
   const totalPages = Math.max(1, Math.ceil(users.length / pageLimit));
   const pagedUsers = users.slice(
@@ -114,13 +60,13 @@ export default function MasterSearchPage() {
     currentPage * pageLimit
   );
 
-  const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
-
   // Filter Form
   const {
     control: filterControl,
     handleSubmit: handleFilterSubmit,
     reset: resetFilter,
+    setValue: setValueFilter,
+    watch: watchFilter,
   } = useForm({
     defaultValues: {
       searchTerm: "",
@@ -129,11 +75,12 @@ export default function MasterSearchPage() {
       sewaLocation: "",
       stateId: "",
       cityId: "",
-      availabilityId: "",
       passEntry: "",
       isPresent: "",
     },
   });
+
+  const stateId = watchFilter("stateId");
 
   // User-role Form
   const defaultRoleValues = DUMMY.UserRoleChecks.reduce(
@@ -155,16 +102,82 @@ export default function MasterSearchPage() {
   });
 
   const states = Array.isArray(dropdownOption?.data?.states)
-    ? dropdownOption.data.states
+    ? dropdownOption?.data?.states
     : [];
   const qualifications = Array.isArray(dropdownOption?.data?.qualifications)
-    ? dropdownOption.data.qualifications
+    ? dropdownOption?.data?.qualifications
     : [];
   const departments = Array.isArray(dropdownOption?.data?.departments)
-    ? dropdownOption.data.departments
+    ? dropdownOption?.data?.departments
     : [];
 
-  const onSearch = (data: any) => console.log("Filter data submitted:", data);
+  const handleFilterCity = async (id: number) => {
+    try {
+      const result = await triggerGetCitiesByState({ stateId: id }).unwrap();
+      setCities(result?.data?.cities || []);
+    } catch (error) {
+      console.error("Failed to fetch cities", error);
+      setCities([]);
+    }
+  };
+
+  useEffect(() => {
+    const id = Number(stateId);
+    if (id) handleFilterCity(id);
+    else {
+      setCities([]);
+      setValueFilter("cityId", "");
+    }
+  }, [stateId]);
+
+  const onSearch = async (data: any) => {
+    try {
+      const payload = {
+        searchKey: data?.searchTerm?.trim() || "",
+        departmentId: data?.departmentId || null,
+        qualificationId: data?.qualificationId || null,
+        sewaLocationId: data?.sewaLocation || null,
+        cityId: data?.cityId || null,
+        stateId: data?.stateId || null,
+        isPresent: data?.isPresent || null,
+        passEntry: data?.passEntry || null,
+        limit: pageLimit,
+        page: currentPage,
+        sortBy: "full_name",
+        sortOrder: "ASC",
+      };
+
+      console.log("🔍 Search Payload:", payload);
+
+      // 🧾 Trigger the search with proper toast notifications
+      const response = await toast.promise(
+        triggerMasterSearch(payload).unwrap(),
+        {
+          loading: "Searching users...",
+          success: "Search completed successfully!",
+          error: "Failed to fetch search results.",
+        }
+      );
+
+      console.log("✅ API Response:", response);
+
+      // ✅ Handle success data
+      if (response?.data && Array.isArray(response.data)) {
+        setUsers(response.data); // Update your user table or state
+      } else {
+        toast.error("No users found for the given filters.");
+        setUsers([]);
+      }
+    } catch (error: any) {
+      if (error?.status === "FETCH_ERROR") {
+        toast.error("Network error — please check your connection.");
+      } else if (error?.data?.message) {
+        toast.error(error.data.message);
+      } else {
+        toast.error("Something went wrong while searching.");
+      }
+    }
+  };
   const onExport = () => console.log("Exporting filtered data...");
   const onRoleSubmit = (data: any) => console.log("User Role updated:", data);
 
@@ -208,7 +221,7 @@ export default function MasterSearchPage() {
                 control={filterControl}
                 name="departmentId"
                 label=""
-                options={departments}
+                options={departments ?? []}
                 labelKey="department_name"
                 valueKey="id"
                 placeholder="Select department"
@@ -218,7 +231,7 @@ export default function MasterSearchPage() {
                 control={filterControl}
                 name="qualificationId"
                 label=""
-                options={qualifications}
+                options={qualifications ?? []}
                 labelKey="qualification_name"
                 valueKey="id"
                 placeholder="Select qualification"
@@ -238,7 +251,7 @@ export default function MasterSearchPage() {
                 control={filterControl}
                 name="stateId"
                 label=""
-                options={states}
+                options={states ?? []}
                 labelKey="state_name"
                 valueKey="id"
                 placeholder="Select state"
@@ -248,7 +261,7 @@ export default function MasterSearchPage() {
                 control={filterControl}
                 name="cityId"
                 label=""
-                options={dropdownOption?.data?.states}
+                options={cities ?? []}
                 labelKey="city_name"
                 valueKey="id"
                 placeholder="Select city"

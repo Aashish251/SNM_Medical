@@ -48,6 +48,7 @@ const MobileDrawer = ({
   isAuthenticated,
   openDropdown,
   loggedInUserDetailesId,
+  authUserType,
   toggleDropdown,
 }: any) => {
   return (
@@ -112,7 +113,7 @@ const MobileDrawer = ({
                     key={index}
                     to={handleNavigate(
                       link.href,
-                      isAuthenticated,
+                      authUserType,
                       loggedInUserDetailesId
                     )}
                     className="block px-4 py-3 hover:bg-purple-600/30 transition"
@@ -373,6 +374,7 @@ const Header = () => {
         userName={loggedInUserDetails?.name}
         openDropdown={openDropdown}
         loggedInUserDetailesId={loggedInUserDetails?.id}
+        authUserType={authUserType}
         toggleDropdown={toggleDropdown}
       />
     </>
