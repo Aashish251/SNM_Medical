@@ -1,6 +1,17 @@
 const { promisePool } = require('../config/database');
 const ExcelJS = require('exceljs');
 
+const toCamelCase = (obj) => {
+  const newObj = {};
+  Object.keys(obj).forEach((key) => {
+    const camelKey = key
+      .toLowerCase()
+      .replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+    newObj[camelKey] = obj[key];
+  });
+  return newObj;
+};
+
 exports.masterSearch = async ({
   searchKey = null,
   departmentId = null,
@@ -38,6 +49,7 @@ exports.masterSearch = async ({
 
     let results = resultSets[0] || resultSets;
 
+    results = results.map(toCamelCase);
     // Sorting (in-memory)
     results.sort((a, b) => {
       const fieldA = a[sortBy.split('.').pop()]?.toString().toLowerCase();
