@@ -35,6 +35,7 @@ interface User {
   birthdate: string;
   passEntry: string;
   isPresent: string;
+  userType:string;
   approved: boolean;
 }
 

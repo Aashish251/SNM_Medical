@@ -5,18 +5,19 @@ import { Link } from "react-router-dom";
 export interface User {
   id: number;
   regId: string;
-  name: string;
-  contact: string;
-  qualification: string;
-  sewaLocation: string;
-  shiftTime: string;
-  department: string;
+  fullName: string;
+  mobileNo: string;
+  qualificationName: string;
+  sewalocationName: string;
+  shifttime: string;
+  departmentName: string;
   email: string;
-  birthdate: string;
+  dob: string;
   passEntry: string;
   isPresent: string;
   approved: boolean;
-  certificate: string;
+  userType:string;
+  certificateDocPath: string;
 }
 
 export const userTableConfig: TableConfig<User> = {
@@ -36,34 +37,34 @@ export const userTableConfig: TableConfig<User> = {
   },
   columns: [
     {
-      key: "name",
-      header: "Name",
+      key: "fullName",
+      header: "Full Name",
       sortable: true,
       render: (user: User) => (
         <Link
-          to={`/admin/update-profile/${user.id}`}
+          to={`/${user?.userType}/update-profile/${user.id}`}
           className="text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2"
         >
-          {user.name}
+          {user.fullName}
         </Link>
       ),
     },
-    { key: "contact", header: "Contact" },
-    { key: "qualification", header: "Qualification" },
-    { key: "sewaLocation", header: "Sewa Location" },
-    { key: "shiftTime", header: "Shift Time" },
-    { key: "department", header: "Department", sortable: true },
+    { key: "mobileNo", header: "Contact" },
+    { key: "qualificationName", header: "Qualification" },
+    { key: "sewalocationName", header: "Sewa Location" },
+    { key: "shifttime", header: "Shift Time" },
+    { key: "departmentName", header: "Department", sortable: true },
     { key: "email", header: "Email" },
-    { key: "birthdate", header: "Birthdate", sortable: true },
+    { key: "dob", header: "Birthdate", sortable: true },
     { key: "passEntry", header: "Pass Entry" },
     { key: "isPresent", header: "Is Present" },
     {
-      key: "certificate",
+      key: "certificateDocPath",
       header: "Certificate",
       render: (user: User) =>
-        user.certificate ? (
+        user.certificateDocPath ? (
           <a
-            href={user.certificate}
+            href={`${import.meta.env?.VITE_API_BACKEND_URL}${user.certificateDocPath}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
