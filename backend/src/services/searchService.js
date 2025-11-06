@@ -23,7 +23,7 @@ exports.masterSearch = async ({
   passEntry = null,
   limit = 10,
   page = 1,
-  sortBy = 'r.full_name',
+  sortBy = 'fullName',
   sortOrder = 'ASC'
 }) => {
   const offset = (page - 1) * limit;
@@ -52,8 +52,11 @@ exports.masterSearch = async ({
     results = results.map(toCamelCase);
     // Sorting (in-memory)
     results.sort((a, b) => {
-      const fieldA = a[sortBy.split('.').pop()]?.toString().toLowerCase();
-      const fieldB = b[sortBy.split('.').pop()]?.toString().toLowerCase();
+      const fieldA = (a?.[sortBy] ?? '').toString().toLowerCase();
+      const fieldB = (b?.[sortBy] ?? '').toString().toLowerCase();
+      if (!fieldA && !fieldB) return 0;
+      if (!fieldA) return 1;
+      if (!fieldB) return -1;
       return sortOrder === 'ASC'
         ? fieldA.localeCompare(fieldB)
         : fieldB.localeCompare(fieldA);
