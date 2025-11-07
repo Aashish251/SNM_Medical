@@ -49,7 +49,7 @@ export default function MasterSearchPage() {
     direction: "asc" as "asc" | "desc",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit, setPageLimit] = useState(10);
+  const [pageLimit, setPageLimit] = useState(90);
   const [triggerMasterSearch] = useMasterSearchMutation();
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
