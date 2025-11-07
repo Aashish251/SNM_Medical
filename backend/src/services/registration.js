@@ -9,19 +9,36 @@ const { validators } = require("../utils/validators");
  * ============================================================
  */
 exports.getDropdownData = async () => {
+  let connection;
   try {
-    const [states] = await promisePool.execute("CALL sp_get_state_details(?)", [null]);
-    const [departments] = await promisePool.execute("CALL sp_get_department_by_id(?)", [0]);
-    const [qualifications] = await promisePool.execute("CALL sp_get_qualification_by_id(?)", [0]);
+    connection = await promisePool.getConnection();
+
+    console.log('Fetching dropdown data: states, departments, qualifications, sewa locations');
+
+    // Get states
+    const [statesResult] = await connection.execute('CALL sp_get_state_details(?)', [null]);
+
+    // Get departments
+    const [departmentsResult] = await connection.execute('CALL sp_get_department_by_id(?)', [0]);
+
+    // Get qualifications
+    const [qualificationsResult] = await connection.execute('CALL sp_get_qualification_by_id(?)', [0]);
+
+    // Get sewa locations
+    const [sewaLocationsResult] = await connection.execute('CALL sp_get_sewalocation_by_id(?)', [0]);
 
     return {
-      states: states[0] || [],
-      departments: departments[0] || [],
-      qualifications: qualifications[0] || [],
+      states: statesResult[0] || [],
+      departments: departmentsResult[0] || [],
+      qualifications: qualificationsResult[0] || [],
+      sewaLocations: sewaLocationsResult[0] || []
     };
+
   } catch (error) {
-    console.error("Dropdown Error:", error);
-    throw new Error("Unable to fetch dropdown data");
+    console.error('Dropdown Data Error:', error);
+    throw new Error('Failed to fetch dropdown data');
+  } finally {
+    if (connection) connection.release();
   }
 };
 

@@ -2,15 +2,28 @@ const searchService = require('../services/searchService');
 
 exports.masterSearch = async (req, res) => {
   try {
-    const data = await searchService.masterSearch(req.body);
-    res.json({
+    const result = await searchService.masterSearch(req.body);
+    const data = result?.data || [];
+    const pagination = result?.pagination || {
+      current: req.body.page || 1,
+      total: 1,
+      count: data.length,
+      totalRecords: data.length
+    };
+
+    res.status(200).json({
       success: true,
-      message: `Found ${data.total} record(s)`,
-      ...data
+      message: `Found ${pagination.totalRecords} record(s)`,
+      data,
+      pagination
     });
   } catch (error) {
     console.error('Master Search Error:', error);
-    res.status(500).json({ success: false, message: 'Search failed', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to perform master search',
+      error: error.message
+    });
   }
 };
 

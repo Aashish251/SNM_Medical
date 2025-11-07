@@ -12,6 +12,24 @@ const toCamelCase = (obj) => {
   return newObj;
 };
 
+exports.getSewaLocations = async () => {
+  let connection;
+  try {
+    connection = await promisePool.getConnection();
+    const [resultSets] = await connection.execute(
+      `CALL sp_get_sewalocation_by_id(?)`,
+      [0] // 0 => get all sewa locations
+    );
+    const results = resultSets[0] || resultSets;
+    return results.map(toCamelCase);
+  } catch (error) {
+    console.error('❌ getSewaLocations Error:', error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 exports.masterSearch = async ({
   searchKey = null,
   departmentId = null,
@@ -33,7 +51,7 @@ exports.masterSearch = async ({
     connection = await promisePool.getConnection();
 
     const [resultSets] = await connection.execute(
-      `CALL sp_master_search(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `CALL sp_master_search(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         searchKey,
         departmentId,
@@ -43,14 +61,25 @@ exports.masterSearch = async ({
         stateId,
         isPresent,
         passEntry,
-        limit
+        page,   // ✅ new
+        limit   // ✅ new
       ]
     );
 
+
     let results = resultSets[0] || resultSets;
 
+    // Convert to camelCase for frontend
     results = results.map(toCamelCase);
-    // Sorting (in-memory)
+
+    results = results.map((row) => ({
+      ...row,
+      sewaLocationId: row.sewaLocationId || null,
+      isPresent: row.isPresent === 'YES' ? 1 : 0,
+      passEntry: row.passEntry === 'YES' ? 1 : 0
+    }));
+
+    // ✅ Safe sorting
     results.sort((a, b) => {
       const fieldA = (a?.[sortBy] ?? '').toString().toLowerCase();
       const fieldB = (b?.[sortBy] ?? '').toString().toLowerCase();
@@ -62,9 +91,12 @@ exports.masterSearch = async ({
         : fieldB.localeCompare(fieldA);
     });
 
-    // Pagination (simulate)
+    // ✅ Pagination
+    const totalRecords = results.length;
+    const totalPages = Math.ceil(totalRecords / limit);
     const paginated = results.slice(offset, offset + limit);
-
+    const currentCount = paginated.length;
+    
     return { data: paginated, total: results.length };
   } catch (error) {
     console.error('Master Search Service Error:', error);

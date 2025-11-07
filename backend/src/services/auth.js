@@ -8,17 +8,18 @@ exports.login = async ({ role, email, password }) => {
 
   const userType = role?.toLowerCase() === 'admin' ? 'admin' : 'ms';
   const loginId = email.trim();
+  // Phone number login can be added similarly if needed
 
   // Step 1: Get user details from DB
   const [existingRows] = await promisePool.execute(
-    'SELECT reg_id, password, user_type, is_approved, is_deleted FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND is_deleted = 0',
+    'SELECT reg_id, password, user_type, is_approved, is_deleted FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND is_deleted = 0 AND is_approved = 1',
     [loginId, loginId]
   );
  
-  if (!existingRows.length) throw new Error('Invalid email or password');
+  if (!existingRows.length) throw new Error('Invalid loginID or password');
 
   const userRecord = existingRows[0];
-  const hashedPassword = userRecord.password;
+  const hashedPassword = userRecord.password; // Stored hashed password
 
   // Step 2: Validate password first
   const isValid = await bcrypt.compare(password, hashedPassword);
@@ -28,6 +29,11 @@ exports.login = async ({ role, email, password }) => {
   // Step 3: Check if user is approved
   if (userRecord.is_approved !== 1) {
     throw new Error('Your account is not yet approved. Please contact the administrator for approval.');
+  }
+
+  // Deleted users check
+  if (userRecord.is_deleted === 1) {
+    throw new Error('Your account has been deactivated. Please contact support for assistance.');
   }
 
   // Step 4: Validate role/user_type match
