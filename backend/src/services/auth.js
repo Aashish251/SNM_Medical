@@ -56,10 +56,10 @@ exports.login = async ({ role, email, password }) => {
   const userRow = rows[0];
 
   // Step 6: Fetch full record
-  const [dbRows] = await promisePool.execute(
-    'SELECT reg_id, login_id, user_type, full_name, email FROM registration_tbl WHERE reg_id = ?',
-    [userRow.reg_id]
-  );
+const [dbRows] = await promisePool.execute(
+  'SELECT reg_id, login_id, user_type, full_name, email, profile_pic_path FROM registration_tbl WHERE reg_id = ?',
+  [userRow.reg_id]
+);
   const user = dbRows[0];
 
 
@@ -77,14 +77,20 @@ exports.login = async ({ role, email, password }) => {
   console.log('✅ Login success for', user.email);
 
   return {
-    token,
+  token,
     user: {
       id: user.reg_id,
       name: user.full_name,
       email: user.email,
       userType: user.user_type,
       role: user.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
+      profilePic: user.profile_pic_path
+      ? `${process.env.BASE_URL || 'http://localhost:5000'}/${user.profile_pic_path}`
+      : `${process.env.BASE_URL || 'http://localhost:5000'}/uploads/default_profile.png`,
+
     },
   };
 };
+
+
 
