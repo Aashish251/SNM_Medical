@@ -15,19 +15,22 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.loginSimple = async (req, res) => {
-  try {
-    const result = await authService.loginSimple(req.body);
-    sendResponse(res, 200, true, 'Login successful', result);
-  } catch (error) {
-    sendResponse(res, 401, false, error.message);
-  }
-};
 
 exports.forgotPassword = async (req, res) => {
   try {
-    const message = await authService.forgotPassword(req.body.mobile);
+    const { email, mobile } = req.body;
+    const identifier = email || mobile;
+    const message = await authService.forgotPassword(identifier);
     sendResponse(res, 200, true, message);
+  } catch (error) {
+    sendResponse(res, 400, false, error.message);
+  }
+};
+
+exports.verifyForgotPassword = async (req, res) => {
+  try {
+    const result = await authService.verifyForgotPassword(req.body);
+    sendResponse(res, 200, result.success, result.message, result.data);
   } catch (error) {
     sendResponse(res, 400, false, error.message);
   }
