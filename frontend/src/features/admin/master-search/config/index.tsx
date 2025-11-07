@@ -1,10 +1,12 @@
-import { TableConfig } from "@shared/components/DataTable/DataTable";
+// userTableConfig.ts
 import { Button } from "@shared/components/ui/button";
 import { Link } from "react-router-dom";
+import type { TableConfig } from "@shared/components/DataTable/DataTable";
 
 export interface User {
   id: number;
   regId: string;
+  title: string;
   fullName: string;
   mobileNo: string;
   qualificationName: string;
@@ -13,10 +15,12 @@ export interface User {
   departmentName: string;
   email: string;
   dob: string;
-  passEntry: string;
-  isPresent: string;
-  approved: boolean;
-  userType:string;
+  passEntry: string | number;
+  isPresent: string | number;
+  userType: string;
+  cityName: string;
+  stateName: string;
+  isApproved: number;
   certificateDocPath: string;
 }
 
@@ -25,12 +29,8 @@ export const userTableConfig: TableConfig<User> = {
   showActions: true,
   actions: {
     render: (user: User) =>
-      user.approved ? (
-        <Button className="rounded-md bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200 transition">
-          Disapprove
-        </Button>
-      ) : (
-        <Button className="rounded-md bg-green-100 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-200 transition">
+      !user.isApproved && (
+        <Button className="rounded-md bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-200 transition">
           Approve
         </Button>
       ),
@@ -42,29 +42,38 @@ export const userTableConfig: TableConfig<User> = {
       sortable: true,
       render: (user: User) => (
         <Link
-          to={`/${user?.userType}/update-profile/${user.id}`}
-          className="text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2"
+          to={`/${user?.userType}/update-profile/${user.regId}`}
+          className="text-blue-600 font-medium underline underline-offset-2"
         >
-          {user.fullName}
+          {user.title} {user.fullName}
         </Link>
       ),
     },
     { key: "mobileNo", header: "Contact" },
     { key: "qualificationName", header: "Qualification" },
-    { key: "sewalocationName", header: "Sewa Location" },
-    { key: "shifttime", header: "Shift Time" },
     { key: "departmentName", header: "Department", sortable: true },
-    { key: "email", header: "Email" },
-    { key: "dob", header: "Birthdate", sortable: true },
-    { key: "passEntry", header: "Pass Entry" },
-    { key: "isPresent", header: "Is Present" },
+    { key: "sewalocationName", header: "Sewa Location" },
+    {
+      key: "passEntry",
+      header: "Pass Entry",
+      render: (user: User) => (user?.passEntry == 1 ? "Yes" : "No"),
+    },
+    {
+      key: "isPresent",
+      header: "Is Present",
+      render: (user: User) => (user?.isPresent === 1 ? "Yes" : "No"),
+    },
+    { key: "stateName", header: "State" },
+    { key: "cityName", header: "City" },
     {
       key: "certificateDocPath",
       header: "Certificate",
       render: (user: User) =>
         user.certificateDocPath ? (
           <a
-            href={`${import.meta.env?.VITE_API_BACKEND_URL}${user.certificateDocPath}`}
+            href={`${import.meta.env?.VITE_API_BACKEND_URL}${
+              user.certificateDocPath
+            }`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
@@ -75,22 +84,24 @@ export const userTableConfig: TableConfig<User> = {
           <span className="text-gray-400">No File</span>
         ),
     },
+    { key: "shifttime", header: "Shift Time", afterStatus: true },
+    { key: "email", header: "Email", afterStatus: true },
   ],
   statusColumn: {
     key: "approved",
     render: (user: User) => (
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          user.approved ? "text-green-700" : "text-yellow-700"
+          user.isApproved ? "text-green-700" : "text-red-700"
         }`}
       >
-        {user.approved ? "Approved" : "Pending"}
+        {user.isApproved ? "Approved" : "Pending"}
       </span>
     ),
   },
 };
 
-// Dummy options for dropdowns
+// Dummy options for dropdowns (unchanged)
 export const DUMMY = {
   SevaLocation: [
     { id: 1, label: "D1", value: "D1" },
@@ -103,12 +114,12 @@ export const DUMMY = {
     { id: 3, label: "Maybe", value: "Maybe" },
   ],
   PassEntry: [
-    { id: 1, label: "Yes", value: "Yes" },
-    { id: 2, label: "No", value: "No" },
+    { id: 1, label: "Yes", value: 1 },
+    { id: 2, label: "No", value: 0 },
   ],
   IsPresent: [
-    { id: 1, label: "Yes", value: "Yes" },
-    { id: 2, label: "No", value: "No" },
+    { id: 1, label: "Yes", value: 1 },
+    { id: 2, label: "No", value: 0 },
   ],
   UserRoleChecks: [
     { id: 1, name: "isPresent", label: "Is Present", defaultChecked: true },

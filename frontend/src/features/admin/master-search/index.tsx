@@ -25,18 +25,22 @@ import { toast } from "@shared/lib/toast";
 interface User {
   id: number;
   regId: string;
-  name: string;
-  contact: string;
-  qualification: string;
-  sewaLocation: string;
-  shiftTime: string;
-  department: string;
+  fullName: string;
+  title: string;
+  mobileNo: string;
+  qualificationName: string;
+  sewalocationName: string;
+  shifttime: string;
+  departmentName: string;
   email: string;
-  birthdate: string;
+  dob: string;
   passEntry: string;
   isPresent: string;
-  userType:string;
-  approved: boolean;
+  userType: string;
+  isApproved: number;
+  stateName: string;
+  cityName: string;
+  certificateDocPath: string;
 }
 
 export default function MasterSearchPage() {
@@ -110,6 +114,10 @@ export default function MasterSearchPage() {
     : [];
   const departments = Array.isArray(dropdownOption?.data?.departments)
     ? dropdownOption?.data?.departments
+    : [];
+
+  const sewaLocations = Array.isArray(dropdownOption?.data?.sewaLocations)
+    ? dropdownOption?.data?.sewaLocations
     : [];
 
   const handleFilterCity = async (id: number) => {
@@ -242,9 +250,9 @@ export default function MasterSearchPage() {
                 control={filterControl}
                 name="sewaLocation"
                 label=""
-                options={DUMMY.SevaLocation}
-                labelKey="label"
-                valueKey="value"
+                options={sewaLocations ?? []}
+                labelKey="sewalocation_name"
+                valueKey="id"
                 placeholder="Select sewa location"
               />
 
@@ -406,6 +414,7 @@ export default function MasterSearchPage() {
             onSortChange={(col, dir) =>
               setSortState({ column: col, direction: dir })
             }
+            rowKey="regId" // optional - default is "regId"
           />
         </div>
       </section>

@@ -25,6 +25,11 @@ export interface StateOption {
   country_id: number;
 }
 
+export interface SewaLocationOption {
+  id: number;
+  sewalocation_name: string;
+}
+
 export interface CityOption {
   id: number;
   name: string;
@@ -37,5 +42,6 @@ export interface RegistrationDropdownResponse {
     cities: CityOption[];
     departments: string[];
     qualifications: string[];
+    sewaLocations:SewaLocationOption[];
   };
 }

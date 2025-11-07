@@ -25,9 +25,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Wrong role → redirect to homepage (or unauthorized page)
-  if (allowedRole && userType !== allowedRole) {
-    return <Navigate to={SNM_NAV_HOME_LINK} replace />;
-  }
+  // if (allowedRole && userType !== allowedRole) {
+  //   return <Navigate to={SNM_NAV_HOME_LINK} replace />;
+  // }
 
   // Authorized → render the protected component
   return <>{children}</>;

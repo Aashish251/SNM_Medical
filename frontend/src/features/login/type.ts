@@ -4,6 +4,7 @@ export interface userObject {
   email: string;
   role?: string;
   userType?: string;
+  profilePic?:string;
 }
 
 export interface AuthState {

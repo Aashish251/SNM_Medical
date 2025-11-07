@@ -8,7 +8,6 @@ import {
   TableBody,
   TableCell,
 } from "@shared/components/ui";
-import { Button } from "@shared/components/ui/button";
 
 export interface TableColumn<T> {
   key: keyof T;
@@ -16,6 +15,7 @@ export interface TableColumn<T> {
   sortable?: boolean;
   render?: (row: T) => React.ReactNode;
   className?: string;
+  afterStatus?: boolean; // flag to render this column after status column
 }
 
 export interface TableConfig<T> {
@@ -38,177 +38,249 @@ export interface DataTableProps<T> {
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   sortState?: { column: string | null; direction: "asc" | "desc" };
   onSortChange?: (column: string, direction: "asc" | "desc") => void;
+  rowKey?: keyof T | string;
 }
 
-export function DataTable<T extends { id: string | number }>({
+/**
+ * Modern, professional-styled DataTable.
+ * - Supports `afterStatus` on columns (render those after the Status column)
+ * - Uses `rowKey` (default "regId") for selection and stable keys
+ */
+export function DataTable<T extends Record<string, any>>({
   data,
   config,
   selectedIds = [],
   onSelectionChange,
   sortState = { column: null, direction: "asc" },
   onSortChange,
+  rowKey = "regId",
 }: DataTableProps<T>) {
-  const allSelected = data.length > 0 && selectedIds.length === data.length;
+  // safe read of row key (fallback to id or index)
+  const getRowKey = React.useCallback(
+    (row: T, index?: number): string | number => {
+      const val = (row as any)[rowKey as any];
+      if (val !== undefined && val !== null) return val;
+      if ((row as any).id !== undefined && (row as any).id !== null) return (row as any).id;
+      return index ?? "";
+    },
+    [rowKey]
+  );
+
+  // normalized selected set (strings) for stable comparisons
+  const selectedSet = React.useMemo(() => new Set(selectedIds.map(String)), [selectedIds]);
+
+  // computed selection state
+  const allSelected = data.length > 0 && data.every((r, i) => selectedSet.has(String(getRowKey(r, i))));
   const partiallySelected = selectedIds.length > 0 && !allSelected;
 
-  // ✅ Handle select all
+  // select-all (current page)
   const toggleSelectAll = () => {
-    if (allSelected) onSelectionChange?.([]);
-    else onSelectionChange?.(data.map((row) => row.id));
-  };
-
-  // ✅ Handle individual select
-  const toggleSelectRow = (id: string | number) => {
-    if (selectedIds.includes(id)) {
-      onSelectionChange?.(selectedIds.filter((x) => x !== id));
+    if (!onSelectionChange) return;
+    const keysOnPage = data.map((r, i) => String(getRowKey(r, i)));
+    if (allSelected) {
+      onSelectionChange(selectedIds.filter((s) => !keysOnPage.includes(String(s))));
     } else {
-      onSelectionChange?.([...selectedIds, id]);
+      onSelectionChange(Array.from(new Set([...selectedIds.map(String), ...keysOnPage])));
     }
   };
 
-  // ✅ Sorting
-  const handleHeaderClick = (header: string, sortable?: boolean) => {
-    if (!sortable) return;
-    const nextDirection =
-      sortState.column === header && sortState.direction === "asc"
-        ? "desc"
-        : "asc";
-    onSortChange?.(header, nextDirection);
+  // toggle a single row
+  const toggleSelectRow = (keyVal: string | number) => {
+    if (!onSelectionChange) return;
+    const k = String(keyVal);
+    if (selectedSet.has(k)) onSelectionChange(selectedIds.filter((s) => String(s) !== k));
+    else onSelectionChange([...selectedIds.map(String), k]);
   };
 
-  const renderSortArrow = (header: string) => {
-    if (sortState.column !== header)
-      return <span className="ml-1 text-white opacity-60">⇅</span>;
-    return sortState.direction === "asc" ? (
-      <span className="ml-1 text-white">↑</span>
-    ) : (
-      <span className="ml-1 text-white">↓</span>
+  // sorting helpers
+  const handleHeaderClick = (header: string, sortable?: boolean) => {
+    if (!sortable) return;
+    const nextDir = sortState.column === header && sortState.direction === "asc" ? "desc" : "asc";
+    onSortChange?.(header, nextDir);
+  };
+
+  const renderSortIndicator = (header: string) => {
+    const active = sortState.column === header;
+    return (
+      <span
+        className={`ml-2 inline-flex items-center text-xs transition-opacity ${
+          active ? "opacity-100" : "opacity-50"
+        }`}
+        aria-hidden
+      >
+        {active ? (sortState.direction === "asc" ? "▲" : "▼") : "↕"}
+      </span>
     );
   };
 
-  // ✅ Table rendering
+  // split columns into pre-status and post-status
+  const preStatusColumns = config.columns.filter((c) => !c.afterStatus);
+  const postStatusColumns = config.columns.filter((c) => !!c.afterStatus);
+
   return (
-    <div className="overflow-x-auto w-full rounded-xl border border-gray-200 bg-white shadow-sm">
-      <Table className="min-w-full text-sm">
-        <TableHeader>
-          <TableRow className="bg-black hover:bg-black">
-            {/* Checkbox header */}
-            {config.showCheckbox && (
-              <TableHead className="px-4 py-3 text-center text-white w-[50px]">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  ref={(el) => {
-                    if (el) el.indeterminate = partiallySelected;
-                  }}
-                  onChange={toggleSelectAll}
-                  className="h-4 w-4 cursor-pointer accent-blue-600"
-                />
-              </TableHead>
-            )}
+    <div className="w-full rounded-xl border bg-white shadow-sm ring-1 ring-gray-100">
+      {/* Table header bar (optional controls can be put here later) */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-white/60">
+        <div className="text-sm text-gray-700 font-medium">Rows: {data.length}</div>
 
-            {/* Action column */}
-            {config.showActions && (
-              <TableHead className="px-4 py-3 text-center text-white font-semibold w-[140px]">
-                Actions
-              </TableHead>
-            )}
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-gray-600">Selected: <span className="font-semibold text-gray-800">{selectedIds.length}</span></div>
+        </div>
+      </div>
 
-            {/* Sortable columns */}
-            {config.columns.map((col) => (
-              <TableHead
-                key={col.key.toString()}
-                onClick={() => handleHeaderClick(col.header, col.sortable)}
-                className={`px-4 py-3 text-left font-semibold text-white ${
-                  col.sortable ? "cursor-pointer select-none" : ""
-                }`}
-              >
-                <div className="flex items-center">
-                  {col.header}
-                  {col.sortable && renderSortArrow(col.header)}
-                </div>
-              </TableHead>
-            ))}
+      <div className="overflow-x-auto">
+        <Table className="min-w-full text-sm">
+          {/* Sticky header for better UX on long lists */}
+          <TableHeader>
+            <TableRow className="sticky top-0 z-10 bg-gradient-to-b from-white to-white/95 shadow-sm">
+              {/* Checkbox header */}
+              {config.showCheckbox && (
+                <TableHead className="px-4 py-3 text-center w-[56px]">
+                  <label className="inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = partiallySelected;
+                      }}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-200"
+                      aria-label="Select all rows on page"
+                    />
+                  </label>
+                </TableHead>
+              )}
 
-            {/* Status */}
-            {config.statusColumn && (
-              <TableHead className="px-4 py-3 text-center font-semibold text-white">
-                Status
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
+              {/* Actions header */}
+              {config.showActions && (
+                <TableHead className="px-4 py-3 text-center w-[140px]">
+                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Actions</span>
+                </TableHead>
+              )}
 
-        <TableBody>
-          {data.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={
-                  config.columns.length +
-                  (config.showCheckbox ? 1 : 0) +
-                  (config.showActions ? 1 : 0) +
-                  (config.statusColumn ? 1 : 0)
-                }
-                className="text-center py-6 text-gray-500 italic"
-              >
-                No records found.
-              </TableCell>
-            </TableRow>
-          ) : (
-            data.map((row, i) => {
-              const isSelected = selectedIds.includes(row.id);
-              return (
-                <TableRow
-                  key={row.id}
-                  className={`${
-                    isSelected
-                      ? "bg-blue-50"
-                      : i % 2 === 0
-                      ? "bg-white"
-                      : "bg-gray-50"
-                  } hover:bg-blue-50 transition-colors`}
+              {/* columns before status */}
+              {preStatusColumns.map((col) => (
+                <TableHead
+                  key={String(col.key)}
+                  onClick={() => handleHeaderClick(col.header, col.sortable)}
+                  className={`px-4 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""}`}
+                  aria-sort={sortState.column === col.header ? (sortState.direction === "asc" ? "ascending" : "descending") : "none"}
                 >
-                  {/* Row checkbox */}
-                  {config.showCheckbox && (
-                    <TableCell className="px-4 py-3 text-center">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleSelectRow(row.id)}
-                        className="h-4 w-4 cursor-pointer accent-blue-600"
-                      />
-                    </TableCell>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-700">{col.header}</span>
+                    {col.sortable && renderSortIndicator(col.header)}
+                  </div>
+                </TableHead>
+              ))}
 
-                  {/* Action buttons */}
-                  {config.showActions && (
-                    <TableCell className="px-4 py-3 text-center">
-                      {config.actions?.render(row)}
-                    </TableCell>
-                  )}
+              {/* Status header */}
+              {config.statusColumn && (
+                <TableHead className="px-4 py-3 text-center">
+                  <span className="text-xs font-medium text-gray-700">Status</span>
+                </TableHead>
+              )}
 
-                  {/* Columns */}
-                  {config.columns.map((col) => (
-                    <TableCell
-                      key={col.key.toString()}
-                      className="px-4 py-3 text-gray-700"
-                    >
-                      {col.render ? col.render(row) : (row[col.key] as any)}
-                    </TableCell>
-                  ))}
+              {/* columns after status */}
+              {postStatusColumns.map((col) => (
+                <TableHead
+                  key={String(col.key)}
+                  onClick={() => handleHeaderClick(col.header, col.sortable)}
+                  className={`px-4 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-700">{col.header}</span>
+                    {col.sortable && renderSortIndicator(col.header)}
+                  </div>
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
 
-                  {/* Status */}
-                  {config.statusColumn && (
-                    <TableCell className="px-4 py-3 text-center">
-                      {config.statusColumn.render?.(row)}
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
+          <TableBody>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={
+                    config.columns.length +
+                    (config.showCheckbox ? 1 : 0) +
+                    (config.showActions ? 1 : 0) +
+                    (config.statusColumn ? 1 : 0)
+                  }
+                  className="text-center py-12 text-gray-400 italic"
+                >
+                  No records found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((row, idx) => {
+                const keyVal = getRowKey(row, idx);
+                const keyStr = String(keyVal);
+                const isSelected = selectedSet.has(keyStr);
+
+                return (
+                  <TableRow
+                    key={keyStr || idx}
+                    className={`transition-colors group ${
+                      isSelected ? "bg-blue-50" : idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-blue-50/60 focus-within:ring-2 focus-within:ring-blue-100`}
+                    tabIndex={-1}
+                  >
+                    {config.showCheckbox && (
+                      <TableCell className="px-4 py-3 text-center align-middle">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectRow(keyVal)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-200"
+                          aria-label={`Select row ${keyStr}`}
+                        />
+                      </TableCell>
+                    )}
+
+                    {config.showActions && (
+                      <TableCell className="px-4 py-3 text-center align-middle">
+                        <div className="flex items-center justify-center gap-2">
+                          {/* action renderers should supply their own buttons; we wrap to keep spacing */}
+                          {config.actions?.render(row)}
+                        </div>
+                      </TableCell>
+                    )}
+
+                    {/* before-status columns */}
+                    {preStatusColumns.map((col) => (
+                      <TableCell key={String(col.key)} className="px-4 py-3 align-middle text-gray-700">
+                        <div className="text-sm">{col.render ? col.render(row) : (row[col.key] as any)}</div>
+                      </TableCell>
+                    ))}
+
+                    {/* status */}
+                    {config.statusColumn && (
+                      <TableCell className="px-4 py-3 text-center align-middle">
+                        {config.statusColumn.render?.(row)}
+                      </TableCell>
+                    )}
+
+                    {/* after-status columns */}
+                    {postStatusColumns.map((col) => (
+                      <TableCell key={`post-${String(col.key)}`} className="px-4 py-3 align-middle text-gray-700">
+                        <div className="text-sm">{col.render ? col.render(row) : (row[col.key] as any)}</div>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* optional footer area for pagination or bulk actions */}
+      <div className="flex items-center justify-between px-4 py-3 border-t bg-white/50">
+        <div className="text-xs text-gray-600">
+          Showing <span className="font-medium text-gray-800">{data.length}</span> rows
+        </div>
+        <div className="text-xs text-gray-600"> {/* placeholder for pagination controls */} </div>
+      </div>
     </div>
   );
 }

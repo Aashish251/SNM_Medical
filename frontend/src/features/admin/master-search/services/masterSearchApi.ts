@@ -12,6 +12,14 @@ export const MasterSearchApi = createApi({
         url: "/search/master",
         method: "POST",
         body,
+        invalidatesTags: ["MasterSearch"],
+      }),
+    }),
+    getChangeStatus: builder.mutation({
+      query: (body) => ({
+        url: "/search/master",
+        method: "POST",
+        body,
       }),
     }),
   }),
