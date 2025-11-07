@@ -77,17 +77,14 @@ const [dbRows] = await promisePool.execute(
   console.log('✅ Login success for', user.email);
 
   return {
-  token,
+    token,
     user: {
       id: user.reg_id,
       name: user.full_name,
       email: user.email,
       userType: user.user_type,
       role: user.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
-      profilePic: user.profile_img_path
-      ? `${process.env.BASE_URL || 'http://localhost:5000'}/${user.profile_img_path}`
-      : `${process.env.BASE_URL || 'http://localhost:5000'}/uploads/default_profile.png`,
-
+      profilePic: user.profile_img_path || '/uploads/default_profile.png',
     },
   };
 };
