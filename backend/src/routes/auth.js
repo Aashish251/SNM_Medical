@@ -6,10 +6,8 @@ const authController = require('../controllers/auth');
 // Login with role validation
 router.post('/login', authController.login);
 
-// Simple login (no role validation)
-router.post('/login-simple', authController.loginSimple);
-
 // Forgot password
 router.post('/forgot-password', authController.forgotPassword);
+router.post('/forgot-password-verify', authController.verifyForgotPassword);
 
 module.exports = router;
