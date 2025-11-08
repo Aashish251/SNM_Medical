@@ -90,82 +90,62 @@ const [dbRows] = await promisePool.execute(
 };
 
 
-exports.forgotPassword = async (mobileOrEmail) => {
-  if (!mobileOrEmail) throw new Error('Email or mobile number is required');
-
-  const value = mobileOrEmail.trim();
-
-  // Check if user exists
-  const [rows] = await promisePool.execute(
-    'SELECT reg_id FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND is_deleted = 0 AND is_approved = 1',
-    [value, value]
-  );
-
-  if (!rows.length) {
-    // Always respond generically for privacy
-    return 'If your account exists, password recovery instructions will be sent.';
-  }
-
-  // TODO: Add OTP or email sending logic later
-  return 'If your account exists, password recovery instructions will be sent.';
-};
-
-exports.verifyForgotPassword = async ({
+/**
+ * Step 1: Validate user and security question answers
+ */
+exports.validateForgotPassword = async ({
   email,
   mobileNo,
   favoriteFood,
   childhoodNickname,
   motherMaidenName,
-  hobbies,
-  newPassword
+  hobbies
 }) => {
   if (!email || !mobileNo) {
     throw new Error('Email and mobile number are required');
   }
 
-  // Hash new password if provided
-  let hashedPassword = null;
-  if (newPassword) {
-    hashedPassword = await bcrypt.hash(newPassword, 12);
-  }
-
-  // Call stored procedure
   const [spResult] = await promisePool.execute(
-    'CALL sp_checkupdate_forgotpassword(?, ?, ?, ?, ?, ?, ?)',
+    'CALL sp_checkupdate_forgotpassword(?, ?, ?, ?, ?, ?)',
     [
       email.trim(),
       mobileNo.trim(),
       favoriteFood?.trim() || null,
       childhoodNickname?.trim() || null,
       motherMaidenName?.trim() || null,
-      hobbies?.trim() || null,
-      hashedPassword
+      hobbies?.trim() || null
     ]
   );
 
   const rows = spResult[0] || spResult;
-  if (!rows || !rows.length) throw new Error('Unexpected response from database');
-
   const result = rows[0];
 
-  // Determine message and success flag
+  if (!result) throw new Error('Unexpected database response');
+
   if (result.status === 'INVALID EMAIL OR MOBILE NO') {
-    throw new Error('Invalid email or mobile number');
+    return {
+      success: false,
+      message: 'Invalid email or mobile number.',
+      data: result
+    };
   }
 
   if (result.status === 'FAIL') {
     return {
       success: false,
-      message: 'Security answers did not match',
+      message: `Only ${result.matched_answers} answer(s) matched. Please try again.`,
       data: result
     };
   }
 
+  // PASS case
   return {
     success: true,
-    message: hashedPassword
-      ? 'Security answers verified successfully. Password updated.'
-      : 'Security answers verified successfully.',
-    data: result
+    message: 'Validation successful. You may proceed to reset your password.',
+    data: {
+      reg_id: result.v_reg_id || result.reg_id,
+      matched_answers: result.matched_answers,
+      status: result.status
+    }
   };
 };
