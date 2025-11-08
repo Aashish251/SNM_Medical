@@ -6,6 +6,7 @@ export const MasterSearchApi = createApi({
   baseQuery: customBaseQuery,
   tagTypes: ["MasterSearch"],
   endpoints: (builder) => ({
+    // 🔍 POST /search/master
     masterSearch: builder.mutation({
       query: (body) => ({
         url: "/search/master",
@@ -15,6 +16,7 @@ export const MasterSearchApi = createApi({
       invalidatesTags: ["MasterSearch"],
     }),
 
+    // ✅ POST /approve/:regId
     getChangeStatus: builder.mutation({
       query: ({ regId }) => ({
         url: `/approve/${regId}`,
@@ -22,10 +24,24 @@ export const MasterSearchApi = createApi({
       }),
       invalidatesTags: ["MasterSearch"],
     }),
+
+    // 🧩 NEW endpoint — POST /search/update
+    getChangeUsersRole: builder.mutation({
+      query: (body) => ({
+        url: "/search/update",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["MasterSearch"],
+    }),
   }),
 });
 
-export const { useMasterSearchMutation, useGetChangeStatusMutation } =
-  MasterSearchApi;
+// ✅ Export hooks
+export const {
+  useMasterSearchMutation,
+  useGetChangeStatusMutation,
+  useGetChangeUsersRoleMutation, // ← new hook
+} = MasterSearchApi;
 
 export default MasterSearchApi;

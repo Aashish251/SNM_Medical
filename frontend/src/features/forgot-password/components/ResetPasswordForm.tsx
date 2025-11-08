@@ -4,16 +4,17 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@shared/components/ui";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
-import { ResetPassword } from "../type";
+import { ResetPassword, UserRegIdObj } from "../type";
 import { ANIM } from "../constants/constants";
 import { useResetPasswordMutation } from "../service/ForgotPasswordApi";
 import { toast } from "@shared/lib/toast";
 import { SNM_NAV_LOGIN_LINK } from "@shared/constants";
 interface Props {
   onReset: () => void;
+  userRegIdObj: UserRegIdObj;
 }
 
-const ResetPasswordForm: React.FC<Props> = ({ onReset }) => {
+const ResetPasswordForm: React.FC<Props> = ({ onReset, userRegIdObj }) => {
   const {
     register,
     handleSubmit,
@@ -24,11 +25,12 @@ const ResetPasswordForm: React.FC<Props> = ({ onReset }) => {
   const navigate = useNavigate();
   const [triggerResetPassword] = useResetPasswordMutation();
 
-  const passwordValue = watch("password");
+  const passwordValue = watch("newPassword");
 
   const onSubmit = async (data: ResetPassword) => {
     try {
-      const promise = triggerResetPassword(data).unwrap();
+      const payload = { ...data, ...userRegIdObj };
+      const promise = triggerResetPassword(payload).unwrap();
 
       const response = await toast.promise(promise, {
         loading: "Resetting password...",
@@ -64,14 +66,14 @@ const ResetPasswordForm: React.FC<Props> = ({ onReset }) => {
           required
           autoComplete="new-password"
           placeholder="Enter your password"
-          register={register("password", {
+          register={register("newPassword", {
             required: "Password is required",
             minLength: {
               value: 6,
               message: "Password must be at least 6 characters",
             },
           })}
-          error={errors.password}
+          error={errors.newPassword}
         />
 
         <PasswordField

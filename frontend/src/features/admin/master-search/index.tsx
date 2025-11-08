@@ -17,13 +17,16 @@ import {
   SelectField,
   CheckboxField,
   TextField,
+  TextareaField,
 } from "@shared/components/FormInputs";
 import DataTablePagination from "@shared/components/DataTable/DataTablePagination";
 import {
   useGetChangeStatusMutation,
+  useGetChangeUsersRoleMutation,
   useMasterSearchMutation,
 } from "./services/masterSearchApi";
 import { toast } from "@shared/lib/toast";
+import { register } from "module";
 
 interface User {
   id: number;
@@ -51,6 +54,7 @@ export default function MasterSearchPage() {
   const [cities, setCities] = useState([]);
   const [showUserRole, setShowUserRole] = useState(false);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
+  const [selectedObjects, setSelectedObjects] = useState<any[]>([]);
   const [sortState, setSortState] = useState({
     column: null as string | null,
     direction: "asc" as "asc" | "desc",
@@ -61,6 +65,7 @@ export default function MasterSearchPage() {
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
   const [triggerGetChangeStatus] = useGetChangeStatusMutation();
+  const [triggerChangeUsersRole] = useGetChangeUsersRoleMutation();
   const [users, setUsers] = useState<User[]>([]);
 
   const totalPages = Math.max(1, Math.ceil(users.length / pageLimit));
@@ -92,18 +97,17 @@ export default function MasterSearchPage() {
   const stateId = watchFilter("stateId");
 
   // User-role Form
-  const defaultRoleValues = DUMMY.UserRoleChecks.reduce(
-    (acc, role) => ({ ...acc, [role.name]: role.defaultChecked }),
-    {}
-  );
-
   const {
     control: roleControl,
     handleSubmit: handleRoleSubmit,
     reset: resetRoleForm,
+    register: registerRole,
   } = useForm({
     defaultValues: {
-      ...defaultRoleValues,
+      isPresent: 0,
+      passEntry: 0,
+      isAdmin: 0,
+      isDelete: 0,
       sewaLocation: "",
       samagamHeldIn: "",
       remark: "",
@@ -153,13 +157,19 @@ export default function MasterSearchPage() {
           error: "Failed to update status",
         }
       );
-    
-    } catch (err) {
+      // Additional success handling if needed
+    } catch (err: any) {
       console.error(err);
+      if (err?.status === "FETCH_ERROR") {
+        toast.error("Network error — please check your connection.");
+      } else if (err?.data?.message) {
+        toast.error(err.data.message);
+      } else {
+        toast.error("Something went wrong while updating status.");
+      }
     }
   };
 
-  
   const onSearch = async (data: any) => {
     try {
       const payload = {
@@ -208,8 +218,41 @@ export default function MasterSearchPage() {
       }
     }
   };
+
   const onExport = () => console.log("Exporting filtered data...");
-  const onRoleSubmit = (data: any) => console.log("User Role updated:", data);
+
+  const onRoleSubmit = async (data: any) => {
+    try {
+      const payload = {
+        ...data,
+        regIds: selectedIds.join(","),
+      };
+
+      const response = await toast.promise(
+        triggerChangeUsersRole(payload).unwrap(),
+        {
+          loading: "Updating users' roles...",
+          success: "User roles updated successfully!",
+          error: "Failed to update user roles. Please try again.",
+        }
+      );
+
+      if (response?.data && Array.isArray(response.data)) {
+        setUsers(response.data);
+      } else {
+        toast.error("No users found for the given filters.");
+        setUsers([]);
+      }
+    } catch (error: any) {
+      if (error?.status === "FETCH_ERROR") {
+        toast.error("Network error — please check your connection.");
+      } else if (error?.data?.message) {
+        toast.error(error.data.message);
+      } else {
+        toast.error("Something went wrong while updating user roles.");
+      }
+    }
+  };
 
   return (
     <main className="container mx-auto px-2 sm:px-4 pt-[120px] md:pt-[90px] lg:pt-[100px]">
@@ -355,54 +398,53 @@ export default function MasterSearchPage() {
               onSubmit={handleRoleSubmit(onRoleSubmit)}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center"
             >
-              {DUMMY.UserRoleChecks.map((role) => (
-                <CheckboxField
-                  key={role.id}
-                  control={roleControl}
-                  name={role.name}
-                  label={role.label}
-                />
-              ))}
+              <CheckboxField
+                key="isPresent"
+                control={roleControl}
+                name="isPresent"
+                label="Is Present"
+              />
+              <CheckboxField
+                key="passEntry"
+                control={roleControl}
+                name="passEntry"
+                label="Pass Entry"
+              />
+              <CheckboxField
+                key="isAdmin"
+                control={roleControl}
+                name="isAdmin"
+                label="Is Admin"
+              />
+              <CheckboxField
+                key="isDelete"
+                control={roleControl}
+                name="isDelete"
+                label="Is Delete"
+              />
 
               <SearchableSelect
-                control={roleControl}
+                control={roleControl} // use roleControl
                 name="sewaLocation"
                 label=""
-                options={DUMMY.SevaLocation}
-                labelKey="label"
-                valueKey="value"
+                options={sewaLocations ?? []}
+                labelKey="sewalocation_name"
+                valueKey="id"
                 placeholder="Select sewa location"
               />
 
-              <Controller
-                name="samagamHeldIn"
-                control={roleControl}
-                rules={{
-                  required: "Samagam location is required",
-                  minLength: {
-                    value: 2,
-                    message: "Must be at least 2 characters",
-                  },
-                }}
-                render={({ field }) => (
-                  <TextField
-                    label=""
-                    placeholder="Enter Samagam location"
-                    {...field}
-                  />
-                )}
+              <TextField
+                label=""
+                register={registerRole("samagamHeldIn")}
+                placeholder="Enter samagam location"
               />
 
-              <Controller
-                name="remark"
-                control={roleControl}
-                render={({ field }) => (
-                  <textarea
-                    {...field}
-                    placeholder="Remark"
-                    className="px-3 py-2 border rounded w-full resize-none h-10 lg:col-span-2"
-                  />
-                )}
+              <TextareaField
+                label=""
+                placeholder="Enter remark message"
+                register={registerRole("remark")}
+                rows={1}
+                className="border rounded w-full resize-none lg:col-span-2"
               />
 
               <button

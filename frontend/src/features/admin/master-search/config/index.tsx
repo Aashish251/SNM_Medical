@@ -30,7 +30,7 @@ export const userTableConfig: TableConfig<User> = {
   actions: {
     render: (user, helpers) =>
       !user.isApproved && (
-        <Button onClick={() => helpers?.changeUserStatue?.(user.regId)}>
+        <Button onClick={() => helpers?.changeUserStatue?.(user.regId)} className="text-white bg-blue-500 hover:bg-blue-500" >
           Approve
         </Button>
       ),

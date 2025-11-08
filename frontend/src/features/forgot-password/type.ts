@@ -8,7 +8,7 @@ export type SecurityQuestions = {
 };
 
 export type ResetPassword = {
-  password: string;
+  newPassword: string;
   confirmPassword: string;
 };
 
@@ -18,7 +18,7 @@ export interface ForgotPasswordRequest {
 
 export interface ResetPasswordRequest {
   // token: string;
-  password: string;
+  newPassword: string;
   passwordConfirmation?: string;
 }
 
@@ -30,11 +30,17 @@ export interface ApiData{
 
 export interface ForgotPasswordResponse {
   success: boolean;
-  data?:ApiData[];
+  data?:ApiData;
   message?: string;
 }
 
 export interface ResetPasswordResponse {
   success: boolean;
   message?: string;
+}
+
+
+export interface UserRegIdObj {
+  status?: string;
+  regId?: number;
 }

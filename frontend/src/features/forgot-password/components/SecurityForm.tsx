@@ -16,9 +16,10 @@ import { toast } from "@shared/lib/toast";
 
 interface Props {
   onSuccess: (data: SecurityQuestions) => void;
+  setUserRegIDObj: (userRegIdObj: { status?: string; regId?: number }) => void;
 }
 
-const SecurityForm: React.FC<Props> = ({ onSuccess }) => {
+const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
   const {
     register,
     handleSubmit,
@@ -39,8 +40,13 @@ const SecurityForm: React.FC<Props> = ({ onSuccess }) => {
       // 4️⃣ Show success or error message based on API reply
       if (response?.data?.status === "PASS") {
         toast.success(
-          response?.message || "Password reset link sent to your email!"
+          response?.message || "You may now change or update your password."
         );
+        console.log(response?.data?.reg_id);
+        setUserRegIDObj({
+          status: response?.data?.status,
+          regId: response?.data?.reg_id,
+        });
         onSuccess(data);
         reset();
       } else {

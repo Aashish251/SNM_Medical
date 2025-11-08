@@ -152,7 +152,7 @@ export function DataTable<T extends Record<string, any>>({
   return (
     <div className="w-full rounded-xl border bg-white shadow-sm ring-1 ring-gray-100">
       {/* Table header bar (optional controls can be put here later) */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white/60">
+      {/* <div className="flex items-center justify-between px-4 py-3 border-b bg-white/60">
         <div className="text-sm text-gray-700 font-medium">
           Rows: {data.length}
         </div>
@@ -165,10 +165,10 @@ export function DataTable<T extends Record<string, any>>({
             </span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="overflow-x-auto">
-        <Table className="min-w-full text-sm">
+        <Table className="min-w-full text-sm  ">
           {/* Sticky header for better UX on long lists */}
           <TableHeader>
             <TableRow className="sticky top-0 z-10 bg-gradient-to-b from-white to-white/95 shadow-sm">
