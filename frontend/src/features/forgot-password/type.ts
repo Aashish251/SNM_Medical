@@ -1,6 +1,6 @@
 export type SecurityQuestions = {
   email: string;
-  contact: string;
+  mobileNo: string;
   favoriteFood: string;
   childhoodNickname: string;
   motherMaidenName: string;
@@ -22,8 +22,15 @@ export interface ResetPasswordRequest {
   passwordConfirmation?: string;
 }
 
+export interface ApiData{
+  matched_answers:number;
+  status?:string;
+  reg_id?:number;
+}
+
 export interface ForgotPasswordResponse {
   success: boolean;
+  data?:ApiData[];
   message?: string;
 }
 

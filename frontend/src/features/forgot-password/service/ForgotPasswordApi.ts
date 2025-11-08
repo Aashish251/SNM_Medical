@@ -17,7 +17,7 @@ export const ForgotPasswordApi = createApi({
       ForgotPasswordRequest
     >({
       query: (payload) => ({
-        url: "/forgot-password-validate",
+        url: "/auth/forgot-password-validate",
         method: "POST",
         body: payload,
       }),

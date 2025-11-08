@@ -9,6 +9,7 @@ import { AdminApi } from "@features/admin/dashboard/services/adminApi";
 import authReducer from "@features/login/redux/authSlice";
 import { CommonApi } from "@shared/services/commonApi";
 import { MasterSearchApi } from "@features/admin/master-search/services/masterSearchApi";
+import ForgotPasswordApi from "@features/forgot-password/service/ForgotPasswordApi";
 
 const rootReducer = combineReducers({
   [loginApi.reducerPath]: loginApi.reducer,
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   [AdminApi.reducerPath]: AdminApi.reducer,
   [MasterSearchApi.reducerPath]: MasterSearchApi.reducer,
   [CommonApi.reducerPath]: CommonApi.reducer,
+  [ForgotPasswordApi.reducerPath]: ForgotPasswordApi.reducer,
   auth: authReducer,
 });
 

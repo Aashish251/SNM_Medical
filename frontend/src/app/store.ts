@@ -7,6 +7,7 @@ import { AdminApi } from "@features/admin/dashboard/services/adminApi";
 import { api } from "@lib/api";
 import { MasterSearchApi } from "@features/admin/master-search/services/masterSearchApi";
 import { CommonApi } from "@shared/services/commonApi";
+import ForgotPasswordApi from "@features/forgot-password/service/ForgotPasswordApi";
 
 export const store = configureStore({
   reducer: persistedReducer,
@@ -21,7 +22,8 @@ export const store = configureStore({
       api.middleware,
       AdminApi.middleware,
       MasterSearchApi.middleware,
-      CommonApi.middleware
+      CommonApi.middleware,
+      ForgotPasswordApi.middleware
     );
   },
 });

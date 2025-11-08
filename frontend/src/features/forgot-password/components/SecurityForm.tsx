@@ -30,18 +30,26 @@ const SecurityForm: React.FC<Props> = ({ onSuccess }) => {
 
   const onSubmit = async (data: SecurityQuestions) => {
     try {
-      const response = await toast.promise(forgotPassword(data).unwrap(), {
-        loading: "Verifying your details...",
-        success: "Password reset link sent to your email!",
-        error: "Failed to process your request. Please try again.",
-      });
+      // 1️⃣ Show a loading toast (optional)
+      const loadingToast = toast.loading("Verifying your details...");
 
-      if (response?.success) {
+      // 2️⃣ Await API call
+      const response = await forgotPassword(data).unwrap();
+
+      // 4️⃣ Show success or error message based on API reply
+      if (response?.data?.status === "PASS") {
+        toast.success(
+          response?.message || "Password reset link sent to your email!"
+        );
         onSuccess(data);
         reset();
+      } else {
+        toast.error(
+          response?.message ||
+            "Failed to process your request. Please try again."
+        );
       }
     } catch (error: any) {
-      console.error("Forgot password failed:", error);
       toast.error(error?.data?.message || "Something went wrong.");
     }
   };
@@ -71,7 +79,7 @@ const SecurityForm: React.FC<Props> = ({ onSuccess }) => {
           label="Contact Number"
           required
           maxLength={13}
-          register={register("contact", {
+          register={register("mobileNo", {
             required: "Contact number is required",
             pattern: {
               value: mobilePattern,
@@ -79,7 +87,7 @@ const SecurityForm: React.FC<Props> = ({ onSuccess }) => {
             },
           })}
           placeholder="Enter 10-digit mobile number"
-          error={errors.contact}
+          error={errors.mobileNo}
         />
 
         <TextField
