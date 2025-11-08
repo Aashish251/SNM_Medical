@@ -15,7 +15,7 @@ const ForgetPassword: React.FC = () => {
 
       <div className="bg-[#f9f9f6] flex flex-col min-h-screen overflow-hidden relative z-10">
         <div className="pt-24 flex-1 flex items-center justify-center w-full px-2 sm:px-6">
-          {formStage !== "security" ? (
+          {formStage === "security" ? (
             <SecurityForm onSuccess={() => setFormStage("reset")} />
           ) : (
             <ResetPasswordForm onReset={() => setFormStage("security")} />
