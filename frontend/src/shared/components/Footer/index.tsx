@@ -7,7 +7,7 @@ import {
   SNM_SITE_LOGO_TITLE,
   SNM_SITE_META_TITLE,
   SNM_SITE_PHONE,
-} from "@shared/constants/index.constant";
+} from "@shared/constants";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 

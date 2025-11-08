@@ -6,7 +6,7 @@ import {
   SNM_SITE_ADDRESS,
   SNM_SITE_EMAIL,
   SNM_SITE_PHONE,
-} from "@shared/constants/index.constant";
+} from "@shared/constants";
 import React, { useState, useRef } from "react";
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
 

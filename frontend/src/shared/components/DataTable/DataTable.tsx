@@ -18,11 +18,21 @@ export interface TableColumn<T> {
   afterStatus?: boolean; // flag to render this column after status column
 }
 
+export type ChangeUserStatusFn = (regId: string | number) => Promise<any> | void;
+
+export interface ActionsHelpers {
+  changeUserStatue?: ChangeUserStatusFn;
+}
+
 export interface TableConfig<T> {
   showCheckbox?: boolean;
   showActions?: boolean;
   actions?: {
-    render: (row: T) => React.ReactNode;
+    /**
+     * render receives the row and an optional helpers object.
+     * Keep UI markup in config but call side-effect handlers via helpers.
+     */
+    render: (row: T, helpers?: ActionsHelpers) => React.ReactNode;
   };
   columns: TableColumn<T>[];
   statusColumn?: {
@@ -34,6 +44,7 @@ export interface TableConfig<T> {
 export interface DataTableProps<T> {
   data: T[];
   config: TableConfig<T>;
+  changeUserStatue?: ChangeUserStatusFn;
   selectedIds?: (string | number)[];
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   sortState?: { column: string | null; direction: "asc" | "desc" };
@@ -51,6 +62,7 @@ export function DataTable<T extends Record<string, any>>({
   config,
   selectedIds = [],
   onSelectionChange,
+  changeUserStatue,
   sortState = { column: null, direction: "asc" },
   onSortChange,
   rowKey = "regId",
@@ -60,17 +72,23 @@ export function DataTable<T extends Record<string, any>>({
     (row: T, index?: number): string | number => {
       const val = (row as any)[rowKey as any];
       if (val !== undefined && val !== null) return val;
-      if ((row as any).id !== undefined && (row as any).id !== null) return (row as any).id;
+      if ((row as any).id !== undefined && (row as any).id !== null)
+        return (row as any).id;
       return index ?? "";
     },
     [rowKey]
   );
 
   // normalized selected set (strings) for stable comparisons
-  const selectedSet = React.useMemo(() => new Set(selectedIds.map(String)), [selectedIds]);
+  const selectedSet = React.useMemo(
+    () => new Set(selectedIds.map(String)),
+    [selectedIds]
+  );
 
   // computed selection state
-  const allSelected = data.length > 0 && data.every((r, i) => selectedSet.has(String(getRowKey(r, i))));
+  const allSelected =
+    data.length > 0 &&
+    data.every((r, i) => selectedSet.has(String(getRowKey(r, i))));
   const partiallySelected = selectedIds.length > 0 && !allSelected;
 
   // select-all (current page)
@@ -78,9 +96,13 @@ export function DataTable<T extends Record<string, any>>({
     if (!onSelectionChange) return;
     const keysOnPage = data.map((r, i) => String(getRowKey(r, i)));
     if (allSelected) {
-      onSelectionChange(selectedIds.filter((s) => !keysOnPage.includes(String(s))));
+      onSelectionChange(
+        selectedIds.filter((s) => !keysOnPage.includes(String(s)))
+      );
     } else {
-      onSelectionChange(Array.from(new Set([...selectedIds.map(String), ...keysOnPage])));
+      onSelectionChange(
+        Array.from(new Set([...selectedIds.map(String), ...keysOnPage]))
+      );
     }
   };
 
@@ -88,14 +110,18 @@ export function DataTable<T extends Record<string, any>>({
   const toggleSelectRow = (keyVal: string | number) => {
     if (!onSelectionChange) return;
     const k = String(keyVal);
-    if (selectedSet.has(k)) onSelectionChange(selectedIds.filter((s) => String(s) !== k));
+    if (selectedSet.has(k))
+      onSelectionChange(selectedIds.filter((s) => String(s) !== k));
     else onSelectionChange([...selectedIds.map(String), k]);
   };
 
   // sorting helpers
   const handleHeaderClick = (header: string, sortable?: boolean) => {
     if (!sortable) return;
-    const nextDir = sortState.column === header && sortState.direction === "asc" ? "desc" : "asc";
+    const nextDir =
+      sortState.column === header && sortState.direction === "asc"
+        ? "desc"
+        : "asc";
     onSortChange?.(header, nextDir);
   };
 
@@ -117,14 +143,27 @@ export function DataTable<T extends Record<string, any>>({
   const preStatusColumns = config.columns.filter((c) => !c.afterStatus);
   const postStatusColumns = config.columns.filter((c) => !!c.afterStatus);
 
+  // helpers object to pass to renderers
+  const actionsHelpers = React.useMemo<ActionsHelpers>(
+    () => ({ changeUserStatue }),
+    [changeUserStatue]
+  );
+
   return (
     <div className="w-full rounded-xl border bg-white shadow-sm ring-1 ring-gray-100">
       {/* Table header bar (optional controls can be put here later) */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-white/60">
-        <div className="text-sm text-gray-700 font-medium">Rows: {data.length}</div>
+        <div className="text-sm text-gray-700 font-medium">
+          Rows: {data.length}
+        </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-sm text-gray-600">Selected: <span className="font-semibold text-gray-800">{selectedIds.length}</span></div>
+          <div className="text-sm text-gray-600">
+            Selected:{" "}
+            <span className="font-semibold text-gray-800">
+              {selectedIds.length}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -154,7 +193,9 @@ export function DataTable<T extends Record<string, any>>({
               {/* Actions header */}
               {config.showActions && (
                 <TableHead className="px-4 py-3 text-center w-[140px]">
-                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Actions</span>
+                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Actions
+                  </span>
                 </TableHead>
               )}
 
@@ -163,11 +204,21 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={String(col.key)}
                   onClick={() => handleHeaderClick(col.header, col.sortable)}
-                  className={`px-4 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""}`}
-                  aria-sort={sortState.column === col.header ? (sortState.direction === "asc" ? "ascending" : "descending") : "none"}
+                  className={`px-4 py-3 text-left align-middle ${
+                    col.sortable ? "cursor-pointer select-none" : ""
+                  }`}
+                  aria-sort={
+                    sortState.column === col.header
+                      ? sortState.direction === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-700">{col.header}</span>
+                    <span className="text-xs font-medium text-gray-700">
+                      {col.header}
+                    </span>
                     {col.sortable && renderSortIndicator(col.header)}
                   </div>
                 </TableHead>
@@ -176,7 +227,9 @@ export function DataTable<T extends Record<string, any>>({
               {/* Status header */}
               {config.statusColumn && (
                 <TableHead className="px-4 py-3 text-center">
-                  <span className="text-xs font-medium text-gray-700">Status</span>
+                  <span className="text-xs font-medium text-gray-700">
+                    Status
+                  </span>
                 </TableHead>
               )}
 
@@ -185,10 +238,14 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={String(col.key)}
                   onClick={() => handleHeaderClick(col.header, col.sortable)}
-                  className={`px-4 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""}`}
+                  className={`px-4 py-3 text-left align-middle ${
+                    col.sortable ? "cursor-pointer select-none" : ""
+                  }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-700">{col.header}</span>
+                    <span className="text-xs font-medium text-gray-700">
+                      {col.header}
+                    </span>
                     {col.sortable && renderSortIndicator(col.header)}
                   </div>
                 </TableHead>
@@ -221,7 +278,11 @@ export function DataTable<T extends Record<string, any>>({
                   <TableRow
                     key={keyStr || idx}
                     className={`transition-colors group ${
-                      isSelected ? "bg-blue-50" : idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      isSelected
+                        ? "bg-blue-50"
+                        : idx % 2 === 0
+                        ? "bg-white"
+                        : "bg-gray-50"
                     } hover:bg-blue-50/60 focus-within:ring-2 focus-within:ring-blue-100`}
                     tabIndex={-1}
                   >
@@ -240,16 +301,23 @@ export function DataTable<T extends Record<string, any>>({
                     {config.showActions && (
                       <TableCell className="px-4 py-3 text-center align-middle">
                         <div className="flex items-center justify-center gap-2">
-                          {/* action renderers should supply their own buttons; we wrap to keep spacing */}
-                          {config.actions?.render(row)}
+                          {/* Pass helpers to the action renderer so it can call changeUserStatue */}
+                          {config.actions?.render
+                            ? config.actions.render(row, actionsHelpers)
+                            : null}
                         </div>
                       </TableCell>
                     )}
 
                     {/* before-status columns */}
                     {preStatusColumns.map((col) => (
-                      <TableCell key={String(col.key)} className="px-4 py-3 align-middle text-gray-700">
-                        <div className="text-sm">{col.render ? col.render(row) : (row[col.key] as any)}</div>
+                      <TableCell
+                        key={String(col.key)}
+                        className="px-4 py-3 align-middle text-gray-700"
+                      >
+                        <div className="text-sm">
+                          {col.render ? col.render(row) : (row[col.key] as any)}
+                        </div>
                       </TableCell>
                     ))}
 
@@ -262,8 +330,13 @@ export function DataTable<T extends Record<string, any>>({
 
                     {/* after-status columns */}
                     {postStatusColumns.map((col) => (
-                      <TableCell key={`post-${String(col.key)}`} className="px-4 py-3 align-middle text-gray-700">
-                        <div className="text-sm">{col.render ? col.render(row) : (row[col.key] as any)}</div>
+                      <TableCell
+                        key={`post-${String(col.key)}`}
+                        className="px-4 py-3 align-middle text-gray-700"
+                      >
+                        <div className="text-sm">
+                          {col.render ? col.render(row) : (row[col.key] as any)}
+                        </div>
                       </TableCell>
                     ))}
                   </TableRow>
@@ -277,9 +350,13 @@ export function DataTable<T extends Record<string, any>>({
       {/* optional footer area for pagination or bulk actions */}
       <div className="flex items-center justify-between px-4 py-3 border-t bg-white/50">
         <div className="text-xs text-gray-600">
-          Showing <span className="font-medium text-gray-800">{data.length}</span> rows
+          Showing{" "}
+          <span className="font-medium text-gray-800">{data.length}</span> rows
         </div>
-        <div className="text-xs text-gray-600"> {/* placeholder for pagination controls */} </div>
+        <div className="text-xs text-gray-600">
+          {" "}
+          {/* placeholder for pagination controls */}{" "}
+        </div>
       </div>
     </div>
   );

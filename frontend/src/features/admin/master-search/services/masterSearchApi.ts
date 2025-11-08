@@ -6,24 +6,26 @@ export const MasterSearchApi = createApi({
   baseQuery: customBaseQuery,
   tagTypes: ["MasterSearch"],
   endpoints: (builder) => ({
-    // 🔍 Master Search API
     masterSearch: builder.mutation({
       query: (body) => ({
         url: "/search/master",
         method: "POST",
         body,
-        invalidatesTags: ["MasterSearch"],
       }),
+      invalidatesTags: ["MasterSearch"],
     }),
+
     getChangeStatus: builder.mutation({
-      query: (body) => ({
-        url: "/search/master",
+      query: ({ regId }) => ({
+        url: `/approve/${regId}`,
         method: "POST",
-        body,
       }),
+      invalidatesTags: ["MasterSearch"],
     }),
   }),
 });
 
-// ✅ Export hook for component usage
-export const { useMasterSearchMutation } = MasterSearchApi;
+export const { useMasterSearchMutation, useGetChangeStatusMutation } =
+  MasterSearchApi;
+
+export default MasterSearchApi;

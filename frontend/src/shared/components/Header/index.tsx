@@ -13,7 +13,7 @@ import {
   SNM_NAV_LOGOUT_LABEL,
   SNM_PUBLIC_USERTYPE,
   SNM_SITE_LOGO_TITLE,
-} from "@shared/constants/index.constant";
+} from "@shared/constants";
 import {
   adminNav,
   msNav,

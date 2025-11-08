@@ -28,9 +28,9 @@ export const userTableConfig: TableConfig<User> = {
   showCheckbox: true,
   showActions: true,
   actions: {
-    render: (user: User) =>
+    render: (user, helpers) =>
       !user.isApproved && (
-        <Button className="rounded-md bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-200 transition">
+        <Button onClick={() => helpers?.changeUserStatue?.(user.regId)}>
           Approve
         </Button>
       ),

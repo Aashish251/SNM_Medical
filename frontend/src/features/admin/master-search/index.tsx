@@ -19,7 +19,10 @@ import {
   TextField,
 } from "@shared/components/FormInputs";
 import DataTablePagination from "@shared/components/DataTable/DataTablePagination";
-import { useMasterSearchMutation } from "./services/masterSearchApi";
+import {
+  useGetChangeStatusMutation,
+  useMasterSearchMutation,
+} from "./services/masterSearchApi";
 import { toast } from "@shared/lib/toast";
 
 interface User {
@@ -57,6 +60,7 @@ export default function MasterSearchPage() {
   const [triggerMasterSearch] = useMasterSearchMutation();
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
+  const [triggerGetChangeStatus] = useGetChangeStatusMutation();
   const [users, setUsers] = useState<User[]>([]);
 
   const totalPages = Math.max(1, Math.ceil(users.length / pageLimit));
@@ -139,6 +143,23 @@ export default function MasterSearchPage() {
     }
   }, [stateId]);
 
+  const changeUserStatue = async (regId: number) => {
+    try {
+      const response = await toast.promise(
+        triggerGetChangeStatus({ regId }).unwrap(),
+        {
+          loading: "Updating status...",
+          success: "User approved successfully",
+          error: "Failed to update status",
+        }
+      );
+    
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  
   const onSearch = async (data: any) => {
     try {
       const payload = {
@@ -408,6 +429,7 @@ export default function MasterSearchPage() {
           <DataTable
             data={pagedUsers}
             config={userTableConfig}
+            changeUserStatue={changeUserStatue}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             sortState={sortState}

@@ -7,7 +7,7 @@ import {
   HOME_ABOUT_PAGE_TITLE,
   HOME_ABOUT_SECTION_CONTENT,
   HOME_ABOUT_SECTION_TITLE,
-} from "@shared/constants/index.constant";
+} from "@shared/constants";
 
 interface AboutSectionProps {
   aboutImages: string[];

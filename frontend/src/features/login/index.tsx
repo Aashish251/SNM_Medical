@@ -12,7 +12,7 @@ import {
   SNM_LOGIN_PAGE_TITLE,
   SNM_NAV_REGISTER_LINK,
   SNM_LOGIN_LABEL_TITLE,
-} from "@shared/constants/index.constant";
+} from "@shared/constants";
 
 const Login = () => {
   const { form, role, handleRoleChange, onSubmit, loading } =

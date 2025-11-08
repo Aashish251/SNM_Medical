@@ -3,7 +3,7 @@ import {
   SNM_MS_USERTYPE,
   SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
   SNM_NAV_MS_UPDATE_PROFILE_LINK,
-} from "@shared/constants/index.constant";
+} from "@shared/constants";
 
 export const handleNavigate = (
   href: string,
