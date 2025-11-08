@@ -8,5 +8,7 @@ router.post('/login', authController.login);
 
 // Forgot password
 router.post('/forgot-password-validate', authController.validateForgotPassword);
+// Reset password
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;
