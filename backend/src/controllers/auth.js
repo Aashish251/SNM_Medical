@@ -16,22 +16,15 @@ exports.login = async (req, res) => {
 };
 
 
-exports.forgotPassword = async (req, res) => {
+/**
+ * Step 1: Forgot password validation
+ */
+exports.validateForgotPassword = async (req, res) => {
   try {
-    const { email, mobile } = req.body;
-    const identifier = email || mobile;
-    const message = await authService.forgotPassword(identifier);
-    sendResponse(res, 200, true, message);
-  } catch (error) {
-    sendResponse(res, 400, false, error.message);
-  }
-};
-
-exports.verifyForgotPassword = async (req, res) => {
-  try {
-    const result = await authService.verifyForgotPassword(req.body);
+    const result = await authService.validateForgotPassword(req.body);
     sendResponse(res, 200, result.success, result.message, result.data);
   } catch (error) {
     sendResponse(res, 400, false, error.message);
   }
 };
+
