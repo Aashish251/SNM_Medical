@@ -28,3 +28,15 @@ exports.validateForgotPassword = async (req, res) => {
   }
 };
 
+/**
+ * Step 2: Reset Password
+ */
+exports.resetPassword = async (req, res) => {
+  try {
+    const result = await authService.resetPassword(req.body);
+    sendResponse(res, 200, result.success, result.message, result.data || null);
+  } catch (error) {
+    sendResponse(res, 400, false, error.message);
+  }
+};
+

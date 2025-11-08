@@ -149,3 +149,48 @@ exports.validateForgotPassword = async ({
     }
   };
 };
+
+
+/**
+ * Step 2: Reset password using reg_id and status (PASS)
+ */
+
+exports.resetPassword = async ({ regId, newPassword, confirmPassword, status }) => {
+  if (!regId || !newPassword || !confirmPassword) {
+    throw new Error('All fields are required.');
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new Error('Passwords do not match.');
+  }
+
+  if (status !== 'PASS') {
+    throw new Error('You are not authorized to reset the password.');
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+  // Call SP
+  const [spResult] = await promisePool.execute('CALL sp_update_password(?, ?, ?)', [
+    regId,
+    hashedPassword,
+    status
+  ]);
+
+  // Check response
+  const rows = spResult[0] || spResult;
+  const result = rows?.[0] || {};
+
+  if (result.status === 'INVALID USER') {
+    return {
+      success: false,
+      message: 'Invalid user ID or operation not permitted.'
+    };
+  }
+
+  return {
+    success: true,
+    message: 'Password updated successfully. You can now log in.'
+  };
+};
