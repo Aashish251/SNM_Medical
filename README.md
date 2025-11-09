@@ -1,12 +1,13 @@
-# 🏥 SNM Medical
+# 🏥 SNM Medical Management System
 
 ![Node.js](https://img.shields.io/badge/Node.js-v18+-green)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue)
 ![Express](https://img.shields.io/badge/Express.js-4.x-lightgrey)
+![React](https://img.shields.io/badge/React-18+-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)
+![Redux](https://img.shields.io/badge/Redux-Toolkit-764abc)
 
-<!-- ![License](https://img.shields.io/badge/License-MIT-yellow) -->
-
-A comprehensive **SNM medical dispensary** built with modern web technologies. Features secure authentication, department management, duty chart tracking, and administrative reporting capabilities.
+A comprehensive medical management system for Sant Nirankari Mission, featuring secure authentication, role-based access control, staff management, duty chart tracking, and advanced administrative capabilities.
 
 ## 📋 Table of Contents
 
@@ -26,63 +27,100 @@ A comprehensive **SNM medical dispensary** built with modern web technologies. F
 
 ## ✨ Features
 
-- 🔐 **Secure Authentication** - JWT-based user authentication and authorization
-- 👥 **User Management** - Registration, profile management, and role-based access
-- 🏢 **Department Management** - Department, qualification, state, and city management
-- 📊 **Admin Dashboard** - Comprehensive reporting and statistics
-- 📋 **Duty Chart System** - Staff presence tracking and duty management
-- 🔍 **Advanced Filtering** - Filter users, duty charts, and reports
-- 🛡️ **Security First** - All database operations via stored procedures
-- ⚡ **Performance Optimized** - HTTP caching and optimized queries
-- 📱 **Responsive Design** - Works on desktop and mobile devices
+### 🔐 User Authentication & Authorization
+
+- Secure JWT-based authentication
+- Role-based access control (Admin, Medical Staff)
+- Password hashing with bcrypt
+- Protected routes and API endpoints
+
+### 👥 User Management
+
+- Staff registration with profile images
+- Qualification and department assignment
+- Profile management
+- Role and permission management
+
+### 📊 Administrative Features
+
+- Comprehensive admin dashboard
+- Master search functionality
+- User role management
+- Detailed reporting system
+- Statistical analysis and visualization
+
+### 📋 Duty Management
+
+- Interactive duty chart system
+- Staff presence tracking
+- Pass entry management
+- Location-based assignment
+
+### 🏢 Department Features
+
+- Department management
+- Qualification tracking
+- Location management
+- State and city organization
+
+### 📱 User Interface
+
+- Responsive design for all devices
+- Modern and intuitive interface
+- Real-time updates
+- Form validation
+- Interactive data tables
+- Advanced filtering and sorting
 
 ## 🛠️ Tech Stack
 
-### Backend
+### Backend Architecture
 
-- **Node.js** (v18+) - Runtime environment
-- **Express.js** (v4.x) - Web framework
-- **MySQL** (v8.0+) - Database
-- **JWT** - Authentication
-- **bcryptjs** - Password hashing
-- **CORS** - Cross-origin requests
-- **Helmet** - Security middleware
+- **Runtime**: Node.js (v18+)
+- **Framework**: Express.js
+- **Database**: MySQL 8.0+
+- **Authentication**: JWT
+- **API Documentation**: Swagger
+- **Security**:
+  - Helmet (HTTP headers)
+  - CORS protection
+  - Rate limiting
+  - XSS protection
 
-### Frontend
+### Frontend Development
 
-- **React.js** / **Next.js** - UI framework
-- **Tailwind CSS** - Styling
-- **Axios** - HTTP client
-- **React Router** - Navigation
+- **Framework**: React 18+ with TypeScript
+- **State Management**: Redux Toolkit + RTK Query
+- **Routing**: React Router v6
+- **Styling**:
+  - Tailwind CSS
+  - Shadcn UI Components
+- **Form Handling**: React Hook Form
+- **Data Fetching**: Axios
 
 ### Development Tools
 
-- **Visual Studio Code** - Code editor
-- **MySQL Workbench** - Database management
-- **Postman** - API testing
-- **Git** - Version control
-- **npm** - Package management
+- TypeScript
+- ESLint
+- Prettier
+- Husky (Git hooks)
+- Docker (containerization)
+- Git (version control)
 
 ## 📦 Prerequisites
 
-Before you begin, ensure you have the following installed:
-
-- [Node.js](https://nodejs.org/en/download/) (v18+ LTS)
-- [MySQL](https://dev.mysql.com/downloads/installer/) (v8.0+)
-- [MySQL Workbench](https://dev.mysql.com/downloads/workbench/) (for database management)
-- [Express.js](https://expressjs.com/) (v4.x)
-- [Git](https://git-scm.com/downloads) (for version control)
-- [GitHub Desktop](https://desktop.github.com/download/) — Free desktop client
-- [Visual Studio Code](https://code.visualstudio.com/download) (recommended)
-- [Postman](https://www.postman.com/downloads/) (for API testing)
+- Node.js v18 or higher
+- MySQL 8.0 or higher
+- npm or yarn
+- Git
 
 ## 🚀 Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Aashish251/SNM_Medical/tree/main
-cd snm-medical-system
+git clone https://github.com/Aashish251/SNM_Medical.git
+cd SNM_Medical
 ```
 
 ### 2. Backend Setup
@@ -94,11 +132,58 @@ cd backend
 # Install dependencies
 npm install
 
-# Create environment file
+# Set up environment variables
 cp .env.example .env
 
-# Edit .env with your configuration (see Configuration section)
+# Start the server
+npm run dev
 ```
+
+### 3. Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+## ⚙️ Configuration
+
+### Backend Environment Variables (.env)
+
+```env
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# Database Configuration
+DB_HOST=localhost
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_NAME=snm_medical
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=24h
+
+# File Upload Configuration
+UPLOAD_DIR=uploads
+MAX_FILE_SIZE=5242880
+```
+
+### Frontend Environment Variables (.env)
+
+```env
+VITE_API_URL=http://localhost:5000
+VITE_APP_ENV=development
+```
+
+````
 
 ### 3. Frontend Setup
 
@@ -113,7 +198,7 @@ npm install
 cp .env.local.example .env.local
 
 # Edit .env.local with your API URL
-```
+````
 
 ## ⚙️ Configuration
 
