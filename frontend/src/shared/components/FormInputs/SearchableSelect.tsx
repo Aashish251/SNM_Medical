@@ -25,7 +25,7 @@ interface SearchableSelectProps {
   control: any;
   name: string;
   label: string;
-  options: Option[];
+  options: Option[] | string[];
   labelKey: string;
   valueKey: string;
   placeholder?: string;

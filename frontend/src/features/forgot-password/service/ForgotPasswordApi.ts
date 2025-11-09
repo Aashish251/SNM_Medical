@@ -17,7 +17,7 @@ export const ForgotPasswordApi = createApi({
       ForgotPasswordRequest
     >({
       query: (payload) => ({
-        url: "/auth/forgot-password-validate",
+        url: "/api/auth/forgot-password-validate",
         method: "POST",
         body: payload,
       }),
@@ -27,7 +27,7 @@ export const ForgotPasswordApi = createApi({
       ResetPasswordRequest
     >({
       query: (payload) => ({
-        url: "/auth/reset-password",
+        url: "/api/auth/reset-password",
         method: "POST",
         body: payload,
       }),

@@ -5,7 +5,7 @@ interface StatItem {
   title: string;
   value: number;
   color: string;
-  image: string;
+  image?: string;
 }
 
 interface StatsGridProps {

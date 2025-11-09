@@ -19,7 +19,7 @@ export const CommonApi = createApi({
       void
     >({
       query: () => ({
-        url: "/registration/dropdown-data",
+        url: "/api/registration/dropdown-data",
         method: "GET",
       }),
       providesTags: ["RegistrationDropdown"],
@@ -31,7 +31,7 @@ export const CommonApi = createApi({
       CitiesByStateRequest
     >({
       query: ({ stateId }) => ({
-        url: `/registration/cities/${stateId}`,
+        url: `/api/registration/cities/${stateId}`,
         method: "GET",
       }),
       providesTags: ["Cities"],

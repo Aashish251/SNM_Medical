@@ -4,7 +4,6 @@ import storage from "redux-persist/lib/storage";
 
 import { loginApi } from "@features/login/services/loginApi";
 import { RegisterApi } from "@features/register/services";
-import { api } from "@lib/api";
 import { AdminApi } from "@features/admin/dashboard/services/adminApi";
 import authReducer from "@features/login/redux/authSlice";
 import { CommonApi } from "@shared/services/commonApi";
@@ -14,7 +13,6 @@ import ForgotPasswordApi from "@features/forgot-password/service/ForgotPasswordA
 const rootReducer = combineReducers({
   [loginApi.reducerPath]: loginApi.reducer,
   [RegisterApi.reducerPath]: RegisterApi.reducer,
-  [api.reducerPath]: api.reducer,
   [AdminApi.reducerPath]: AdminApi.reducer,
   [MasterSearchApi.reducerPath]: MasterSearchApi.reducer,
   [CommonApi.reducerPath]: CommonApi.reducer,

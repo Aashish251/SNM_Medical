@@ -26,7 +26,6 @@ import {
   useMasterSearchMutation,
 } from "./services/masterSearchApi";
 import { toast } from "@shared/lib/toast";
-import { register } from "module";
 
 interface User {
   id: number;

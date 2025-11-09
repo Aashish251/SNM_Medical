@@ -71,7 +71,7 @@ export const userTableConfig: TableConfig<User> = {
       render: (user: User) =>
         user.certificateDocPath ? (
           <a
-            href={`${import.meta.env?.VITE_API_BACKEND_URL}${
+            href={`${import.meta.env?.VITE_API_BASE_URL}${
               user.certificateDocPath
             }`}
             target="_blank"

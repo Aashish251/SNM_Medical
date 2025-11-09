@@ -266,7 +266,7 @@ const Header = () => {
                         <AvatarImage
                           src={
                             loggedInUserDetails?.profilePic
-                              ? `${import.meta.env.VITE_API_BACKEND_URL}${
+                              ? `${import.meta.env.VITE_API_BASE_URL}${
                                   loggedInUserDetails?.profilePic
                                 }`
                               : DEFAULT_PROFILE_IMAGE
@@ -314,7 +314,9 @@ const Header = () => {
                                 handleNavigate(
                                   link.href,
                                   authUserType,
-                                  loggedInUserDetails.id
+                                  loggedInUserDetails?.id
+                                    ? String(loggedInUserDetails.id)
+                                    : ""
                                 )
                               )
                             }
