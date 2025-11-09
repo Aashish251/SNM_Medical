@@ -23,7 +23,7 @@ import DataTablePagination from "@shared/components/DataTable/DataTablePaginatio
 import {
   useGetChangeStatusMutation,
   useGetChangeUsersRoleMutation,
-  useMasterSearchMutation,
+  useMasterSearchQuery,
 } from "./services/masterSearchApi";
 import { toast } from "@shared/lib/toast";
 
@@ -48,24 +48,52 @@ interface User {
   certificateDocPath: string;
 }
 
+interface SearchResponse {
+  status: boolean;
+  message: string;
+  data: User[];
+}
+
 export default function MasterSearchPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [cities, setCities] = useState([]);
   const [showUserRole, setShowUserRole] = useState(false);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
-  const [selectedObjects, setSelectedObjects] = useState<any[]>([]);
   const [sortState, setSortState] = useState({
     column: null as string | null,
     direction: "asc" as "asc" | "desc",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(90);
-  const [triggerMasterSearch] = useMasterSearchMutation();
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
   const [triggerGetChangeStatus] = useGetChangeStatusMutation();
   const [triggerChangeUsersRole] = useGetChangeUsersRoleMutation();
+  const [searchPayload, setSearchPayload] = useState({
+    searchKey: "",
+    departmentId: null,
+    qualificationId: null,
+    sewaLocationId: null,
+    cityId: null,
+    stateId: null,
+    isPresent: null,
+    passEntry: null,
+    limit: pageLimit,
+    page: currentPage,
+    sortBy: "full_name",
+    sortOrder: "ASC",
+  });
+
+  const { data: masterSearchData, refetch: triggerMasterSearch } =
+    useMasterSearchQuery(searchPayload);
   const [users, setUsers] = useState<User[]>([]);
+
+  // Update users when masterSearchData changes
+  useEffect(() => {
+    if (masterSearchData?.data && Array.isArray(masterSearchData.data)) {
+      setUsers(masterSearchData.data);
+    }
+  }, [masterSearchData]);
 
   const totalPages = Math.max(1, Math.ceil(users.length / pageLimit));
   const pagedUsers = users.slice(
@@ -148,15 +176,13 @@ export default function MasterSearchPage() {
 
   const changeUserStatue = async (regId: number) => {
     try {
-      const response = await toast.promise(
-        triggerGetChangeStatus({ regId }).unwrap(),
-        {
-          loading: "Updating status...",
-          success: "User approved successfully",
-          error: "Failed to update status",
-        }
-      );
-      // Additional success handling if needed
+      await toast.promise(triggerGetChangeStatus({ regId }).unwrap(), {
+        loading: "Updating status...",
+        success: "User approved successfully",
+        error: "Failed to update status",
+      });
+      // Force a refetch with current search payload
+      await triggerMasterSearch();
     } catch (err: any) {
       console.error(err);
       if (err?.status === "FETCH_ERROR") {
@@ -171,7 +197,7 @@ export default function MasterSearchPage() {
 
   const onSearch = async (data: any) => {
     try {
-      const payload = {
+      const newPayload = {
         searchKey: data?.searchTerm?.trim() || "",
         departmentId: data?.departmentId || null,
         qualificationId: data?.qualificationId || null,
@@ -186,35 +212,33 @@ export default function MasterSearchPage() {
         sortOrder: "ASC",
       };
 
-      console.log("🔍 Search Payload:", payload);
+      console.log("🔍 Search Payload:", newPayload);
 
-      // 🧾 Trigger the search with proper toast notifications
-      const response = await toast.promise(
-        triggerMasterSearch(payload).unwrap(),
+      // Update the search payload which will trigger a new search
+      setSearchPayload(newPayload);
+
+      // Show loading toast
+      toast.promise(
+        new Promise((resolve) => {
+          // Wait for the next render cycle when masterSearchData will be updated
+          setTimeout(resolve, 100);
+        }),
         {
           loading: "Searching users...",
           success: "Search completed successfully!",
           error: "Failed to fetch search results.",
         }
       );
-
-      console.log("✅ API Response:", response);
-
-      // ✅ Handle success data
-      if (response?.data && Array.isArray(response.data)) {
-        setUsers(response.data); // Update your user table or state
-      } else {
-        toast.error("No users found for the given filters.");
-        setUsers([]);
-      }
     } catch (error: any) {
+      console.error("Search error:", error);
       if (error?.status === "FETCH_ERROR") {
         toast.error("Network error — please check your connection.");
       } else if (error?.data?.message) {
         toast.error(error.data.message);
       } else {
-        toast.error("Something went wrong while searching.");
+        toast.error(error.message || "Something went wrong while searching.");
       }
+      setUsers([]);
     }
   };
 
@@ -222,26 +246,27 @@ export default function MasterSearchPage() {
 
   const onRoleSubmit = async (data: any) => {
     try {
+      if (!selectedIds.length) {
+        toast.error("Please select at least one user to update roles.");
+        return;
+      }
       const payload = {
         ...data,
-        regIds: selectedIds.join(","),
+        regId: selectedIds.join(","),
       };
 
-      const response = await toast.promise(
-        triggerChangeUsersRole(payload).unwrap(),
-        {
-          loading: "Updating users' roles...",
-          success: "User roles updated successfully!",
-          error: "Failed to update user roles. Please try again.",
-        }
-      );
+      await toast.promise(triggerChangeUsersRole(payload).unwrap(), {
+        loading: "Updating users' roles...",
+        success: "User roles updated successfully!",
+        error: "Failed to update user roles. Please try again.",
+      });
 
-      if (response?.data && Array.isArray(response.data)) {
-        setUsers(response.data);
-      } else {
-        toast.error("No users found for the given filters.");
-        setUsers([]);
-      }
+      // Force a refetch with current search payload
+      await triggerMasterSearch();
+
+      // Reset selections and form
+      setSelectedIds([]);
+      resetRoleForm();
     } catch (error: any) {
       if (error?.status === "FETCH_ERROR") {
         toast.error("Network error — please check your connection.");
