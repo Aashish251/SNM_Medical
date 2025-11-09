@@ -11,11 +11,18 @@ const swaggerDocument = require('./swagger-output.json');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Basic middleware setup
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Swagger UI setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 // ✅ __dirname works automatically in CommonJS (no need for fileURLToPath)
 const __dirnameResolved = __dirname;
 
+app.use('/api/user', require('./routes/user'));
 // ✅ Serve static files from /uploads folder
 app.use("/uploads", express.static(path.join(__dirnameResolved, "../uploads")));
 

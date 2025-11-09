@@ -19,16 +19,16 @@ export const MasterSearchApi = createApi({
     // ✅ POST /approve/:regId
     getChangeStatus: builder.mutation({
       query: ({ regId }) => ({
-        url: `/approve/${regId}`,
+        url: `/search/approve/${regId}`,
         method: "POST",
       }),
       invalidatesTags: ["MasterSearch"],
     }),
 
-    // 🧩 NEW endpoint — POST /search/update
+    // 🧩 Update user role endpoint
     getChangeUsersRole: builder.mutation({
       query: (body) => ({
-        url: "/search/update",
+        url: "/user/update-role",
         method: "PUT",
         body,
       }),

@@ -100,59 +100,59 @@ exports.getUserProfile = async (userId) => {
 /**
  * Fetch all users (for admin dashboard) with filters and pagination.
  */
-exports.getAllUsers = async (filters) => {
-  const { search = '', department = '', userType = '', page = 1, limit = 50 } = filters;
-  const offset = (page - 1) * limit;
+// exports.getAllUsers = async (filters) => {
+//   const { search = '', department = '', userType = '', page = 1, limit = 50 } = filters;
+//   const offset = (page - 1) * limit;
 
-  const [[usersResult], [countResult]] = await Promise.all([
-    promisePool.execute('CALL sp_get_users_filtered(?, ?, ?, ?, ?)', [
-      search || null,
-      department || null,
-      userType || null,
-      limit,
-      offset,
-    ]),
-    promisePool.execute('CALL sp_get_users_count_filtered(?, ?, ?)', [
-      search || null,
-      department || null,
-      userType || null,
-    ]),
-  ]);
+//   const [[usersResult], [countResult]] = await Promise.all([
+//     promisePool.execute('CALL sp_get_users_filtered(?, ?, ?, ?, ?)', [
+//       search || null,
+//       department || null,
+//       userType || null,
+//       limit,
+//       offset,
+//     ]),
+//     promisePool.execute('CALL sp_get_users_count_filtered(?, ?, ?)', [
+//       search || null,
+//       department || null,
+//       userType || null,
+//     ]),
+//   ]);
 
-  const users = usersResult[0] || [];
-  const totalUsers = countResult[0]?.[0]?.total || 0;
-  const totalPages = Math.ceil(totalUsers / limit);
+//   const users = usersResult[0] || [];
+//   const totalUsers = countResult[0]?.[0]?.total || 0;
+//   const totalPages = Math.ceil(totalUsers / limit);
 
-  return {
-    users: users.map((u) => ({
-      id: u.reg_id,
-      name: u.full_name,
-      title: u.title,
-      email: u.email,
-      role: u.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
-      department: u.department_name || 'Not assigned',
-      qualification: u.qualification_name || 'Not specified',
-      mobile: u.mobile_no,
-      location:
-        u.city_name && u.state_name
-          ? `${u.city_name}, ${u.state_name}`
-          : 'Not specified',
-      joinedDate: u.created_datetime,
-      isPresent: u.is_present === 1,
-      hasPass: u.pass_entry === 1,
-      experience: u.total_exp || 0,
-      profileImage: u.profile_img_path || null,
-    })),
-    pagination: {
-      currentPage: page,
-      totalPages,
-      totalUsers,
-      limit,
-      hasNext: page < totalPages,
-      hasPrevious: page > 1,
-    },
-  };
-};
+//   return {
+//     users: users.map((u) => ({
+//       id: u.reg_id,
+//       name: u.full_name,
+//       title: u.title,
+//       email: u.email,
+//       role: u.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
+//       department: u.department_name || 'Not assigned',
+//       qualification: u.qualification_name || 'Not specified',
+//       mobile: u.mobile_no,
+//       location:
+//         u.city_name && u.state_name
+//           ? `${u.city_name}, ${u.state_name}`
+//           : 'Not specified',
+//       joinedDate: u.created_datetime,
+//       isPresent: u.is_present === 1,
+//       hasPass: u.pass_entry === 1,
+//       experience: u.total_exp || 0,
+//       profileImage: u.profile_img_path || null,
+//     })),
+//     pagination: {
+//       currentPage: page,
+//       totalPages,
+//       totalUsers,
+//       limit,
+//       hasNext: page < totalPages,
+//       hasPrevious: page > 1,
+//     },
+//   };
+// };
 
 /**
  * Update user profile.

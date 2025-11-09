@@ -39,19 +39,19 @@ exports.masterSearch = async ({
   stateId = null,
   isPresent = null,
   passEntry = null,
-  limit = 10,
   page = 1,
+  limit = 10,
   sortBy = 'fullName',
   sortOrder = 'ASC'
 }) => {
-  const offset = (page - 1) * limit;
   let connection;
 
   try {
     connection = await promisePool.getConnection();
 
-    const [resultSets] = await connection.execute(
-      `CALL sp_master_search(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    // ✅ Call SP with 10 parameters (as per your definition)
+    const [resultSets] = await connection.query(
+      'CALL sp_master_search(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         searchKey,
         departmentId,
@@ -61,26 +61,49 @@ exports.masterSearch = async ({
         stateId,
         isPresent,
         passEntry,
-        page,   // ✅ new
-        limit   // ✅ new
+        page,
+        limit
       ]
     );
 
+    /**
+     * ✅ MySQL returns 2 result sets from your SP:
+     *  - resultSets[0] → actual paginated data
+     *  - resultSets[1] → total count (from SELECT FOUND_ROWS())
+     */
+    const results = resultSets[0] || [];
+    const totalRecords = resultSets[1]?.[0]?.TOTAL_RECORDS || 0;
 
-    let results = resultSets[0] || resultSets;
+    // ✅ Convert column names to camelCase
+    const formattedResults = results.map((row) => {
+      const formatted = {};
+      Object.keys(row).forEach((key) => {
+        const camelKey = key
+          .toLowerCase()
+          .replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        formatted[camelKey] = row[key];
+      });
 
-    // Convert to camelCase for frontend
-    results = results.map(toCamelCase);
+      // Normalize "YES"/"NO" fields to 1/0 for UI binding
+      formatted.isPresent = formatted.isPresent === 'YES' ? 1 : 0;
+      formatted.passEntry = formatted.passEntry === 'YES' ? 1 : 0;
 
-    results = results.map((row) => ({
-      ...row,
-      sewaLocationId: row.sewaLocationId || null,
-      isPresent: row.isPresent === 'YES' ? 1 : 0,
-      passEntry: row.passEntry === 'YES' ? 1 : 0
-    }));
+      return formatted;
+    });
 
-    // ✅ Safe sorting
-    results.sort((a, b) => {
+    // ✅ Build pagination object
+    const totalPages = Math.ceil(totalRecords / limit);
+    const currentCount = formattedResults.length;
+
+    const pagination = {
+      current: page,
+      total: totalPages,
+      count: currentCount,
+      totalRecords
+    };
+
+    // ✅ Optional: apply frontend sorting (if MySQL doesn’t do it)
+    formattedResults.sort((a, b) => {
       const fieldA = (a?.[sortBy] ?? '').toString().toLowerCase();
       const fieldB = (b?.[sortBy] ?? '').toString().toLowerCase();
       if (!fieldA && !fieldB) return 0;
@@ -91,13 +114,10 @@ exports.masterSearch = async ({
         : fieldB.localeCompare(fieldA);
     });
 
-    // ✅ Pagination
-    const totalRecords = results.length;
-    const totalPages = Math.ceil(totalRecords / limit);
-    const paginated = results.slice(offset, offset + limit);
-    const currentCount = paginated.length;
-    
-    return { data: paginated, total: results.length };
+    return {
+      data: formattedResults,
+      pagination
+    };
   } catch (error) {
     console.error('Master Search Service Error:', error);
     throw error;
@@ -125,14 +145,33 @@ exports.exportToExcel = async (data) => {
   return buffer;
 };
 
-// ✅ Approve user
 exports.approveUser = async (regId) => {
-  const [result] = await promisePool.execute(
-    `UPDATE registration_tbl SET is_approved = 1 WHERE reg_id = ?`,
-    [regId]
-  );
-  return result.affectedRows > 0;
+  try {
+    // ✅ Call your stored procedure
+    const [resultSets] = await promisePool.execute(
+      `CALL sp_update_IsApproved(?, ?)`,
+      [regId, 1] // 1 means approved (true)
+    );
+
+    const affected =
+      resultSets?.affectedRows ||
+      resultSets?.[0]?.affected_rows ||
+      0;
+
+    return {
+      success: affected > 0,
+      message:
+        affected > 0
+          ? `User with ID ${regId} approved successfully`
+          : `No record updated. Please check regId: ${regId}`,
+      affectedRows: affected
+    };
+  } catch (error) {
+    console.error('❌ approveUser Service Error:', error);
+    throw error;
+  }
 };
+
 
 // ✅ Update selected users' values
 exports.updateSelectedUsers = async (userUpdates) => {

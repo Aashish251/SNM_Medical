@@ -155,7 +155,7 @@ exports.validateForgotPassword = async ({
  * Step 2: Reset password using reg_id and status (PASS)
  */
 
-exports.resetPassword = async ({ newPassword, confirmPassword, status }) => {
+exports.resetPassword = async ({ regId, newPassword, confirmPassword, status }) => {
   
   if (newPassword !== confirmPassword) {
     throw new Error('Passwords do not match.');

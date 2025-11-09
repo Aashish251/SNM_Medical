@@ -19,14 +19,14 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-exports.getAllUsers = async (req, res) => {
-  try {
-    const result = await dashboardService.getAllUsers(req.query);
-    sendResponse(res, 200, true, 'Users fetched successfully', result);
-  } catch (error) {
-    sendResponse(res, 500, false, error.message);
-  }
-};
+// exports.getAllUsers = async (req, res) => {
+//   try {
+//     const result = await dashboardService.getAllUsers(req.query);
+//     sendResponse(res, 200, true, 'Users fetched successfully', result);
+//   } catch (error) {
+//     sendResponse(res, 500, false, error.message);
+//   }
+// };
 
 exports.updateProfile = async (req, res) => {
   try {
