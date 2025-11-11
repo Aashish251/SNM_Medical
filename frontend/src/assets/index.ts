@@ -6,7 +6,7 @@ export const SNM_LOGO_WEBP = "/img/Logo-1.webp";
 // ✅ Hero / Banner images
 export const HOME_HERO_BANNER_IMAGE1 = "/img/SD02.jpg";
 export const HOME_HERO_BANNER_IMAGE2 = "/img/matasudikshaji.png";
-export const HOME_HERO_BANNER_IMAGE3 = "/img/satgurumataji1.png";
+export const HOME_HERO_BANNER_IMAGE3 = "/img/satgurumataji1.jpeg";
 export const HOME_HERO_BANNER_IMAGE4 = "/img/SD03.jpg";
 
 // ✅ About section images
@@ -38,3 +38,8 @@ export const DEPT_HEALTHCHECKUP_ALT = "/img/Healthcheckup1.png";
 export const IMAGE_BLOOD_DONATION = "/img/blood_donation.jpg";
 export const IMAGE_SNMD = "/img/snmd.jpg";
 export const IMAGE_SNM1 = "/img/snm1.png";
+
+// dashborad caresual banner image
+export const DASHBOARD_BANNER1 = "/img/dashboard-banner-1.jpeg";
+export const DASHBOARD_BANNER2 = "/img/dashboard-banner-2.jpeg";
+export const DASHBOARD_BANNER3 = "/img/dashboard-banner-3.jpeg";

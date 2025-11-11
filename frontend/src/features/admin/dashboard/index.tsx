@@ -74,7 +74,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <DashboardLayout>
-      {/* <ProfileSection {...user} /> */}
+      <ProfileSection {...user} />
       <StatsGrid stats={stats} />
       <ChartsSection
         barData={chartData.barData}

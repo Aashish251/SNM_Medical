@@ -27,6 +27,7 @@ const PrevArrow = ({ onClick }: { onClick?: () => void }) => (
 
 export function Carousel({
     slides,
+    dots=true,
     autoPlay = true,
     interval = 5000,
     className,

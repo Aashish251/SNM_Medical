@@ -1,4 +1,9 @@
 import {
+  DASHBOARD_BANNER1,
+  DASHBOARD_BANNER2,
+  DASHBOARD_BANNER3,
+} from "@assets/index";
+import {
   SNM_ADMIN_USERTYPE,
   SNM_MS_USERTYPE,
   SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
@@ -25,3 +30,9 @@ export const handleNavigate = (
     return href;
   }
 };
+
+export const imagesDashBoard = [
+  DASHBOARD_BANNER1,
+  DASHBOARD_BANNER2,
+  DASHBOARD_BANNER3,
+];
