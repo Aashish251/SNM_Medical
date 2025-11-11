@@ -73,15 +73,19 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <DashboardLayout>
-      {/* <ProfileSection {...user} /> */}
-      <StatsGrid stats={stats} />
-      <ChartsSection
-        barData={chartData.barData}
-        doughnutData={chartData.doughnutData}
-        selectedMonth="OCT 2025"
-      />
-    </DashboardLayout>
+    <>
+      <div className="pt-18 md:pt-18 lg:pt-18">
+        <ProfileSection {...user} />
+      </div>
+
+      <DashboardLayout>
+        <StatsGrid stats={stats} />
+        <ChartsSection
+          barData={chartData.barData}
+          doughnutData={chartData.doughnutData}
+        />
+      </DashboardLayout>
+    </>
   );
 };
 
