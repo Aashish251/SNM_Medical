@@ -26,6 +26,7 @@ interface SelectFieldProps<T extends FieldValues> {
   required?: boolean;
   readOnly?: boolean;
   className?: string;
+  defaultValue?: number | string | null;
 }
 
 export const SelectField = <T extends FieldValues>({
@@ -38,6 +39,7 @@ export const SelectField = <T extends FieldValues>({
   placeholder = "Select",
   required = false,
   readOnly = false,
+  defaultValue = null,
   className = "",
 }: SelectFieldProps<T>) => {
   const id = `select-${String(name).replace(/\./g, "-")}`;
@@ -57,7 +59,7 @@ export const SelectField = <T extends FieldValues>({
           const hasValue = Boolean(currentValue);
 
           const resetSelection = () => {
-            field.onChange("");
+            field.onChange(defaultValue);
           };
 
           return (

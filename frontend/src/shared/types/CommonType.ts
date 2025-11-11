@@ -45,3 +45,32 @@ export interface RegistrationDropdownResponse {
     sewaLocations:SewaLocationOption[];
   };
 }
+
+// src/shared/types/user.ts
+export interface User {
+  id: number;
+  regId: string;
+  fullName: string;
+  title: string;
+  mobileNo: string;
+  qualificationName?: string;
+  sewalocationName?: string;
+  shifttime?: string;
+  departmentName?: string;
+  email?: string;
+  dob?: string;
+  passEntry?: number | string;
+  isPresent?: number | string;
+  userType?: string;
+  isDeleted: number | string;      // keep consistent shape
+  isApproved?: number;
+  stateName?: string;
+  cityName?: string;
+  certificateDocPath?: string;
+}
+
+export interface SearchResponse {
+  status: boolean;
+  message: string;
+  data: User[];
+}

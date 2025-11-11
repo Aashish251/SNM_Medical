@@ -1,32 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { customBaseQuery } from "@lib/customBaseQuery";
-
-interface User {
-  id: number;
-  regId: string;
-  fullName: string;
-  title: string;
-  mobileNo: string;
-  qualificationName: string;
-  sewalocationName: string;
-  shifttime: string;
-  departmentName: string;
-  email: string;
-  dob: string;
-  passEntry: string;
-  isPresent: string;
-  userType: string;
-  isApproved: number;
-  stateName: string;
-  cityName: string;
-  certificateDocPath: string;
-}
-
-interface SearchResponse {
-  status: boolean;
-  message: string;
-  data: User[];
-}
+import { SearchResponse } from "@shared/types/CommonType";
 
 export const MasterSearchApi = createApi({
   reducerPath: "MasterSearchApi",

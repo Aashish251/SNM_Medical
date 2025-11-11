@@ -2,38 +2,31 @@
 import { Button } from "@shared/components/ui/button";
 import { Link } from "react-router-dom";
 import type { TableConfig } from "@shared/components/DataTable/DataTable";
-
-export interface User {
-  id: number;
-  regId: string;
-  title: string;
-  fullName: string;
-  mobileNo: string;
-  qualificationName: string;
-  sewalocationName: string;
-  shifttime: string;
-  departmentName: string;
-  email: string;
-  dob: string;
-  passEntry: string | number;
-  isPresent: string | number;
-  userType: string;
-  cityName: string;
-  stateName: string;
-  isApproved: number;
-  certificateDocPath: string;
-}
+import { User } from "@shared/types/CommonType";
 
 export const userTableConfig: TableConfig<User> = {
   showCheckbox: true,
   showActions: true,
   actions: {
-    render: (user, helpers) =>
-      !user.isApproved && (
-        <Button onClick={() => helpers?.changeUserStatue?.(user.regId)} className="text-white bg-blue-500 hover:bg-blue-500" >
-          Approve
-        </Button>
-      ),
+    render: (user, helpers) => (
+      <>
+        {user.isDeleted ? (
+          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-gray-600">
+            Inactive
+          </span>
+        ) : (
+          /* 🔵 If user is NOT approved → show Approve button */
+          !user.isApproved && (
+            <Button
+              onClick={() => helpers?.changeUserStatue?.(user.regId)}
+              className="text-white bg-blue-500 hover:bg-blue-600"
+            >
+              Approve
+            </Button>
+          )
+        )}
+      </>
+    ),
   },
   columns: [
     {
@@ -91,11 +84,19 @@ export const userTableConfig: TableConfig<User> = {
     key: "approved",
     render: (user: User) => (
       <span
-        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          user.isApproved ? "text-green-700" : "text-red-700"
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium  ${
+          user.isDeleted == 1 || user.isDeleted == "1"
+            ? "text-red-700"
+            : user.isApproved
+            ? "text-green-700"
+            : "text-red-700"
         }`}
       >
-        {user.isApproved ? "Approved" : "Pending"}
+        {user.isDeleted == 1 || user.isDeleted == "1"
+          ? "Deleted"
+          : user.isApproved
+          ? "Approved"
+          : "Pending"}
       </span>
     ),
   },
@@ -118,6 +119,14 @@ export const DUMMY = {
     { id: 2, label: "No", value: 0 },
   ],
   IsPresent: [
+    { id: 1, label: "Yes", value: 1 },
+    { id: 2, label: "No", value: 0 },
+  ],
+  isAdmin: [
+    { id: 1, label: "Yes", value: 1 },
+    { id: 2, label: "No", value: 0 },
+  ],
+  isDelete: [
     { id: 1, label: "Yes", value: 1 },
     { id: 2, label: "No", value: 0 },
   ],

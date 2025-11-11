@@ -26,33 +26,7 @@ import {
   useMasterSearchQuery,
 } from "./services/masterSearchApi";
 import { toast } from "@shared/lib/toast";
-
-interface User {
-  id: number;
-  regId: string;
-  fullName: string;
-  title: string;
-  mobileNo: string;
-  qualificationName: string;
-  sewalocationName: string;
-  shifttime: string;
-  departmentName: string;
-  email: string;
-  dob: string;
-  passEntry: string;
-  isPresent: string;
-  userType: string;
-  isApproved: number;
-  stateName: string;
-  cityName: string;
-  certificateDocPath: string;
-}
-
-interface SearchResponse {
-  status: boolean;
-  message: string;
-  data: User[];
-}
+import { User } from "@shared/types/CommonType";
 
 export default function MasterSearchPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -128,18 +102,25 @@ export default function MasterSearchPage() {
     control: roleControl,
     handleSubmit: handleRoleSubmit,
     reset: resetRoleForm,
+    watch: roleWatch,
     register: registerRole,
+    formState: { errors: roleErrors },
   } = useForm({
+    mode: "onBlur",
     defaultValues: {
-      isPresent: 0,
-      passEntry: 0,
-      isAdmin: 0,
-      isDelete: 0,
+      isPresent: null,
+      passEntry: null,
+      isAdmin: null,
+      isDeleted: null,
       sewaLocation: "",
       samagamHeldIn: "",
       remark: "",
     },
   });
+
+  const idDeleted = roleWatch("isDeleted");
+  const isDeleteSelected =
+    String(idDeleted) === "1" || idDeleted === 1 || idDeleted === true;
 
   const states = Array.isArray(dropdownOption?.data?.states)
     ? dropdownOption?.data?.states
@@ -250,10 +231,35 @@ export default function MasterSearchPage() {
         toast.error("Please select at least one user to update roles.");
         return;
       }
+      const numericFields = ["isPresent", "passEntry", "isAdmin", "isDeleted"];
+
+      const normalized = { ...data };
+
+      numericFields.forEach((key) => {
+        const val = normalized[key];
+
+        // treat empty string or undefined as null
+        if (val === "" || val === undefined || val === null) {
+          normalized[key] = null;
+          return;
+        }
+
+        // if already a number, keep it
+        if (typeof val === "number" && !isNaN(val)) {
+          return;
+        }
+
+        // try to coerce numeric strings to numbers
+        const num = Number(val);
+        normalized[key] = Number.isNaN(num) ? val : num;
+      });
+
+      // ---- Build payload ----
       const payload = {
-        ...data,
+        ...normalized,
         regId: selectedIds.join(","),
       };
+      // console.log(payload);
 
       await toast.promise(triggerChangeUsersRole(payload).unwrap(), {
         loading: "Updating users' roles...",
@@ -422,29 +428,48 @@ export default function MasterSearchPage() {
               onSubmit={handleRoleSubmit(onRoleSubmit)}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center"
             >
-              <CheckboxField
-                key="isPresent"
+              <SelectField
                 control={roleControl}
                 name="isPresent"
-                label="Is Present"
+                label=""
+                options={DUMMY.IsPresent}
+                labelKey="label"
+                valueKey="value"
+                defaultValue={null}
+                placeholder="Select isPresent"
               />
-              <CheckboxField
-                key="passEntry"
+
+              <SelectField
                 control={roleControl}
                 name="passEntry"
-                label="Pass Entry"
+                label=""
+                options={DUMMY.PassEntry}
+                labelKey="label"
+                valueKey="value"
+                defaultValue={null}
+                placeholder="Select pass entry"
               />
-              <CheckboxField
-                key="isAdmin"
+
+              <SelectField
                 control={roleControl}
                 name="isAdmin"
-                label="Is Admin"
+                label=""
+                options={DUMMY.isAdmin}
+                labelKey="label"
+                valueKey="value"
+                defaultValue={null}
+                placeholder="Select isAdmin"
               />
-              <CheckboxField
-                key="isDelete"
+
+              <SelectField
                 control={roleControl}
-                name="isDelete"
-                label="Is Delete"
+                name="isDeleted"
+                label=""
+                options={DUMMY.isDelete}
+                labelKey="label"
+                valueKey="value"
+                defaultValue={null}
+                placeholder="Select isDelete"
               />
 
               <SearchableSelect
@@ -466,9 +491,19 @@ export default function MasterSearchPage() {
               <TextareaField
                 label=""
                 placeholder="Enter remark message"
-                register={registerRole("remark")}
+                register={registerRole("remark", {
+                  validate: (value) => {
+                    if (isDeleteSelected) {
+                      if (!value || String(value).trim().length === 0) {
+                        return "Please enter the remark.";
+                      }
+                    }
+                    return true;
+                  },
+                })}
                 rows={1}
-                className="border rounded w-full resize-none lg:col-span-2"
+                className="w-full resize-none lg:col-span-2"
+                error={roleErrors.remark}
               />
 
               <button
