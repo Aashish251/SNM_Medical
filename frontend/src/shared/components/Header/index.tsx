@@ -67,7 +67,7 @@ const MobileDrawer = ({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ duration: 0.3 }}
-            className="fixed right-0 top-0 h-full w-72 z-50 bg-gradient-to-b from-purple-800 to-pink-700 text-white p-4 shadow-lg"
+            className="fixed right-0 top-0 h-full w-72 z-50 bg-to-bottom-theme-gradient text-white p-4 shadow-lg"
           >
             <div className="font-bold text-lg mb-4 flex justify-between w-full">
               <span className="text-white font-semibold transition capitalize">
@@ -128,7 +128,7 @@ const MobileDrawer = ({
             <div className="mt-4">
               {isAuthenticated ? (
                 <Button
-                  className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
+                  className="block w-full text-center bg-white text-primary py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
                   onClick={() => {
                     onClose();
                     handleLogout();
@@ -139,7 +139,7 @@ const MobileDrawer = ({
               ) : (
                 <Link
                   to={SNM_NAV_LOGIN_LINK}
-                  className="block w-full text-center bg-white text-purple-700 py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
+                  className="block w-full text-center bg-white text-primary py-2 rounded-full font-bold shadow hover:bg-purple-100 transition"
                   onClick={onClose}
                 >
                   {SNM_NAV_LOGIN_LABEL}
@@ -218,8 +218,8 @@ const Header = () => {
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-400 shadow-lg py-4"
-            : "bg-gradient-to-r from-purple-700/90 via-pink-500/90 to-yellow-400/90 py-4"
+            ? "bg-to-right-theme-gradient shadow-lg py-4"
+            : "bg-to-right-theme-gradient py-4"
         }`}
       >
         <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -339,7 +339,7 @@ const Header = () => {
             {!isAuthenticated && (
               <Link
                 to={SNM_NAV_LOGIN_LINK}
-                className="bg-white text-purple-700 font-bold px-4 py-2 rounded-full shadow hover:bg-purple-100 transition"
+                className="bg-white text-primary font-bold px-4 py-2 rounded-full shadow hover:bg-purple-100 transition"
               >
                 {SNM_NAV_LOGIN_LABEL}
               </Link>

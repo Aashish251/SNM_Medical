@@ -151,22 +151,6 @@ export function DataTable<T extends Record<string, any>>({
 
   return (
     <div className="w-full rounded-xl border bg-white shadow-sm ring-1 ring-gray-100">
-      {/* Table header bar (optional controls can be put here later) */}
-      {/* <div className="flex items-center justify-between px-4 py-3 border-b bg-white/60">
-        <div className="text-sm text-gray-700 font-medium">
-          Rows: {data.length}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-gray-600">
-            Selected:{" "}
-            <span className="font-semibold text-gray-800">
-              {selectedIds.length}
-            </span>
-          </div>
-        </div>
-      </div> */}
-
       <div className="overflow-x-auto">
         <Table className="min-w-full text-sm  ">
           {/* Sticky header for better UX on long lists */}
@@ -174,7 +158,7 @@ export function DataTable<T extends Record<string, any>>({
             <TableRow className="sticky top-0 z-10 bg-gradient-to-b from-white to-white/95 shadow-sm">
               {/* Checkbox header */}
               {config.showCheckbox && (
-                <TableHead className="px-4 py-3 text-center w-[56px]">
+                <TableHead className="px-4 py-3 text-center w-[56px] whitespace-nowrap">
                   <label className="inline-flex items-center cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -192,8 +176,8 @@ export function DataTable<T extends Record<string, any>>({
 
               {/* Actions header */}
               {config.showActions && (
-                <TableHead className="px-4 py-3 text-center w-[140px]">
-                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                <TableHead className="px-4 py-3 text-center w-[140px] whitespace-nowrap">
+                  <span className="text-xs font-bold  text-gray-600  tracking-wide">
                     Actions
                   </span>
                 </TableHead>
@@ -215,8 +199,8 @@ export function DataTable<T extends Record<string, any>>({
                       : "none"
                   }
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-700">
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="text-xs font-bold text-gray-700 whitespace-nowrap">
                       {col.header}
                     </span>
                     {col.sortable && renderSortIndicator(col.header)}
@@ -226,8 +210,8 @@ export function DataTable<T extends Record<string, any>>({
 
               {/* Status header */}
               {config.statusColumn && (
-                <TableHead className="px-4 py-3 text-center">
-                  <span className="text-xs font-medium text-gray-700">
+                <TableHead className="px-4 py-3 text-center whitespace-nowrap">
+                  <span className="text-xs font-bold text-gray-700 whitespace-nowrap">
                     Status
                   </span>
                 </TableHead>
@@ -238,12 +222,12 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={String(col.key)}
                   onClick={() => handleHeaderClick(col.header, col.sortable)}
-                  className={`px-4 py-3 text-left align-middle ${
+                  className={`px-8 py-3 text-left align-middle ${
                     col.sortable ? "cursor-pointer select-none" : ""
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-700">
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="text-xs font-bold text-gray-700 whitespace-nowrap">
                       {col.header}
                     </span>
                     {col.sortable && renderSortIndicator(col.header)}
@@ -313,9 +297,9 @@ export function DataTable<T extends Record<string, any>>({
                     {preStatusColumns.map((col) => (
                       <TableCell
                         key={String(col.key)}
-                        className="px-4 py-3 align-middle text-gray-700"
+                        className="px-4 py-3 align-middle text-gray-700 whitespace-nowrap"
                       >
-                        <div className="text-sm">
+                        <div className="text-sm whitespace-nowrap">
                           {col.render ? col.render(row) : (row[col.key] as any)}
                         </div>
                       </TableCell>
@@ -332,7 +316,7 @@ export function DataTable<T extends Record<string, any>>({
                     {postStatusColumns.map((col) => (
                       <TableCell
                         key={`post-${String(col.key)}`}
-                        className="px-4 py-3 align-middle text-gray-700"
+                        className="px-4 py-3 align-middle text-gray-700 whitespace-nowrap"
                       >
                         <div className="text-sm">
                           {col.render ? col.render(row) : (row[col.key] as any)}

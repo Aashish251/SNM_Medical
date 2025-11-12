@@ -56,7 +56,7 @@ const ResetPasswordForm: React.FC<Props> = ({ onReset, userRegIdObj }) => {
       {...ANIM.pop}
       className="flex flex-col items-center px-6 py-10 bg-white rounded-3xl shadow-lg mx-auto w-full max-w-md"
     >
-      <h1 className="text-3xl font-extrabold mb-8 text-center bg-gradient-to-r from-blue-500 to-teal-700 bg-clip-text text-transparent">
+      <h1 className="text-3xl font-extrabold mb-8 text-center bg-to-two-right-theme-gradient bg-clip-text text-transparent">
         Reset Your Password
       </h1>
 

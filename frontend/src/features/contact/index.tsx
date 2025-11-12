@@ -64,10 +64,10 @@ export default function Contact() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
         <div className="p-6 sm:p-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-purple-700 mb-2">
+            <h2 className="text-3xl font-bold text-primary mb-2">
               {SNM_CONTACT_PAGE_HEADING}
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mb-6"></div>
+            <div className="w-24 h-1 bg-to-two-right-theme-gradient mx-auto mb-6"></div>
             <p className="text-gray-600 max-w-2xl mx-auto">
               {SNM_CONTACT_PAGE_SUBHEADING}
             </p>
@@ -247,7 +247,7 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-600 transition-all shadow-md"
+                  className="w-full bg-to-two-right-theme-gradient text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-600 transition-all shadow-md"
                 >
                   Send Message
                 </button>

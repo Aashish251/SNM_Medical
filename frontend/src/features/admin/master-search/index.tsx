@@ -292,7 +292,7 @@ export default function MasterSearchPage() {
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="w-full bg-blue-600 text-white p-3 flex justify-between items-center cursor-pointer select-none"
+              className="w-full bg-to-two-right-theme-gradient text-white p-3 flex justify-between items-center cursor-pointer select-none"
             >
               <h2 className="font-bold">Filter User</h2>
               {showFilter ? (
@@ -391,14 +391,14 @@ export default function MasterSearchPage() {
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full col-span-1"
+                className="px-4 py-2 bg-primary text-white rounded-2xl font-bold hover:bg-blue-700 w-full col-span-1"
               >
                 Search
               </button>
               <button
                 type="button"
                 onClick={onExport}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 w-full col-span-1"
+                className="px-4 py-2 bg-gray-600 text-white rounded-2xl font-bold hover:bg-gray-700 w-full col-span-1"
               >
                 Export
               </button>
@@ -413,7 +413,7 @@ export default function MasterSearchPage() {
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="w-full bg-blue-600 text-white p-3 flex justify-between items-center cursor-pointer select-none"
+              className="w-full bg-to-two-right-theme-gradient text-white p-3 flex justify-between items-center cursor-pointer select-none"
             >
               <h2 className="font-bold">Add User Role</h2>
               {showUserRole ? (
@@ -509,13 +509,13 @@ export default function MasterSearchPage() {
               <button
                 type="button"
                 onClick={() => resetRoleForm()}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 w-full col-span-1"
+                className="px-4 py-2 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 w-full col-span-1"
               >
                 Reset
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 w-full col-span-1"
+                className="px-4 py-2 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 w-full col-span-1"
               >
                 Submit
               </button>

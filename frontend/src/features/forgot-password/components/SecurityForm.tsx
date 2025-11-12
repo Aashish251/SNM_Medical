@@ -62,7 +62,7 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
 
   return (
     <FormCard motionProps={ANIM.fadeUp}>
-      <h1 className="text-3xl font-extrabold text-center bg-gradient-to-r from-blue-500 to-teal-700 bg-clip-text text-transparent mb-6">
+      <h1 className="text-3xl font-extrabold text-center bg-to-two-right-theme-gradient bg-clip-text text-transparent mb-6">
         {SNM_NAV_FORGOT_PASSWORD_LABEL}
       </h1>
 

@@ -13,7 +13,7 @@ export const Stepper: React.FC<StepperProps> = ({
       {/* The base line behind the steps */}
       <div className=" mx-auto w-full absolute top-6 inset-x-0 h-1 bg-gray-200 rounded-full lg:max-w-5xl md:max-w-4xl sm:max-w-3xl max-w-xs">
         <div
-          className="h-1 bg-gradient-to-r from-blue-600 via-green-500 to-teal-500 rounded-full transition-all duration-500"
+          className="h-1 bg-to-two-right-theme-gradient rounded-full transition-all duration-500"
           style={{
             width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`,
           }}
@@ -35,7 +35,7 @@ export const Stepper: React.FC<StepperProps> = ({
               }
               className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-full font-semibold transition-colors duration-300 ${
                 isActiveOrCompleted
-                  ? "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md hover:shadow-lg"
+                  ? "bg-to-two-right-theme-gradient text-white shadow-md hover:shadow-lg"
                   : "bg-gray-200 text-gray-600"
               }`}
               aria-current={isActiveOrCompleted ? "step" : undefined}
@@ -43,7 +43,7 @@ export const Stepper: React.FC<StepperProps> = ({
             >
               {step.id}
             </button>
-            <span className="mt-3 text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-500 to-teal-700 bg-clip-text text-transparent text-center whitespace-nowrap">
+            <span className="mt-3 text-xs sm:text-sm font-medium bg-to-two-right-theme-gradient bg-clip-text text-transparent text-center whitespace-nowrap">
               {step.title}
             </span>
           </div>

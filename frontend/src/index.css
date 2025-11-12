@@ -45,6 +45,34 @@ html {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* 🎨 Brand Theme Colors (custom) */
+  --color-brand-primary: #186dc9;
+
+  --color-brand-primary-light: #8B5CF6;
+  --color-brand-primary-dark: #581C87;
+  --color-brand-primary-scrolled: #4C1D95;
+
+  --color-brand-secondary: #E46E55;
+
+  --color-brand-secondary-light: #F472B6;
+  --color-brand-secondary-dark: #BE185D;
+  --color-brand-secondary-scrolled: #DB2777;
+
+  --color-brand-accent: #FACC15;
+
+  --color-brand-accent-light: #FEF08A;
+  --color-brand-accent-dark: #CA8A04;
+  --color-brand-accent-scrolled: #EAB308;
+  --color-brand-neutral-light: #F3F4F6;
+  --color-brand-neutral: #9CA3AF;
+  --color-brand-neutral-dark: #111827;
+  --color-brand-neutral-scrolled: #4B5563;
+  
+  /* 🌈 Gradient Background Images */
+  --to-right-gradient-theme: linear-gradient(to right, var(--color-brand-primary), var(--color-brand-secondary));
+  --to-right-two-gradient-theme: linear-gradient(to right, var(--color-brand-primary), var(--color-brand-secondary));
+  --to-bottom-gradient-theme: linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-secondary));
 }
 
 :root {
@@ -122,5 +150,35 @@ html {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .bg-to-right-theme-gradient {
+    background-image: var(--to-right-gradient-theme);
+  }
+
+  .bg-to-two-right-theme-gradient {
+    background-image: var(--to-right-two-gradient-theme);
+  }
+
+  .bg-to-bottom-theme-gradient {
+    background-image: var(--to-bottom-gradient-theme);
+  }
+
+  .text-primary {
+    color: var(--color-brand-primary);
+  }
+
+  .bg-primary {
+    background-color: var(--color-brand-primary);
+  }
+
+  .text-primary-light {
+    color: var(--color-brand-primary-light);
+  }
+
+  .text-primary-dark {
+    color: var(--color-brand-primary-dark);
   }
 }

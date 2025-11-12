@@ -104,7 +104,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <button
         type="submit"
         disabled={loading}
-        className={`w-full py-2 rounded-full bg-gradient-to-r from-purple-700 via-pink-500 to-yellow-200 shadow-md text-white font-bold text-base transition-transform duration-300 ${
+        className={`w-full py-2 rounded-full bg-to-two-right-theme-gradient to-yellow-200 shadow-md text-white font-bold text-base transition-transform duration-300 ${
           loading
             ? "opacity-70 cursor-not-allowed"
             : "hover:scale-105 hover:from-purple-600 hover:to-indigo-600"

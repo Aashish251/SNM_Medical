@@ -122,14 +122,16 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mt-8 sm:mt-10 w-full">
         <Button
+        size="lg"
           onClick={prevStep}
-          className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white"
+          className="w-full sm:w-auto px-6 py-2 bg-primary rounded-2xl font-bold text-white"
         >
           Previous
         </Button>
         <Button
           type="submit"
-          className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white"
+          size="lg"
+          className="w-full sm:w-auto px-6 py-2 bg-green-600 rounded-2xl font-bold text-white"
         >
           Submit
         </Button>

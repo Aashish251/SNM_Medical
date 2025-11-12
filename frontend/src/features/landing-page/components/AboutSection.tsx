@@ -29,7 +29,7 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
           {HOME_ABOUT_PAGE_TITLE}
         </h2>
-        <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-pink-500 mx-auto mb-6" />
+        <div className="w-24 h-1 bg-to-two-right-theme-gradient mx-auto mb-6" />
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           {HOME_ABOUT_PAGE_CONTENT}
         </p>
@@ -62,7 +62,7 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
           <motion.div whileHover={{ scale: 1.05 }}>
             <Link
               to="/about"
-              className="inline-block bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-lg font-medium shadow-md hover:from-purple-700 hover:to-pink-600 transition-all"
+              className="inline-block bg-to-two-right-theme-gradient text-white px-6 py-3 rounded-lg font-medium shadow-md hover:from-purple-700 hover:to-pink-600 transition-all"
             >
               Learn More
             </Link>

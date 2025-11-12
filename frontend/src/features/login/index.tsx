@@ -38,7 +38,7 @@ const Login = () => {
                 />
               </div>
 
-              <h1 className="text-lg sm:text-3xl md:text-2xl font-extrabold text-center bg-gradient-to-r from-blue-500 to-teal-700 bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-3xl md:text-2xl font-extrabold text-center bg-to-two-right-theme-gradient bg-clip-text text-transparent">
                 {SNM_LOGIN_PAGE_TITLE}
               </h1>
 
@@ -59,7 +59,7 @@ const Login = () => {
           </div>
 
           {/* Right Section */}
-          <div className="w-full lg:w-1/2 flex flex-col items-center justify-center text-white p-6 sm:p-8 space-y-5 bg-gradient-to-r from-purple-800 via-pink-600 to-yellow-500 shadow-md relative overflow-hidden">
+          <div className="w-full lg:w-1/2 flex flex-col items-center justify-center text-white p-6 sm:p-8 space-y-5 bg-to-right-theme-gradient shadow-md relative overflow-hidden">
             <motion.h2
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

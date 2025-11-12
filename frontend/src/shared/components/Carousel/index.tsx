@@ -33,7 +33,7 @@ export function Carousel({
     className,
 }: CarouselProps) {
     const settings = {
-        dots: true,
+        dots: dots,
         infinite: true,
         speed: 500,
         arrows: false,

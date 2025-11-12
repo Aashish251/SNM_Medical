@@ -70,7 +70,7 @@ const UpdateProfile = () => {
         />
 
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif font-bold bg-gradient-to-r from-blue-500 to-teal-700 bg-clip-text text-transparent tracking-wide">
+          <h2 className="text-3xl font-serif font-bold bg-to-two-right-theme-gradient bg-clip-text text-transparent tracking-wide">
             {STEPS[currentStep - 1].title} Details
           </h2>
         </div>

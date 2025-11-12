@@ -6,7 +6,7 @@ export const SNM_LOGO_WEBP = "/img/Logo-1.webp";
 // ✅ Hero / Banner images
 export const HOME_HERO_BANNER_IMAGE1 = "/img/SD02.jpg";
 export const HOME_HERO_BANNER_IMAGE2 = "/img/matasudikshaji.png";
-export const HOME_HERO_BANNER_IMAGE3 = "/img/satgurumataji1.jpeg";
+export const HOME_HERO_BANNER_IMAGE3 = "/img/satgurumataji1.png";
 export const HOME_HERO_BANNER_IMAGE4 = "/img/SD03.jpg";
 
 // ✅ About section images
