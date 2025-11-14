@@ -38,3 +38,26 @@ exports.addUserRole = async (req, res) => {
     sendResponse(res, 500, false, 'Failed to update user role');
   }
 };
+
+exports.getUserProfile = async (req, res) => {
+  try {
+    const { regId } = req.params;
+
+    const user = await userService.getUserProfile(regId);
+
+    // Return a consistent response shape
+    return res.status(200).json({ success: true, data: user });
+
+  } catch (error) {
+    console.error("❌ Controller User Profile Error:", error);
+    // If the service throws a 'not found' error, return 404
+    if (error && error.message && error.message.toLowerCase().includes('not found')) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch user profile",
+    });
+  }
+};

@@ -216,111 +216,135 @@ exports.createUser = async (data = {}, filePaths = {}) => {
     throw new Error("Invalid registration data provided");
   }
 
-  // Destructure fields in correct SP/paramArr order
   const {
-    userType = "ms",                // 3
-    loginId = "",                   // 4  (generated if blank)
-    title = "Mr",                   // 5
-    fullName = "",                  // 6
-    email = "",                     // 7
-    password = "",                  // 8
-    confirmPassword = "",           // 
-    mobileNo = "",                  // 9
-    dateOfBirth = "",               // 10
-    gender = 1,                     // 11
-    address = "",                   // 12
-    stateId = 0,                    // 13
-    cityId = 0,                     // 14
-    qualificationId = 0,            // 15
-    departmentId = 0,               // 16
-    availableDayId = 1,             // 17
-    shiftTimeId = 1,                // 18
-    isPresent = 0,                  // 21
-    passEntry = 0,                  // 22
-    sewaLocationId = 1,             // 23
-    remark = "",                    // 24
-    experience = 0,                 // 25
-    lastSewa = "",                  // 26
-    recommendedBy = "",             // 27
-    samagamHeldIn = "",             // 28
-    isDeleted = 0,                  // 29
-    favoriteFood = "",              // 30
-    childhoodNickname = "",         // 31
-    motherMaidenName = "",          // 32
-    hobbies = "",                   // 33
-    isAaproved = 0                  // 34 (for p_is_approved)
+    userType = "ms",
+    loginId = "",
+    title = "Mr",
+    fullName = "",
+    email = "",
+    password = "",
+    confirmPassword = "",
+    mobileNo = "",
+    dateOfBirth = "",
+    gender = 1,
+    address = "",
+    stateId = 0,
+    cityId = 0,
+    qualificationId = 0,
+    departmentId = 0,
+    availableDayId = 1,
+    shiftTimeId = 1,
+    isPresent = 1,
+    passEntry = 0,
+    sewaLocationId = 1,
+    remark = "",
+    experience = 0,
+    lastSewa = "",
+    recommendedBy = "",
+    samagamHeldIn = "",
+    isDeleted = 0,
+    favoriteFood = "",
+    childhoodNickname = "",
+    motherMaidenName = "",
+    hobbies = "",
+    isAaproved = 0
   } = data;
 
-  // Validate required fields
-  const requiredFields = [
-    "fullName", "email", "password", "confirmPassword", "mobileNo", "dateOfBirth"
-  ];
+  // ============================================================
+  // ✅ Step 1: Basic Field Validation
+  // ============================================================
+  const requiredFields = ["fullName", "email", "password", "confirmPassword", "mobileNo", "dateOfBirth"];
   const missing = requiredFields.filter((f) => !data[f]);
   if (missing.length) throw new Error(`Missing required fields: ${missing.join(", ")}`);
+
   if (password !== confirmPassword) throw new Error("Passwords do not match");
 
- 
+  if (!validators.email(email)) throw new Error("Invalid email address format");
+  if (!validators.mobile(mobileNo)) throw new Error("Invalid mobile number format");
+  if (!validators.password(password)) throw new Error("Password must be at least 8 characters long");
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 12);
+  // ============================================================
+  // ✅ Step 2: Duplicate Check (Email + Mobile)
+  // ============================================================
+  const cleanEmail = sanitizeInput(email.toLowerCase());
+  const cleanMobile = sanitizeInput(mobileNo);
 
-  // Generate loginId if not provided
-  const generatedLoginId =
-    loginId || `${userType}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-
-  // Gender normalization (numeric for SP)
-  let genderValue = 1;
-  if (typeof gender === "string") {
-    const lower = gender.toLowerCase();
-    if (lower === "female") genderValue = 2;
-    else if (lower === "other" || lower === "others") genderValue = 3;
-  } else {
-    genderValue = gender;
-  }
-
-  const paramArr = [
-    "insert",                          // 1 p_action
-    0,                                 // 2 p_id
-    userType,                          // 3 p_user_type
-    generatedLoginId,                  // 4 p_login_id
-    title,                             // 5 p_title
-    fullName,                          // 6 p_full_name
-    email,                             // 7 p_email
-    hashedPassword,                    // 8 p_password
-    mobileNo,                          // 9 p_mobile_no
-    dateOfBirth,                       // 10 p_dob
-    genderValue,                       // 11 p_gender
-    address,                           // 12 p_address
-    parseInt(stateId) || 0,            // 13 p_state_id
-    parseInt(cityId) || 0,             // 14 p_city_id
-    parseInt(qualificationId) || 0,    // 15 p_qualification_id
-    parseInt(departmentId) || 0,       // 16 p_department_id
-    parseInt(availableDayId) || 1,     // 17 p_available_day_id
-    parseInt(shiftTimeId) || 1,        // 18 p_shifttime_id
-    filePaths.profileImagePath || "",  // 19 p_profile_img_path
-    filePaths.certificatePath || "",   // 20 p_certificate_doc_path
-    parseInt(isPresent) || 0,          // 21 p_is_present
-    parseInt(passEntry) || 0,          // 22 p_pass_entry
-    parseInt(sewaLocationId) || 1,     // 23 p_sewa_location_id
-    remark,                            // 24 p_remark
-    parseFloat(experience) || 0.0,     // 25 p_total_exp
-    lastSewa,                          // 26 p_prev_sewa_perform
-    recommendedBy,                     // 27 p_recom_by
-    samagamHeldIn,                     // 28 p_samagam_held_in
-    parseInt(isDeleted) || 0,          // 29 p_is_deleted
-    favoriteFood,                      // 30 p_favorite_food
-    childhoodNickname,                 // 31 p_childhood_nickname
-    motherMaidenName,                  // 32 p_mother_maiden_name
-    hobbies,                           // 33 p_hobbies
-    parseInt(isAaproved) || 0          // 34 p_is_approved
-  ];
-
-  for (let i = 0; i < paramArr.length; i++) {
-    if (paramArr[i] === undefined) paramArr[i] = null;
-  }
-
+  const connection = await promisePool.getConnection();
   try {
-    await promisePool.execute(
+    const [emailRows] = await connection.execute(
+      "SELECT reg_id FROM registration_tbl WHERE LOWER(email) = ? AND is_deleted = 0 LIMIT 1",
+      [cleanEmail]
+    );
+    if (emailRows.length > 0) {
+      throw new Error("This email address is already registered. Please use another email.");
+    }
+
+    const [mobileRows] = await connection.execute(
+      "SELECT reg_id FROM registration_tbl WHERE mobile_no = ? AND is_deleted = 0 LIMIT 1",
+      [cleanMobile]
+    );
+    if (mobileRows.length > 0) {
+      throw new Error("This mobile number is already registered. Please use another number.");
+    }
+
+    // ============================================================
+    // ✅ Step 3: Proceed with Registration
+    // ============================================================
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const generatedLoginId =
+      loginId || `${userType}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    let genderValue = 1;
+    if (typeof gender === "string") {
+      const lower = gender.toLowerCase();
+      if (lower === "female") genderValue = 2;
+      else if (lower === "other" || lower === "others") genderValue = 3;
+    }
+
+    const paramArr = [
+      "insert",
+      0,
+      userType,
+      generatedLoginId,
+      title,
+      fullName,
+      cleanEmail,
+      hashedPassword,
+      cleanMobile,
+      dateOfBirth,
+      genderValue,
+      address,
+      parseInt(stateId) || 0,
+      parseInt(cityId) || 0,
+      parseInt(qualificationId) || 0,
+      parseInt(departmentId) || 0,
+      parseInt(availableDayId) || 1,
+      parseInt(shiftTimeId) || 1,
+      filePaths.profileImagePath || "",
+      filePaths.certificatePath || "",
+      parseInt(isPresent) || 1,
+      parseInt(passEntry) || 0,
+      parseInt(sewaLocationId) || 1,
+      remark,
+      parseFloat(experience) || 0.0,
+      lastSewa,
+      recommendedBy,
+      samagamHeldIn,
+      parseInt(isDeleted) || 0,
+      favoriteFood,
+      childhoodNickname,
+      motherMaidenName,
+      hobbies,
+      parseInt(isAaproved) || 0
+    ];
+
+    // Replace undefined → null
+    for (let i = 0; i < paramArr.length; i++) {
+      if (paramArr[i] === undefined) paramArr[i] = null;
+    }
+
+    await connection.execute(
       `CALL sp_save_user_profile(
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
       )`,
@@ -332,16 +356,20 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       message: "User registered successfully!",
       data: {
         fullName,
-        email,
+        email: cleanEmail,
         userType,
         loginId: generatedLoginId,
+        mobileNo: cleanMobile,
         profileImage: filePaths.profileImagePath || "",
         certificate: filePaths.certificatePath || "",
         isAaproved: parseInt(isAaproved) || 0
-      }
+      },
     };
+
   } catch (error) {
     console.error("Registration Error:", error);
-    throw new Error(error.message || "Registration failed, please try again.");
+    throw new Error(error.message || "Registration failed. Please try again.");
+  } finally {
+    connection.release();
   }
 };

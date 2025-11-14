@@ -47,3 +47,85 @@ exports.addUserRole = async ({
     if (connection) connection.release();
   }
 };
+
+
+exports.getUserProfile = async (userId) => {
+  const [results] = await promisePool.execute(
+    'CALL sp_get_user_profile(?)',
+    [userId]
+  );
+
+  const users = results?.[0] || [];
+
+  if (users.length === 0) {
+    throw new Error('User not found');
+  }
+
+  const user = users[0];
+
+  // DOB handling
+  const rawDob = user.dob || user.date_of_birth || null;
+  let birthDate = null;
+  let age = null;
+
+  if (rawDob) {
+    const temp = new Date(rawDob);
+    if (!isNaN(temp.getTime())) {
+      birthDate = temp;
+
+      const today = new Date();
+      age = today.getFullYear() - birthDate.getFullYear();
+
+      if (
+        today.getMonth() < birthDate.getMonth() ||
+        (today.getMonth() === birthDate.getMonth() &&
+          today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+    }
+  }
+
+  // Location
+  const location =
+    user.city_name && user.state_name
+      ? `${user.city_name}, ${user.state_name}`
+      : user.state_name || "Not specified";
+
+  return {
+    id: user.reg_id,
+    name: user.full_name,
+    title: user.title || "Mr/Ms",
+    email: user.email,
+    mobile: user.mobile_no,
+    address: user.address || "Not provided",
+    dateOfBirth: birthDate ? birthDate.toISOString().split("T")[0] : null,
+    age,
+    gender: user.gender == 1 ? "Male" : user.gender == 2 ? "Female" : "Other",
+
+    qualification: user.qualification_name,
+    department: user.department_name,
+    sewaLocation: user.sewalocation_name,
+    shiftTime: user.shifttime,
+    availableDay: user.available_day,
+
+    experience: user.total_exp || 0,
+    previousSewa: user.prev_sewa_perform || "None",
+    recommendedBy: user.recom_by || "Not specified",
+
+    samagamHeldIn: user.samagam_held_in,
+    certificate: user.certificate_doc_path,
+    profileImage: user.profile_img_path,
+
+    isPresent: user.is_present,
+    passEntry: user.pass_entry,
+    isAdmin: user.is_admin,
+    isDeleted: user.is_deleted,
+    isApproved: user.is_approved,
+
+    joinedDate: user.created_datetime,
+    updatedDate: user.updated_datetime,
+    location,
+  };
+};
+

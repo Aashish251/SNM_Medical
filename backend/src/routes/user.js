@@ -51,5 +51,5 @@ router.put(
   authenticateToken,
   userController.addUserRole
 );
-
+router.get("/update-profile/:regId", authenticateToken, userController.getUserProfile);
 module.exports = router;
