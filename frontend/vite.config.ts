@@ -4,7 +4,16 @@ import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss()],  
+
+  // 🔥 Required for static hosting (Render / Netlify / Vercel)
+  base: "/",
+
+  // 🔥 Make sure Vite builds into /dist directory
+  build: {
+    outDir: "dist",
+  },
+
   resolve: {
     alias: {
       "@shared": fileURLToPath(new URL("./src/shared", import.meta.url)),
@@ -12,7 +21,7 @@ export default defineConfig({
       "@features": fileURLToPath(new URL("./src/features", import.meta.url)),
       "@lib": fileURLToPath(new URL("./src/lib", import.meta.url)),
       "@assets": fileURLToPath(new URL("./src/assets", import.meta.url)),
-      "@routes": fileURLToPath(new URL("./src/routes", import.meta.url))
+      "@routes": fileURLToPath(new URL("./src/routes", import.meta.url)),
     }
   }
 });
