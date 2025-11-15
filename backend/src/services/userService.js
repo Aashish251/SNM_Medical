@@ -129,3 +129,46 @@ exports.getUserProfile = async (userId) => {
   };
 };
 
+exports.updateUserProfile = async (userId, data) => {
+  const {
+    fullName,
+    email,
+    mobileNo,
+    address,
+    stateId,
+    cityId,
+    departmentId,
+    qualificationId
+  } = data;
+
+  try {
+    const [resultSets] = await promisePool.execute(
+      `CALL sp_update_user_profile(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        fullName,
+        email,
+        mobileNo,
+        address,
+        stateId,
+        cityId,
+        departmentId,
+        qualificationId
+      ]
+    );
+
+    const affected = resultSets?.[0]?.affected_rows || 0;
+
+    return {
+      success: affected > 0,
+      affectedRows: affected,
+      message:
+        affected > 0
+          ? "Profile updated successfully"
+          : "No changes were made or user not found",
+    };
+  } catch (error) {
+    console.error("❌ updateUserProfile Service Error:", error);
+    throw error;
+  }
+};

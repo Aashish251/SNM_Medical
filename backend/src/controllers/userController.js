@@ -61,3 +61,26 @@ exports.getUserProfile = async (req, res) => {
     });
   }
 };
+
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { regId } = req.params;
+
+    if (!regId || isNaN(regId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID"
+      });
+    }
+
+    const result = await userService.updateUserProfile(regId, req.body);
+
+    return res.status(result.success ? 200 : 404).json(result);
+  } catch (error) {
+    console.error("❌ Controller Update Profile Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update user profile",
+    });
+  }
+};

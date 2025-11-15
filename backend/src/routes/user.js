@@ -46,10 +46,12 @@ const userController = require('../controllers/userController');
  *       500:
  *         description: Server error
  */
-router.put(
-  '/update-role',
-  authenticateToken,
-  userController.addUserRole
-);
+// Update User Role - Admin Only
+router.put('/update-role',authenticateToken, userController.addUserRole);
+
+// Get User Profile 
 router.get("/update-profile/:regId", authenticateToken, userController.getUserProfile);
+
+// Update User Profile 
+router.put("/update-profile/:regId", authenticateToken, userController.updateUserProfile);
 module.exports = router;
