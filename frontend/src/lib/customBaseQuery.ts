@@ -1,5 +1,7 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "@app/store";
+import { store, type RootState } from "@app/store";
+import { signOut } from "@features/login/redux/authSlice";
+import { toast } from "@shared/lib/toast";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -24,3 +26,21 @@ export const customBaseQuery = fetchBaseQuery({
     return headers;
   },
 });
+
+// Wrapper to handle token expiration globally
+export const customBaseQueryWithAuth = async (args: any, api: any, extraOptions: any) => {
+  const result = await customBaseQuery(args, api, extraOptions);
+
+  // Check for 401 (Unauthorized) or 403 (Forbidden) - token expired
+  if (result.error && (result.error.status === 401 || result.error.status === 403)) {
+    // Dispatch logout to clear auth state
+    store.dispatch(signOut());
+    
+    // Optional: Show toast for user feedback
+    toast.error("Your session has expired. Please log in again.");
+    
+    // Navigation is handled by ProtectedRoute (redirects to login if not signed in)
+  }
+
+  return result;
+};

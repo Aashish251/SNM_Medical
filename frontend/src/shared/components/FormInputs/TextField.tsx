@@ -14,6 +14,7 @@ interface TextFieldProps {
   value?: string | number;
   autoComplete?: string;
   className?: string;
+  disabled?: boolean;
   maxLength?: number;
 }
 
@@ -27,6 +28,7 @@ export const TextField = ({
   error,
   type = "text",
   readOnly = false,
+  disabled = false,
   className = "",
 }: TextFieldProps) => {
   const inputProps = value ? { defaultValue: value } : {};
@@ -40,6 +42,7 @@ export const TextField = ({
         type={type}
         placeholder={placeholder}
         readOnly={readOnly}
+        disabled={disabled}
         autoComplete={autoComplete}
         {...register}
         {...inputProps}

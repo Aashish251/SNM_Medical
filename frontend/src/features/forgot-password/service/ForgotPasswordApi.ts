@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQuery } from "@lib/customBaseQuery";
+import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
 import {
   ForgotPasswordRequest,
   ForgotPasswordResponse,
@@ -9,7 +9,7 @@ import {
 
 export const ForgotPasswordApi = createApi({
   reducerPath: "ForgotPasswordApi",
-  baseQuery: customBaseQuery,
+  baseQuery: customBaseQueryWithAuth,
   tagTypes: [],
   endpoints: (builder) => ({
     forgotPassword: builder.mutation<

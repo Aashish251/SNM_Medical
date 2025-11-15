@@ -1,10 +1,10 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQuery } from "@lib/customBaseQuery";
+import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
 import { SearchResponse } from "@shared/types/CommonType";
 
 export const MasterSearchApi = createApi({
   reducerPath: "MasterSearchApi",
-  baseQuery: customBaseQuery,
+  baseQuery: customBaseQueryWithAuth,
   tagTypes: ["MasterSearch"],
   endpoints: (builder) => ({
     // 🔍 POST /search/master

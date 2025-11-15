@@ -120,6 +120,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                     <Button
                       variant="outline"
                       role="combobox"
+                      disabled={disabled}
                       aria-expanded={openPopover}
                       aria-controls={`${name}-listbox`}
                       aria-haspopup="listbox"

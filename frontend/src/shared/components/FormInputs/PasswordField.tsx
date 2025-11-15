@@ -15,6 +15,7 @@ interface PasswordFieldProps {
   value?: string | number;
   autoComplete?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export const PasswordField = ({
@@ -25,6 +26,7 @@ export const PasswordField = ({
   autoComplete,
   value,
   error,
+  disabled = false,
   readOnly = false,
   className = "",
 }: PasswordFieldProps) => {
@@ -45,6 +47,7 @@ export const PasswordField = ({
           placeholder={placeholder}
           readOnly={readOnly}
           maxLength={16}
+          disabled={disabled}
           autoComplete={autoComplete}
           {...register}
           {...inputProps}

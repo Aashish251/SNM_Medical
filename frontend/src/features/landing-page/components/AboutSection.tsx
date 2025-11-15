@@ -34,7 +34,7 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
           {HOME_ABOUT_PAGE_CONTENT}
         </p>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12">
         {/* Image Slider */}
         <div className="relative rounded-xl overflow-hidden shadow-xl h-80 md:h-96">
           <div

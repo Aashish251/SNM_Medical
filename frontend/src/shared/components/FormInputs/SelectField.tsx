@@ -25,6 +25,7 @@ interface SelectFieldProps<T extends FieldValues> {
   placeholder?: string;
   required?: boolean;
   readOnly?: boolean;
+  disabled?: boolean;
   className?: string;
   defaultValue?: number | string | null;
 }
@@ -40,6 +41,7 @@ export const SelectField = <T extends FieldValues>({
   required = false,
   readOnly = false,
   defaultValue = null,
+  disabled = false,
   className = "",
 }: SelectFieldProps<T>) => {
   const id = `select-${String(name).replace(/\./g, "-")}`;
@@ -66,7 +68,7 @@ export const SelectField = <T extends FieldValues>({
             <>
               <div className="relative">
                 <Select
-                  disabled={readOnly}
+                  disabled={disabled}
                   onValueChange={field.onChange}
                   value={currentValue}
                 >

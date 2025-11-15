@@ -1,6 +1,6 @@
 // src/services/adminApi.ts
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQuery } from "@lib/customBaseQuery";
+import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
 import { StatItem, UserDetails } from "../type"; // <- adjust path
 
 // shape your API actually returns
@@ -9,7 +9,7 @@ type UserDetailsResponse = { data: UserDetails };
 
 export const AdminApi = createApi({
   reducerPath: "AdminApi",
-  baseQuery: customBaseQuery,
+  baseQuery: customBaseQueryWithAuth,
   tagTypes: ["AdminStats", "UserDetails"],
   endpoints: (builder) => ({
     getDashboardStats: builder.query<DashboardStatsResponse, void>({

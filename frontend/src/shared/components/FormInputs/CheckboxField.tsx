@@ -7,6 +7,7 @@ interface CheckboxFieldProps {
   name: string;
   label: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export const CheckboxField: React.FC<CheckboxFieldProps> = ({
@@ -15,6 +16,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
   name,
   label,
   className = "",
+  disabled = false,
 }) => {
   if (control) {
     return (
@@ -30,6 +32,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
               <span>{label}</span>
               <input
                 type="checkbox"
+                disabled={disabled}
                 checked={isChecked}
                 onChange={(e) => field.onChange(e.target.checked ? 1 : 0)}
                 className="h-4 w-4 accent-blue-600"

@@ -15,6 +15,7 @@ interface NumberFieldProps {
   className?: string;
   maxLength?: number;
   allowDecimal?: boolean; // ✅ NEW prop
+  disabled?: boolean;
 }
 
 export const NumberField = ({
@@ -26,6 +27,7 @@ export const NumberField = ({
   value,
   error,
   readOnly = false,
+  disabled = false,
   className = "",
   maxLength,
   allowDecimal = false, // ✅ default: false
@@ -69,6 +71,7 @@ export const NumberField = ({
         type="text"
         placeholder={placeholder}
         readOnly={readOnly}
+        disabled={disabled}
         maxLength={maxLength}
         autoComplete={autoComplete}
         inputMode={allowDecimal ? "decimal" : "numeric"}

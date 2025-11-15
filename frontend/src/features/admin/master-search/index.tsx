@@ -62,6 +62,8 @@ export default function MasterSearchPage() {
     useMasterSearchQuery(searchPayload);
   const [users, setUsers] = useState<User[]>([]);
 
+  console.log(masterSearchData)
+
   // Update users when masterSearchData changes
   useEffect(() => {
     if (masterSearchData?.data && Array.isArray(masterSearchData.data)) {
