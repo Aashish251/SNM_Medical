@@ -50,83 +50,133 @@ exports.addUserRole = async ({
 
 
 exports.getUserProfile = async (userId) => {
-  const [results] = await promisePool.execute(
-    'CALL sp_get_user_profile(?)',
-    [userId]
-  );
+  try {
+    if (!userId || isNaN(userId)) {
+      throw new Error('Invalid user id');
+    }
 
-  const users = results?.[0] || [];
+    const [results] = await promisePool.execute(
+      'CALL sp_get_user_profile(?)',
+      [userId]
+    );
 
-  if (users.length === 0) {
-    throw new Error('User not found');
-  }
+    const users = results?.[0] || [];
 
-  const user = users[0];
+    if (users.length === 0) {
+      throw new Error('User not found');
+    }
 
-  // DOB handling
-  const rawDob = user.dob || user.date_of_birth || null;
-  let birthDate = null;
-  let age = null;
+    const user = users[0];
 
-  if (rawDob) {
-    const temp = new Date(rawDob);
-    if (!isNaN(temp.getTime())) {
-      birthDate = temp;
+    // DOB handling - safe parse
+    const rawDob = user.dob || user.date_of_birth || null;
+    let birthDate = null;
+    let age = null;
 
-      const today = new Date();
-      age = today.getFullYear() - birthDate.getFullYear();
-
-      if (
-        today.getMonth() < birthDate.getMonth() ||
-        (today.getMonth() === birthDate.getMonth() &&
-          today.getDate() < birthDate.getDate())
-      ) {
-        age--;
+    if (rawDob) {
+      const temp = new Date(rawDob);
+      if (!isNaN(temp.getTime())) {
+        birthDate = temp;
+        const today = new Date();
+        age = today.getFullYear() - birthDate.getFullYear();
+        if (
+          today.getMonth() < birthDate.getMonth() ||
+          (today.getMonth() === birthDate.getMonth() &&
+            today.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
       }
     }
+
+    // Location
+    const location =
+      user.city_name && user.state_name
+        ? `${user.city_name}, ${user.state_name}`
+        : user.state_name || user.city_name || "Not specified";
+
+    // Helper to safely coerce numeric fields
+    const toInt = (val, fallback = 0) => {
+      if (val === null || typeof val === 'undefined' || val === '') return fallback;
+      const n = Number(val);
+      return Number.isNaN(n) ? fallback : n;
+    };
+
+    return {
+      id: toInt(user.reg_id, 0),
+
+      // basic profile fields (UI naming convention)
+      userType: user.user_type || "ms",
+      loginId: user.login_id || "",
+      title: user.title || "Mr",
+      fullName: user.full_name || "",
+      email: user.email || "",
+      mobileNo: user.mobile_no || "",
+      password: "", // never return real password
+      confirmPassword: "",
+
+      // date fields
+      dateOfBirth: birthDate ? birthDate.toISOString().split("T")[0] : "",
+      age: age === null ? null : age,
+
+      // numeric gender as in form: 1/2/3
+      gender: user.gender == null ? 1 : (user.gender == 1 ? 1 : user.gender == 2 ? 2 : 3),
+
+      // address & ids
+      address: user.address || "",
+      stateId: toInt(user.state_id, 0),
+      cityId: toInt(user.city_id, 0),
+      qualificationId: toInt(user.qualification_id, 0),
+      departmentId: toInt(user.department_id, 0),
+
+      // day/shift/sewa
+      availableDayId: toInt(user.available_day_id, 1),
+      shiftTimeId: toInt(user.shifttime_id, 1),
+
+      // flags (ensure numeric 0/1)
+      isPresent: toInt(user.is_present, 0),
+      passEntry: toInt(user.pass_entry, 0),
+
+      sewaLocationId: toInt(user.sewa_location_id, 0),
+
+      // other fields
+      remark: user.remark || "",
+      experience: user.total_exp || 0,
+      lastSewa: user.prev_sewa_perform || "",
+      recommendedBy: user.recom_by || "",
+      samagamHeldIn: user.samagam_held_in || "",
+
+      isDeleted: toInt(user.is_deleted, 0),
+      isApproved: toInt(user.is_approved, 0),
+
+      favoriteFood: user.favorite_food || "",
+      childhoodNickname: user.childhood_nickname || "",
+      motherMaidenName: user.mother_maiden_name || "",
+      hobbies: user.hobbies || "",
+
+      certificate: user.certificate_doc_path || "",
+      profileImage: user.profile_img_path || "",
+
+      joinedDate: user.created_datetime || null,
+      updatedDate: user.updated_datetime || null,
+
+      // computed / display names (extra fields)
+      qualificationName: user.qualification_name || "",
+      departmentName: user.department_name || "",
+      sewaLocationName: user.sewalocation_name || "",
+      shiftTime: user.shifttime || "",
+      availableDay: user.available_day || "",
+      cityName: user.city_name || "",
+      stateName: user.state_name || "",
+
+      // computed location
+      location,
+    };
+  } catch (err) {
+    // rethrow — controller will handle status codes / messages
+    console.error('getUserProfile error:', err);
+    throw err;
   }
-
-  // Location
-  const location =
-    user.city_name && user.state_name
-      ? `${user.city_name}, ${user.state_name}`
-      : user.state_name || "Not specified";
-
-  return {
-    id: user.reg_id,
-    name: user.full_name,
-    title: user.title || "Mr/Ms",
-    email: user.email,
-    mobile: user.mobile_no,
-    address: user.address || "Not provided",
-    dateOfBirth: birthDate ? birthDate.toISOString().split("T")[0] : null,
-    age,
-    gender: user.gender == 1 ? "Male" : user.gender == 2 ? "Female" : "Other",
-
-    qualification: user.qualification_name,
-    department: user.department_name,
-    sewaLocation: user.sewalocation_name,
-    shiftTime: user.shifttime,
-    availableDay: user.available_day,
-
-    experience: user.total_exp || 0,
-    previousSewa: user.prev_sewa_perform || "None",
-    recommendedBy: user.recom_by || "Not specified",
-
-    samagamHeldIn: user.samagam_held_in,
-    certificate: user.certificate_doc_path,
-    profileImage: user.profile_img_path,
-
-    isPresent: user.is_present,
-    passEntry: user.pass_entry,
-    isAdmin: user.is_admin,
-    isDeleted: user.is_deleted,
-    isApproved: user.is_approved,
-
-    joinedDate: user.created_datetime,
-    updatedDate: user.updated_datetime,
-    location,
-  };
 };
 
 exports.updateUserProfile = async (userId, data) => {

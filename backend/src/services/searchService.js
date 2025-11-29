@@ -126,25 +126,6 @@ exports.masterSearch = async ({
   }
 };
 
-// ✅ Export to Excel
-exports.exportToExcel = async (data) => {
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet('Master Search Data');
-
-  if (!data.length) return null;
-
-  sheet.columns = Object.keys(data[0]).map((key) => ({
-    header: key,
-    key,
-    width: 25
-  }));
-
-  data.forEach((row) => sheet.addRow(row));
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  return buffer;
-};
-
 exports.approveUser = async (regId) => {
   try {
     // ✅ Call your stored procedure

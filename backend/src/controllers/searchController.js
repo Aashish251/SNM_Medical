@@ -1,4 +1,5 @@
 const searchService = require('../services/searchService');
+const ExcelJS = require('exceljs');
 
 exports.masterSearch = async (req, res) => {
   try {
@@ -30,17 +31,79 @@ exports.masterSearch = async (req, res) => {
 // ✅ Export to Excel
 exports.exportSearch = async (req, res) => {
   try {
-    const { data } = await searchService.masterSearch(req.body);
-    const buffer = await searchService.exportToExcel(data);
+    const result = await searchService.masterSearch({
+      ...req.body,
+      // ensure page/limit fetch all rows on server side if SP supports it
+      page: 1,
+      limit: req.body.limit || 1000000
+    });
 
-    if (!buffer) return res.status(404).send('No data to export');
+    const data = result?.data || [];
 
-    res.setHeader('Content-Disposition', 'attachment; filename=MasterSearch.xlsx');
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.send(buffer);
+    if (!Array.isArray(data) || data.length === 0) {
+      return res.status(200).json({ success: true, message: 'No data to export', data: [] });
+    }
+
+    // Create workbook & worksheet
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Master Search');
+
+    // sanitize / flatten objects and prepare headers
+    const firstRow = data[0];
+    const keys = Object.keys(firstRow);
+
+    // Create readable headers e.g., fullName -> Full Name
+    sheet.columns = keys.map((k) => ({
+      header: k
+        .replace(/([A-Z])/g, ' $1') // camelCase -> "camel Case"
+        .replace(/_/g, ' ')         // snake_case -> "snake case"
+        .replace(/\b\w/g, (c) => c.toUpperCase()), // capitalize
+      key: k,
+      width: 25
+    }));
+
+    // write rows (ensure primitive values)
+    data.forEach((row) => {
+      const safeRow = {};
+      keys.forEach((k) => {
+        let val = row[k];
+        // convert Date objects to ISO strings / readable format
+        if (val instanceof Date) val = val.toISOString();
+        // convert null/undefined to empty string
+        if (val === null || typeof val === 'undefined') val = '';
+        // flatten nested objects if necessary
+        if (typeof val === 'object' && !(val instanceof Date)) {
+          try {
+            val = JSON.stringify(val);
+          } catch (e) {
+            val = String(val);
+          }
+        }
+        safeRow[k] = val;
+      });
+      sheet.addRow(safeRow);
+    });
+
+    // Set headers BEFORE streaming
+    const filename = `master_search_export_${Date.now()}.xlsx`;
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Stream workbook to response (memory friendly)
+    await workbook.xlsx.write(res);
+    // write() does not automatically end the response in all versions, so:
+    res.end();
   } catch (error) {
-    console.error('Export Error:', error);
-    res.status(500).json({ success: false, message: 'Export failed' });
+    console.error('Export Error (stream):', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Export failed' });
+    } else {
+      // headers already sent — connection likely aborted by client
+      try { res.end(); } catch (_) {}
+    }
   }
 };
 
