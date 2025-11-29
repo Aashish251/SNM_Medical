@@ -3,9 +3,7 @@ import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import {
   SNM_NAV_MS_DASHBOARD_LINK,
-  SNM_NAV_HOME_LINK,
   SNM_NAV_ADMIN_DASHBOARD_LINK,
-  SNM_NAV_LOGIN_LINK,
   SNM_MS_USERTYPE,
   SNM_ADMIN_USERTYPE,
 } from "@shared/constants";

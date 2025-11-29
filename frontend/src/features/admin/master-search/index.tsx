@@ -34,8 +34,8 @@ export default function MasterSearchPage() {
   const [showUserRole, setShowUserRole] = useState(false);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [sortState, setSortState] = useState({
-    column: null as string | null,
-    direction: "asc" as "asc" | "desc",
+    column: "fullName" as string | null,
+    direction: "ASC" as "ASC" | "DESC",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(90);
@@ -54,7 +54,7 @@ export default function MasterSearchPage() {
     passEntry: null,
     limit: pageLimit,
     page: currentPage,
-    sortBy: "full_name",
+    sortBy: "fullName",
     sortOrder: "ASC",
   });
 
@@ -62,7 +62,7 @@ export default function MasterSearchPage() {
     useMasterSearchQuery(searchPayload);
   const [users, setUsers] = useState<User[]>([]);
 
-  console.log(masterSearchData)
+  console.log(searchPayload)
 
   // Update users when masterSearchData changes
   useEffect(() => {
@@ -70,6 +70,15 @@ export default function MasterSearchPage() {
       setUsers(masterSearchData.data);
     }
   }, [masterSearchData]);
+
+  // Update searchPayload when sortState changes to trigger API sort
+  useEffect(() => {
+    setSearchPayload(prev => ({
+      ...prev,
+      sortBy: sortState.column || "fullName",
+      sortOrder: sortState.direction,
+    }));
+  }, [sortState.column, sortState.direction]);
 
   const totalPages = Math.max(1, Math.ceil(users.length / pageLimit));
   const pagedUsers = users.slice(
@@ -191,8 +200,8 @@ export default function MasterSearchPage() {
         passEntry: data?.passEntry || null,
         limit: pageLimit,
         page: currentPage,
-        sortBy: "full_name",
-        sortOrder: "ASC",
+        sortBy: sortState.column,
+        sortOrder: sortState.direction,
       };
 
       console.log("🔍 Search Payload:", newPayload);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { STEPS } from "./config";
 import { useUpdateProfileForm } from "./hooks/useUpdateProfileForm";
@@ -8,14 +8,19 @@ import {
   ProfessionalDetailsStep,
   LoginDetailsStep,
 } from "@shared/components/Registration";
-import { useRegisterUserMutation } from "./services";
+import {
+  useRegisterUserMutation,
+  useLazyGetUserDetailsQueryQuery,
+} from "./services";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FormValues } from "./type";
 
 const UpdateProfile = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
+  const { id: regId } = useParams();
+  const [triggerGetUserDetails] = useLazyGetUserDetailsQueryQuery();
   const {
     currentStep,
     setCurrentStep,
@@ -28,6 +33,31 @@ const UpdateProfile = () => {
   } = useUpdateProfileForm();
 
   const { handleSubmit, reset } = form;
+
+  console.log(regId);
+
+  useEffect(() => {
+    if (regId) {
+      toast.promise(
+        triggerGetUserDetails(Number(regId))
+          .unwrap()
+          .then((data) => {
+            const formattedData: any = {
+              ...data,
+              profilePic: undefined,
+              certificate: undefined,
+            };
+            reset(formattedData);
+            console.log("fdgfd ",data)
+          }),
+        {
+          loading: "Fetching user details...",
+          success: "User details loaded!",
+          error: "Failed to load user details",
+        }
+      );
+    }
+  }, [regId, triggerGetUserDetails]);
 
   const onSubmit = async (data: FormValues) => {
     try {

@@ -34,7 +34,7 @@ export const ProtectedRoutes = [
   <Route
     path={SNM_NAV_MS_DASHBOARD_LINK}
     element={
-      <ProtectedRoute allowedRole="ms">
+      <ProtectedRoute allowedRoles={["ms"]}>
         <MSDashboard />
       </ProtectedRoute>
     }
@@ -42,7 +42,7 @@ export const ProtectedRoutes = [
   <Route
     path={`${SNM_NAV_MS_UPDATE_PROFILE_LINK}/:id`}
     element={
-      <ProtectedRoute allowedRole="ms">
+      <ProtectedRoute allowedRoles={["ms", "admin"]}>
         <UpdateProfile />
       </ProtectedRoute>
     }
@@ -52,7 +52,7 @@ export const ProtectedRoutes = [
   <Route
     path={SNM_NAV_ADMIN_DASHBOARD_LINK}
     element={
-      <ProtectedRoute allowedRole="admin">
+      <ProtectedRoute allowedRoles={["admin"]}>
         <AdminDashboard />
       </ProtectedRoute>
     }
@@ -63,7 +63,7 @@ export const ProtectedRoutes = [
   <Route
     path={SNM_NAV_ADMIN_DUTY_CHART_LINK}
     element={
-      <ProtectedRoute allowedRole="admin">
+      <ProtectedRoute allowedRoles={["admin"]}>
         <AdminDutyChart />
       </ProtectedRoute>
     }
@@ -71,25 +71,18 @@ export const ProtectedRoutes = [
   <Route
     path={`${SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}/:id`}
     element={
-      <ProtectedRoute allowedRole="admin">
+      <ProtectedRoute allowedRoles={["admin"]}>
         <UpdateProfile />
       </ProtectedRoute>
     }
   />,
 
-  <Route
-    path={`${SNM_NAV_MS_UPDATE_PROFILE_LINK}/:id`}
-    element={
-      <ProtectedRoute allowedRole="admin">
-        <UpdateProfile />
-      </ProtectedRoute>
-    }
-  />,
+
 
   <Route
     path={SNM_NAV_ADMIN_MASTER_SEARCH_LINK}
     element={
-      <ProtectedRoute allowedRole="admin">
+      <ProtectedRoute allowedRoles={["admin"]}>
         <AdminMasterSearch />
       </ProtectedRoute>
     }
@@ -97,7 +90,7 @@ export const ProtectedRoutes = [
   <Route
     path={SNM_NAV_ADMIN_DAILY_REPORT_LINK}
     element={
-      <ProtectedRoute allowedRole="admin">
+      <ProtectedRoute allowedRoles={["admin"]}>
         <AdminDailyReport />
       </ProtectedRoute>
     }
@@ -105,7 +98,7 @@ export const ProtectedRoutes = [
   <Route
     path={SNM_NAV_ADMIN_REGISTRATION_REPORT_LINK}
     element={
-      <ProtectedRoute allowedRole="admin">
+      <ProtectedRoute allowedRoles={["admin"]}>
         <AdminRegistrationReport />
       </ProtectedRoute>
     }
@@ -113,7 +106,7 @@ export const ProtectedRoutes = [
   <Route
     path={SNM_NAV_ADMIN_MASTER_REPORT_LINK}
     element={
-      <ProtectedRoute allowedRole="admin">
+      <ProtectedRoute allowedRoles={["admin"]}>
         <AdminMasterReport />
       </ProtectedRoute>
     }

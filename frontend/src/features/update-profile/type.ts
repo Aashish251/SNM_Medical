@@ -60,6 +60,12 @@ interface GetCitiesByStateResponse {
   count: number;
 }
 
+export interface GetUserProfileResponse {
+  success: boolean;
+  message: string;
+  data: FormValues;
+}
+
 export type FormValues = {
   title: string;
   fullName: string;
