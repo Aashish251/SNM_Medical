@@ -96,7 +96,9 @@ exports.registerUser = async (body) => {
     qualificationId,
     userType = "ms",
     title = "Mr",
-    gender = 1,
+    gender,
+    availability,
+    shift, 
     experience = 0,
     lastSewa = "",
     recommendedBy = "",
@@ -141,14 +143,14 @@ exports.registerUser = async (body) => {
     .toString(36)
     .substr(2, 5)}`;
 
-  const genderValue =
-    typeof gender === "string"
-      ? gender.toLowerCase() === "female"
-        ? 2
-        : gender.toLowerCase() === "other" || gender.toLowerCase() === "others"
-        ? 3
-        : 1
-      : gender;
+  // const genderValue =
+  //   typeof gender === "string"
+  //     ? gender.toLowerCase() === "female"
+  //       ? 2
+  //       : gender.toLowerCase() === "other" || gender.toLowerCase() === "others"
+  //       ? 3
+  //       : 1
+  //     : gender;
 
   const paramArr = [
     "insert",
@@ -161,14 +163,14 @@ exports.registerUser = async (body) => {
     hashedPassword,
     data.mobileNo,
     dateOfBirth,
-    genderValue,
+    gender,
     data.address,
     parseInt(stateId) || 0,
     parseInt(cityId) || 0,
     parseInt(qualificationId) || 0,
     parseInt(departmentId) || 0,
-    1,
-    1,
+    availability,
+    shift,
     "",
     "",
     1,

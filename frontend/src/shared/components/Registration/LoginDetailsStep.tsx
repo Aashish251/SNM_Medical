@@ -2,6 +2,8 @@ import React from "react";
 import { Button } from "@shared/components/ui/button";
 import { TextareaField, TextField } from "@shared/components/FormInputs";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
+import { RootState } from "@app/store";
+import { useSelector } from "react-redux";
 
 export const LoginDetailsStep = ({ form, prevStep }: any) => {
   const {
@@ -9,6 +11,8 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
     watch,
     formState: { errors },
   } = form;
+
+  const userType = useSelector((state: RootState) => state.auth.userType);
 
   return (
     <>
@@ -111,7 +115,7 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
         {/* Textarea Field - full width */}
         <div className="col-span-1 sm:col-span-2">
           <TextareaField
-            disabled={true}
+            disabled={userType === "admin" ? false : true}
             label="Remark (Added by Administration Team)"
             placeholder="This field will be filled by the administration team after review"
             register={register("remark")}

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { STEPS } from "./config";
+import { STEPS } from "@shared/config/common";
 import { useRegistrationForm } from "./hooks/useRegistrationForm";
 import {
   Stepper,
@@ -11,7 +11,7 @@ import {
 import { useRegisterUserMutation } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { FormValues } from "./type";
+import { FormValues } from "@shared/types/CommonType";
 
 const Register = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
@@ -38,8 +38,8 @@ const Register = () => {
         "fullName",
         "email",
         "password",
-        "contact",
-        "birthdate",
+        "mobileNo",
+        "dateOfBirth",
       ];
       const missingFields = requiredFields.filter(
         (field) => !data[field as keyof FormValues]
@@ -51,20 +51,15 @@ const Register = () => {
       }
 
       const formData = new FormData();
-
-      // Required fields with field name mapping
-      const fieldMapping = {
-        contact: "mobileNo",
-        birthdate: "dateOfBirth",
-      };
+     
 
       // Required fields
       formData.append("fullName", data.fullName);
       formData.append("email", data.email);
       formData.append("password", data.password);
       formData.append("confirmPassword", data.confirmPassword || data.password);
-      formData.append("mobileNo", data.contact); // mapped from contact
-      formData.append("dateOfBirth", data.birthdate); // mapped from birthdate
+      formData.append("mobileNo", data.mobileNo); // mapped from contact
+      formData.append("dateOfBirth", data.dateOfBirth); // mapped from birthdate
       formData.append("address", data.address || "");
       formData.append("stateId", String(data.stateId || ""));
       formData.append("cityId", String(data.cityId || ""));
@@ -73,12 +68,15 @@ const Register = () => {
 
       // Optional fields
       formData.append("title", data.title || "Mr");
-      formData.append("gender", data.gender || "1");
+      formData.append("age", String(data.age || 0));
+      formData.append("shift", data.shift || "");
+      formData.append("availability", data.availability || "");
+      formData.append("gender", data.gender || "Male");
       formData.append("userType", data.userType || "ms");
       formData.append("experience", String(data.experience || 0));
       formData.append("lastSewa", data.lastSewa || "");
       formData.append("recommendedBy", data.recommendedBy || "");
-      formData.append("samagamHeldIn", "");
+      formData.append("samagamHeldIn", data.samagamHeldIn || "");
 
       formData.append("favoriteFood", data.favoriteFood || "");
       formData.append("childhoodNickname", data.childhoodNickname || "");
@@ -96,6 +94,7 @@ const Register = () => {
 
       // Debug: Log form data entries
       console.log("FormData contents:", formData);
+      // return;
       for (const pair of (formData as any).entries()) {
         console.log(pair[0], pair[1]);
       }
@@ -106,7 +105,7 @@ const Register = () => {
         error: "Failed to register",
       });
 
-      navigate("/login"); // redirect on success
+      // navigate("/login"); // redirect on success
     } catch (error: any) {
       console.error("Registration failed:", error);
       toast.error(error?.data?.message || "Something went wrong");

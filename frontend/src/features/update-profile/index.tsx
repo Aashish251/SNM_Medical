@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import { STEPS } from "./config";
+import { STEPS } from "@shared/config/common";
 import { useUpdateProfileForm } from "./hooks/useUpdateProfileForm";
 import {
   Stepper,
@@ -10,17 +10,18 @@ import {
 } from "@shared/components/Registration";
 import {
   useRegisterUserMutation,
-  useLazyGetUserDetailsQueryQuery,
+  useGetUserDetailsQueryQuery,        // ✅ use this
 } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
-import { FormValues } from "./type";
+import { FormValues } from "@shared/types/CommonType";
 
 const UpdateProfile = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
+
   const { id: regId } = useParams();
-  const [triggerGetUserDetails] = useLazyGetUserDetailsQueryQuery();
+
   const {
     currentStep,
     setCurrentStep,
@@ -34,42 +35,50 @@ const UpdateProfile = () => {
 
   const { handleSubmit, reset } = form;
 
-  console.log(regId);
+  // 🔹 Call API as soon as we have an ID
+  const {
+    data: userDetails,
+    isLoading,
+    isError,
+    error,
+  } = useGetUserDetailsQueryQuery(regId ? Number(regId) : 0, {
+    skip: !regId, // don't call if id is missing
+  });
 
   useEffect(() => {
-    if (regId) {
-      toast.promise(
-        triggerGetUserDetails(Number(regId))
-          .unwrap()
-          .then((data) => {
-            const formattedData: any = {
-              ...data,
-              profilePic: undefined,
-              certificate: undefined,
-            };
-            reset(formattedData);
-            console.log("fdgfd ",data)
-          }),
-        {
-          loading: "Fetching user details...",
-          success: "User details loaded!",
-          error: "Failed to load user details",
-        }
-      );
+    if (isLoading) {
+      toast.loading("Fetching user details...", { id: "fetch-user" });
+    } else {
+      toast.dismiss("fetch-user");
     }
-  }, [regId, triggerGetUserDetails]);
+
+    if (isError) {
+      toast.error("Failed to load user details");
+      console.error("Get user details error:", error);
+    }
+
+    if (userDetails) {
+      console.log("API response data:", userDetails); // ✅ console log
+
+      const formattedData: any = {
+        ...userDetails.data,
+        profilePic: undefined,
+        certificate: undefined,
+      };
+
+      reset(formattedData);
+      toast.success("User details loaded!");
+    }
+  }, [isLoading, isError, userDetails, error, reset]);
 
   const onSubmit = async (data: FormValues) => {
     try {
-      console.log(data);
       const formData = new FormData();
 
       for (const key in data) {
         if (key === "certificate" || key === "profilePic") {
           const file = data[key]?.[0];
-          if (file) {
-            formData.append(key, file);
-          }
+          if (file) formData.append(key, file);
         } else {
           formData.append(key, data[key] as any);
         }
@@ -81,7 +90,7 @@ const UpdateProfile = () => {
         error: "Failed to register",
       });
 
-      navigate("/login"); // redirect on success
+      navigate("/login");
     } catch (error: any) {
       console.error("Registration failed:", error);
       toast.error(error?.data?.message || "Something went wrong");

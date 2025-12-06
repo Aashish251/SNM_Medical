@@ -5,8 +5,8 @@ import {
   useLazyGetCitiesByStateQuery,
   useGetRegistrationDropdownDataQuery,
 } from "@shared/services/commonApi";
-import { FormValues, CityItem } from "../type";
-import { requiredFields } from "../config";
+import { FormValues, CityItem } from "@shared/types/CommonType";
+import { requiredFields } from "@shared/config/common";
 
 export const useRegistrationForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -20,10 +20,10 @@ export const useRegistrationForm = () => {
     defaultValues: {
       title: "",
       fullName: "",
-      contact: "",
+      mobileNo: "",
       gender: "",
       email: "",
-      birthdate: "",
+      dateOfBirth: "",
       age: 0,
       address: "",
       stateId: "",
@@ -34,6 +34,7 @@ export const useRegistrationForm = () => {
       shift: "",
       experience: "",
       lastSewa: "",
+      samagamHeldIn: "",
       recommendedBy: "",
       certificate: undefined,
       password: "",
@@ -51,7 +52,7 @@ export const useRegistrationForm = () => {
 
   const { watch, setValue, trigger } = form;
   const stateId = watch("stateId");
-  const birthdate = watch("birthdate");
+  const birthdate = watch("dateOfBirth");
 
   useEffect(() => {
     if (birthdate) setValue("age", calculateAge(birthdate));

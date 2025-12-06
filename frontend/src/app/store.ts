@@ -3,6 +3,7 @@ import { persistStore } from "redux-persist";
 import { persistedReducer } from "./rootReducer";
 import { loginApi } from "@features/login/services/loginApi";
 import { RegisterApi } from "@features/register/services";
+import { UpdateProfileApi } from "@features/update-profile/services";
 import { AdminApi } from "@features/admin/dashboard/services/adminApi";
 import { MasterSearchApi } from "@features/admin/master-search/services/masterSearchApi";
 import { CommonApi } from "@shared/services/commonApi";
@@ -18,6 +19,7 @@ export const store = configureStore({
     return middleware.concat(
       loginApi.middleware,
       RegisterApi.middleware,
+      UpdateProfileApi.middleware,
       AdminApi.middleware,
       MasterSearchApi.middleware,
       CommonApi.middleware,

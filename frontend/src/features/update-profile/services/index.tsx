@@ -1,16 +1,16 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQuery } from "@lib/customBaseQuery";
+import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
 import { GetUserProfileResponse } from "../type";
 
-export const RegisterApi = createApi({
-  reducerPath: "RegisterApi",
-  baseQuery: customBaseQuery,
+export const UpdateProfileApi = createApi({
+  reducerPath: "UpdateProfileApi",
+  baseQuery: customBaseQueryWithAuth,
   tagTypes: [],
   endpoints: (builder) => ({
     registerUser: builder.mutation<any, FormData>({
       query: (formData) => ({
-        url: "/api/registration/register",
-        method: "POST",
+        url: `/api/user/update-profile/${formData?.id}`,
+        method: "PUT",
         body: formData,
       }),
     }),
@@ -23,5 +23,5 @@ export const RegisterApi = createApi({
   }),
 });
 
-export const { useRegisterUserMutation, useLazyGetUserDetailsQueryQuery } =
-  RegisterApi;
+export const { useRegisterUserMutation, useGetUserDetailsQueryQuery } =
+  UpdateProfileApi;

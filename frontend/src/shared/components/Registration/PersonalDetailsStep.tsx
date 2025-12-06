@@ -1,9 +1,9 @@
 import React from "react";
 import { Button } from "@shared/components/ui/button";
 import { TextField } from "@shared/components/FormInputs/TextField";
-import { DUMMY } from "../../../features/register/config";
+import { DUMMY } from "@shared/config/common";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues, CityItem } from "../../../features/register/type";
+import { FormValues, CityItem } from "@shared/types/CommonType";
 import {
   FileUploadField,
   NumberField,
@@ -35,6 +35,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     formState: { errors },
     watch,
   } = form;
+  
 
   const states = Array.isArray(dropdownOption?.data?.states)
     ? dropdownOption.data.states
@@ -80,7 +81,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           label="Contact Number"
           required
           maxLength={13}
-          register={register("contact", {
+          register={register("mobileNo", {
             required: "Contact number is required",
             pattern: {
               value: /^(?:\+91|91|0)?[-\s]?[6-9]\d{9}$/, // must start with 6–9 and be 10 digits
@@ -88,7 +89,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             },
           })}
           placeholder="Enter 10-digit mobile number"
-          error={errors.contact}
+          error={errors.mobileNo}
         />
 
         {/* Gender */}
@@ -124,11 +125,11 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             label="Birthdate"
             type="date"
             required
-            register={register("birthdate", {
+            register={register("dateOfBirth", {
               required: "Birthdate is required",
             })}
             placeholder="Select birthdate"
-            error={errors.birthdate}
+            error={errors.dateOfBirth}
           />
           <TextField
             label="Age"

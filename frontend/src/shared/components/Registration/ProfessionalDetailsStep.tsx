@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@shared/components/ui/button";
 import { SelectField } from "@shared/components/FormInputs/SelectField";
-import { DUMMY } from "../../../features/register/config";
+import { DUMMY } from "@shared/config/common";
 import {
   FileUploadField,
   NumberField,
@@ -83,6 +83,19 @@ export const ProfessionalDetailsStep = ({
           allowDecimal
           register={register("experience")}
           placeholder="Enter your experience"
+        />
+
+        <TextField
+          label="Samagam Held In"
+          register={register("samagamHeldIn", {
+            pattern: {
+              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              message:
+                "Enter Samagam held In (no numbers or symbols)",
+            },
+          })}
+          placeholder="Enter samagam held in"
+          error={errors.samagamHeldIn}
         />
 
         <TextField
