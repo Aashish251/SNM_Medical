@@ -4,68 +4,6 @@ const { sanitizeInput } = require("../utils/sanitize");
 const { validators } = require("../utils/validators");
 const BCRYPT_ROUNDS = 12; 
 
-/**
- * Fetch available_day map from DB
- * { "Weekdays": 1, "Weekends": 2, ... }
- */
-const getAvailableDayMap = async (connection) => {
-  const [rows] = await connection.execute(
-    "CALL sp_get_available_day_by_id(?)",
-    [0]
-  );
-
-  const map = {};
-  (rows[0] || []).forEach(r => {
-    map[r.available_day] = r.id;
-  });
-
-  return map;
-};
-
-/**
- * Fetch shifttime map from DB
- * { "Morning - 6.00 AM to 12.00 PM": 1, ... }
- */
-const getShiftTimeMap = async (connection) => {
-  const [rows] = await connection.execute(
-    "CALL sp_get_shifttime_by_id(?)",
-    [0]
-  );
-
-  const map = {};
-  (rows[0] || []).forEach(r => {
-    map[r.shifttime] = r.id;
-  });
-
-  return map;
-};
-
-
-/**
- * Map availability label to ID
- */
-const getAvailabilityId = (availability) => {
-  if (!availability) return 1; // default
-  // If it's already a number, return it
-  if (typeof availability === "number" && !isNaN(availability)) {
-    return parseInt(availability);
-  }
-  // Try to map the string label
-  return AVAILABILITY_MAP[availability] || 1;
-};
-
-/**
- * Map shift label to ID
- */
-const getShiftId = (shift) => {
-  if (!shift) return 1; // default
-  // If it's already a number, return it
-  if (typeof shift === "number" && !isNaN(shift)) {
-    return parseInt(shift);
-  }
-  // Try to map the string label
-  return SHIFT_MAP[shift] || 1;
-};
 
 exports.getDropdownData = async () => {
   const connection = await promisePool.getConnection();
@@ -74,12 +12,16 @@ exports.getDropdownData = async () => {
     const [departments] = await connection.execute("CALL sp_get_department_by_id(?)", [0]);
     const [qualifications] = await connection.execute("CALL sp_get_qualification_by_id(?)", [0]);
     const [sewaLocations] = await connection.execute("CALL sp_get_sewalocation_by_id(?)", [0]);
+    const [availableDays] = await connection.execute("CALL sp_get_available_day_by_id(?)", [0]);
+    const [shiftTimes] = await connection.execute("CALL sp_get_shifttime_by_id(?)", [0]);
 
     return {
       states: states[0] || [],
       departments: departments[0] || [],
       qualifications: qualifications[0] || [],
-      sewaLocations: sewaLocations[0] || []
+      sewaLocations: sewaLocations[0] || [],
+      shiftTimes: shiftTimes[0] || [],
+      availableDays: availableDays[0] || [],
     };
   } finally {
     connection.release();
@@ -113,8 +55,8 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       cityId,
       departmentId,
       qualificationId,
-      availability,      
-      shift,             
+      availableDayId,
+      shiftTimeId = 0,            
       isPresent = 0,
       passEntry = 0,
       sewaLocationId = 0,
@@ -174,23 +116,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
     }
 
     /* --------------------------------------------------------
-        Map Availability and Shift to IDs
-    -------------------------------------------------------- */
-    const availableDayMap = await getAvailableDayMap(connection);
-    const shiftTimeMap = await getShiftTimeMap(connection);
-
-    const availableDayId =
-      typeof availability === "number"
-        ? availability
-        : availableDayMap[availability] || null;
-
-    const shiftTimeId =
-      typeof shift === "number"
-        ? shift
-        : shiftTimeMap[shift] || null;
-
-    /* --------------------------------------------------------
-       5️Hash Password + Login ID 
+       Hash Password + Login ID 
     -------------------------------------------------------- */
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS); // hash password securely with bcrypt 
     const loginId = `${userType}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -212,8 +138,8 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       parseInt(cityId) || 0,
       parseInt(qualificationId) || 0,
       parseInt(departmentId) || 0,
-      availableDayId,
-      shiftTimeId,
+      parseInt(availableDayId) || 0,
+      parseInt(shiftTimeId) || 0,
       filePaths.profileImagePath || "",
       filePaths.certificatePath || "",
       parseInt(isPresent) || 0,
