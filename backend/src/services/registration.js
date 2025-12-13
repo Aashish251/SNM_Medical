@@ -4,22 +4,42 @@ const { sanitizeInput } = require("../utils/sanitize");
 const { validators } = require("../utils/validators");
 const BCRYPT_ROUNDS = 12; 
 
-const AVAILABILITY_MAP = {
-  "Weekdays": 1,
-  "Weekends": 2,
-  "Both": 3,
-  "Third-Day": 4,
-  "Daily": 5,
-  "As Needed": 6
+/**
+ * Fetch available_day map from DB
+ * { "Weekdays": 1, "Weekends": 2, ... }
+ */
+const getAvailableDayMap = async (connection) => {
+  const [rows] = await connection.execute(
+    "CALL sp_get_available_day_by_id(?)",
+    [0]
+  );
+
+  const map = {};
+  (rows[0] || []).forEach(r => {
+    map[r.available_day] = r.id;
+  });
+
+  return map;
 };
 
-const SHIFT_MAP = {
-  "Morning - 6.00 AM to 12.00 PM": 1,
-  "Afternoon - 12.00 PM to 6.00 PM": 2,
-  "Evening - 4.00 PM to 10.00 PM": 3,
-  "Night - 10.00 PM to 6.00 AM": 4,
-  "All Shifts": 5
+/**
+ * Fetch shifttime map from DB
+ * { "Morning - 6.00 AM to 12.00 PM": 1, ... }
+ */
+const getShiftTimeMap = async (connection) => {
+  const [rows] = await connection.execute(
+    "CALL sp_get_shifttime_by_id(?)",
+    [0]
+  );
+
+  const map = {};
+  (rows[0] || []).forEach(r => {
+    map[r.shifttime] = r.id;
+  });
+
+  return map;
 };
+
 
 /**
  * Map availability label to ID
@@ -80,10 +100,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
   const connection = await promisePool.getConnection();
 
   try {
-    /* --------------------------------------------------------
-       1️⃣ Sanitize + Destructure (MATCH FRONTEND NAMES)
-    -------------------------------------------------------- */
-    const {
+      const {
       fullName,
       email,
       password,
@@ -96,8 +113,8 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       cityId,
       departmentId,
       qualificationId,
-      availability,       
-      shift,               
+      availability,      
+      shift,             
       isPresent = 0,
       passEntry = 0,
       sewaLocationId = 0,
@@ -156,10 +173,29 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       else genderValue = 3;
     }
 
+    /* --------------------------------------------------------
+        Map Availability and Shift to IDs
+    -------------------------------------------------------- */
+    const availableDayMap = await getAvailableDayMap(connection);
+    const shiftTimeMap = await getShiftTimeMap(connection);
+
+    const availableDayId =
+      typeof availability === "number"
+        ? availability
+        : availableDayMap[availability] || null;
+
+    const shiftTimeId =
+      typeof shift === "number"
+        ? shift
+        : shiftTimeMap[shift] || null;
+
+    /* --------------------------------------------------------
+       5️Hash Password + Login ID 
+    -------------------------------------------------------- */
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS); // hash password securely with bcrypt 
     const loginId = `${userType}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-    const paramArr = [
+      const paramArr = [
       "insert",
       0,
       userType,
@@ -175,9 +211,9 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       parseInt(stateId) || 0,
       parseInt(cityId) || 0,
       parseInt(qualificationId) || 0,
-      parseInt(departmentId) || 0, 
-      getAvailabilityId(availability),  
-      getShiftId(shift),               
+      parseInt(departmentId) || 0,
+      availableDayId,
+      shiftTimeId,
       filePaths.profileImagePath || "",
       filePaths.certificatePath || "",
       parseInt(isPresent) || 0,
