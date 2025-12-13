@@ -5,7 +5,7 @@ import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import { RootState } from "@app/store";
 import { useSelector } from "react-redux";
 
-export const LoginDetailsStep = ({ form, prevStep }: any) => {
+export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled }: any) => {
   const {
     register,
     watch,
@@ -126,19 +126,31 @@ export const LoginDetailsStep = ({ form, prevStep }: any) => {
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mt-8 sm:mt-10 w-full">
         <Button
-        size="lg"
+          size="lg"
           onClick={prevStep}
           className="w-full sm:w-auto px-6 py-2 bg-primary rounded-2xl font-bold text-white"
         >
           Previous
         </Button>
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full sm:w-auto px-6 py-2 bg-green-600 rounded-2xl font-bold text-white"
-        >
-          Submit
-        </Button>
+        <div className="flex gap-4 w-full sm:w-auto">
+          <Button
+            size="lg"
+            onClick={reset}
+            type="button"
+            className="w-full sm:w-auto px-6 py-2 bg-red-600 rounded-2xl font-bold text-white"
+          >
+            Reset
+          </Button>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={disabled}
+            onClick={() => setDisabled(true)}
+            className="w-full sm:w-auto px-6 py-2 bg-green-600 rounded-2xl font-bold text-white"
+          >
+            Submit
+          </Button>
+        </div>
       </div>
     </>
   );

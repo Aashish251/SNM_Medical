@@ -38,7 +38,7 @@ export default function MasterSearchPage() {
     direction: "ASC" as "ASC" | "DESC",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit, setPageLimit] = useState(90);
+  const [pageLimit, setPageLimit] = useState(10);
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
   const [triggerGetChangeStatus] = useGetChangeStatusMutation();
@@ -52,8 +52,8 @@ export default function MasterSearchPage() {
     stateId: null,
     isPresent: null,
     passEntry: null,
-    limit: pageLimit,
-    page: currentPage,
+    limit: 100000, // Fetch all for client-side pagination
+    page: 1,
     sortBy: "fullName",
     sortOrder: "ASC",
   });
@@ -198,8 +198,8 @@ export default function MasterSearchPage() {
         stateId: data?.stateId || null,
         isPresent: data?.isPresent || null,
         passEntry: data?.passEntry || null,
-        limit: pageLimit,
-        page: currentPage,
+        limit: 100000, // Fetch all for client-side pagination
+        page: 1,
         sortBy: sortState.column,
         sortOrder: sortState.direction,
       };

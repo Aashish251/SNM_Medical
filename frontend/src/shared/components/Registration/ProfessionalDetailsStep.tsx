@@ -15,6 +15,7 @@ export const ProfessionalDetailsStep = ({
   dropdownOption,
   nextStep,
   prevStep,
+  reset,
 }: any) => {
   const {
     control,
@@ -29,6 +30,45 @@ export const ProfessionalDetailsStep = ({
   const departments = Array.isArray(dropdownOption?.data?.departments)
     ? dropdownOption.data.departments
     : [];
+
+  const availableDays = Array.isArray(dropdownOption?.data?.availableDays)
+    ? dropdownOption.data.availableDays
+    : [];
+
+  const shiftTimes = Array.isArray(dropdownOption?.data?.shiftTimes)
+    ? dropdownOption.data.shiftTimes
+    : [];
+
+  const handleAlphabeticInput = (
+    e: any,
+    registration: any
+  ) => {
+    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+    registration.onChange(e);
+  };
+
+  const lastSewaRegister = register("lastSewa", {
+    pattern: {
+      value: /^[A-Za-z\s]+$/,
+      message:
+        "Last Sewa should contain only alphabets and spaces (no numbers or symbols)",
+    },
+  });
+
+  const recommendedByRegister = register("recommendedBy", {
+    pattern: {
+      value: /^[A-Za-z\s]+$/,
+      message:
+        "Recommended By should contain only alphabets and spaces (no numbers or symbols)",
+    },
+  });
+
+  const samagamHeldInRegister = register("samagamHeldIn", {
+    pattern: {
+      value: /^[A-Za-z\s]+$/,
+      message: "Enter Samagam held In (no numbers or symbols)",
+    },
+  });
 
   return (
     <div className="p-4 sm:p-8">
@@ -59,9 +99,9 @@ export const ProfessionalDetailsStep = ({
           label="Available Days"
           name="availability"
           control={control}
-          options={DUMMY.availabilities}
-          labelKey="label"
-          valueKey="value"
+          options={availableDays}
+          labelKey="available_day"
+          valueKey="id"
           required
           placeholder="Select Availability"
         />
@@ -70,9 +110,9 @@ export const ProfessionalDetailsStep = ({
           label="Preferred Shift Time"
           name="shift"
           control={control}
-          options={DUMMY.shifts}
-          labelKey="label"
-          valueKey="value"
+          options={shiftTimes}
+          labelKey="shifttime"
+          valueKey="id"
           required
           placeholder="Select Shift"
         />
@@ -87,39 +127,30 @@ export const ProfessionalDetailsStep = ({
 
         <TextField
           label="Samagam Held In"
-          register={register("samagamHeldIn", {
-            pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
-              message:
-                "Enter Samagam held In (no numbers or symbols)",
-            },
-          })}
+          register={{
+            ...samagamHeldInRegister,
+            onChange: (e) => handleAlphabeticInput(e, samagamHeldInRegister),
+          }}
           placeholder="Enter samagam held in"
           error={errors.samagamHeldIn}
         />
 
         <TextField
           label="Sewa Performed During Last Samagam"
-          register={register("lastSewa", {
-            pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
-              message:
-                "Last Sewa should contain only alphabets and spaces (no numbers or symbols)",
-            },
-          })}
+          register={{
+            ...lastSewaRegister,
+            onChange: (e) => handleAlphabeticInput(e, lastSewaRegister),
+          }}
           placeholder="Enter last Sewa performed"
           error={errors.lastSewa}
         />
 
         <TextField
           label="Recommended By"
-          register={register("recommendedBy", {
-            pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
-              message:
-                "Recommended By should contain only alphabets and spaces (no numbers or symbols)",
-            },
-          })}
+          register={{
+            ...recommendedByRegister,
+            onChange: (e) => handleAlphabeticInput(e, recommendedByRegister),
+          }}
           placeholder="Enter recommender's name"
           error={errors.recommendedBy}
         />
@@ -129,7 +160,7 @@ export const ProfessionalDetailsStep = ({
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
           required
           register={register("certificate", {
-            required: "Certificate is required",
+            required: "Please upload a certificate",
             validate: {
               fileType: (fileList) => {
                 if (!fileList || fileList.length === 0)
@@ -168,15 +199,34 @@ export const ProfessionalDetailsStep = ({
               },
             },
           })}
-          error={errors.profilePic}
+          error={errors.certificate}
         />
       </div>
 
       <div className="mt-8 flex justify-between">
-        <Button size="lg" className="bg-primary rounded-2xl font-bold text-white" onClick={prevStep}>
+        <Button
+          size="lg"
+          className="bg-primary rounded-2xl font-bold text-white"
+          onClick={prevStep}
+        >
           Previous
         </Button>
-        <Button size="lg" onClick={nextStep} className="bg-primary rounded-2xl font-bold text-white">Next</Button>
+        <div className="flex gap-4 w-full sm:w-auto">
+          <Button
+            size="lg"
+            className="bg-red-600 rounded-2xl font-bold text-white"
+            onClick={reset}
+          >
+            Reset
+          </Button>
+          <Button
+            size="lg"
+            onClick={nextStep}
+            className="bg-primary rounded-2xl font-bold text-white"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -33,15 +33,14 @@ export const FileUploadField = ({
         disabled={disabled}
         {...register}
         className={cn(
-          "h-auto border border-gray-300 rounded-md px-3 py-2 file:border-0 file:rounded-sm file:bg-blue-100 file:mr-3 file:px-4 file:py-2 file:cursor-pointer",
-          error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+          "h-9 border border-gray-300 rounded-md px-2 py-1 file:border-0 file:rounded-sm file:bg-blue-100 file:mr-3 file:px-4 file:py-1 file:cursor-pointer"
         )}
       />
 
-       {/* Helper Text */}
-        {/* <p className="text-xs text-gray-500">
-          Supported formats: JPG, PNG, GIF, BMP, WEBP (max 5MB)
-        </p> */}
+      {/* Helper Text */}
+      <p className="text-xs text-gray-500">
+        Upload Certificate ({accept.toLocaleUpperCase().replace(/\./g, " ")}) (max 5MB)
+      </p>
 
       {error?.message && (
         <p className="text-sm text-red-500 mt-1">{error.message}</p>

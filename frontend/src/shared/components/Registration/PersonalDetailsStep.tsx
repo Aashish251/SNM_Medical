@@ -35,7 +35,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     formState: { errors },
     watch,
   } = form;
-  
+
 
   const states = Array.isArray(dropdownOption?.data?.states)
     ? dropdownOption.data.states
@@ -80,7 +80,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <NumberField
           label="Contact Number"
           required
-          maxLength={13}
+          maxLength={10}
           register={register("mobileNo", {
             required: "Contact number is required",
             pattern: {

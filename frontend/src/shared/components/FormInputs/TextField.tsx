@@ -44,6 +44,7 @@ export const TextField = ({
         readOnly={readOnly}
         disabled={disabled}
         autoComplete={autoComplete}
+        max={type === "date" ? new Date().toISOString().split("T")[0] : undefined}
         {...register}
         {...inputProps}
       />

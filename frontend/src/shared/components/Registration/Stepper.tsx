@@ -1,6 +1,5 @@
 import React from "react";
-import { StepperProps } from "../../../features/register/type";
-
+import { StepperProps } from "@shared/types/CommonType";
 export const Stepper: React.FC<StepperProps> = ({
   steps,
   currentStep,
@@ -33,11 +32,10 @@ export const Stepper: React.FC<StepperProps> = ({
               onClick={() =>
                 onStepClick && isActiveOrCompleted && onStepClick(step.id)
               }
-              className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-full font-semibold transition-colors duration-300 ${
-                isActiveOrCompleted
+              className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-full font-semibold transition-colors duration-300 ${isActiveOrCompleted
                   ? "bg-to-two-right-theme-gradient text-white shadow-md hover:shadow-lg"
                   : "bg-gray-200 text-gray-600"
-              }`}
+                }`}
               aria-current={isActiveOrCompleted ? "step" : undefined}
               aria-label={`Step ${step.id}: ${step.title}`}
             >

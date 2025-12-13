@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { STEPS } from "@shared/config/common";
 import { useRegistrationForm } from "./hooks/useRegistrationForm";
@@ -16,6 +16,7 @@ import { FormValues } from "@shared/types/CommonType";
 const Register = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
+  const [disabled, setDisabled] = useState(false);
   const {
     currentStep,
     setCurrentStep,
@@ -27,7 +28,50 @@ const Register = () => {
     form,
   } = useRegistrationForm();
 
-  const { handleSubmit, reset } = form;
+  const { handleSubmit, reset, resetField } = form;
+
+  // Field definitions for each step
+  const step1Fields: (keyof FormValues)[] = [
+    "title",
+    "fullName",
+    "mobileNo",
+    "gender",
+    "email",
+    "dateOfBirth",
+    "age",
+    "stateId",
+    "cityId",
+    "profilePic",
+    "address",
+  ];
+
+  const step2Fields: (keyof FormValues)[] = [
+    "qualificationId",
+    "departmentId",
+    "availability",
+    "shift",
+    "experience",
+    "samagamHeldIn",
+    "lastSewa",
+    "recommendedBy",
+    "certificate",
+  ];
+
+  const step3Fields: (keyof FormValues)[] = [
+    "password",
+    "confirmPassword",
+    "favoriteFood",
+    "childhoodNickname",
+    "motherMaidenName",
+    "hobbies",
+    "remark",
+  ];
+
+  const resetFields = (fields: (keyof FormValues)[]) => {
+    fields.forEach((field) => {
+      resetField(field);
+    });
+  };
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -51,7 +95,6 @@ const Register = () => {
       }
 
       const formData = new FormData();
-     
 
       // Required fields
       formData.append("fullName", data.fullName);
@@ -83,7 +126,6 @@ const Register = () => {
       formData.append("motherMaidenName", data.motherMaidenName || "");
       formData.append("hobbies", data.hobbies || "");
 
-
       // Handle file uploads
       if (data.profilePic instanceof FileList && data.profilePic.length > 0) {
         formData.append("profilePic", data.profilePic[0]);
@@ -104,8 +146,8 @@ const Register = () => {
         success: "Registered successfully!",
         error: "Failed to register",
       });
-
-      // navigate("/login"); // redirect on success
+      setDisabled(false);
+      navigate("/login"); // redirect on success
     } catch (error: any) {
       console.error("Registration failed:", error);
       toast.error(error?.data?.message || "Something went wrong");
@@ -143,7 +185,7 @@ const Register = () => {
               cities={cities}
               citiesLoading={citiesLoading}
               nextStep={nextStep}
-              reset={reset}
+              reset={() => resetFields(step1Fields)}
             />
           )}
 
@@ -153,11 +195,18 @@ const Register = () => {
               dropdownOption={dropdownOption}
               nextStep={nextStep}
               prevStep={prevStep}
+              reset={() => resetFields(step2Fields)}
             />
           )}
 
           {currentStep === 3 && (
-            <LoginDetailsStep form={form} prevStep={prevStep} />
+            <LoginDetailsStep
+              form={form}
+              prevStep={prevStep}
+              disabled={disabled}
+              setDisabled={setDisabled}
+              reset={() => resetFields(step3Fields)}
+            />
           )}
         </motion.form>
       </div>
