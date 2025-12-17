@@ -5,6 +5,7 @@ import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import { RootState } from "@app/store";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { handleAlphabeticInput } from "@shared/lib/utils";
 
 export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled }: any) => {
   const {
@@ -57,6 +58,8 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
               message:
                 "Favorite food should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "favoriteFood", form.setValue),
           })}
           placeholder="Enter favorite food"
           error={errors.favoriteFood}
@@ -72,6 +75,8 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
               message:
                 "Childhood nickname should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "childhoodNickname", form.setValue),
           })}
           placeholder="Enter childhood nickname"
           error={errors.childhoodNickname}
@@ -87,6 +92,8 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
               message:
                 "Mother's maiden name should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "motherMaidenName", form.setValue),
           })}
           placeholder="Enter mother's maiden name"
           error={errors.motherMaidenName}
@@ -102,6 +109,8 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
               message:
                 "Hobbies should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "hobbies", form.setValue),
           })}
           placeholder="What are your hobbies?"
           error={errors.hobbies}

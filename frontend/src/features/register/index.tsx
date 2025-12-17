@@ -48,8 +48,8 @@ const Register = () => {
   const step2Fields: (keyof FormValues)[] = [
     "qualificationId",
     "departmentId",
-    "availability",
-    "shift",
+    "availableDayId",
+    "shiftTimeId",
     "experience",
     "samagamHeldIn",
     "lastSewa",
@@ -113,8 +113,8 @@ const Register = () => {
       // Optional fields
       formData.append("title", data.title || "Mr");
       formData.append("age", String(data.age || 0));
-      formData.append("shift", data.shift || "");
-      formData.append("availability", data.availability || "");
+      formData.append("shiftTimeId", data.shiftTimeId || "");
+      formData.append("availableDayId", data.availableDayId || "");
       formData.append("gender", data.gender || "Male");
       formData.append("userType", data.userType || "ms");
       formData.append("experience", String(data.experience || 0));

@@ -9,6 +9,7 @@ import {
   TextField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
+import { handleAlphabeticInput } from "@shared/lib/utils";
 
 export const ProfessionalDetailsStep = ({
   form,
@@ -38,37 +39,6 @@ export const ProfessionalDetailsStep = ({
   const shiftTimes = Array.isArray(dropdownOption?.data?.shiftTimes)
     ? dropdownOption.data.shiftTimes
     : [];
-
-  const handleAlphabeticInput = (
-    e: any,
-    registration: any
-  ) => {
-    e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-    registration.onChange(e);
-  };
-
-  const lastSewaRegister = register("lastSewa", {
-    pattern: {
-      value: /^[A-Za-z\s]+$/,
-      message:
-        "Last Sewa should contain only alphabets and spaces (no numbers or symbols)",
-    },
-  });
-
-  const recommendedByRegister = register("recommendedBy", {
-    pattern: {
-      value: /^[A-Za-z\s]+$/,
-      message:
-        "Recommended By should contain only alphabets and spaces (no numbers or symbols)",
-    },
-  });
-
-  const samagamHeldInRegister = register("samagamHeldIn", {
-    pattern: {
-      value: /^[A-Za-z\s]+$/,
-      message: "Enter Samagam held In (no numbers or symbols)",
-    },
-  });
 
   return (
     <div className="p-4 sm:p-8">
@@ -127,30 +97,45 @@ export const ProfessionalDetailsStep = ({
 
         <TextField
           label="Samagam Held In"
-          register={{
-            ...samagamHeldInRegister,
-            onChange: (e) => handleAlphabeticInput(e, samagamHeldInRegister),
-          }}
+          register={register("samagamHeldIn", {
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Samagam Held In should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "samagamHeldIn", form.setValue),
+          })}
           placeholder="Enter samagam held in"
           error={errors.samagamHeldIn}
         />
 
         <TextField
           label="Sewa Performed During Last Samagam"
-          register={{
-            ...lastSewaRegister,
-            onChange: (e) => handleAlphabeticInput(e, lastSewaRegister),
-          }}
+          register={register("lastSewa", {
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Last Sewa should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "lastSewa", form.setValue),
+          })}
           placeholder="Enter last Sewa performed"
           error={errors.lastSewa}
         />
 
         <TextField
           label="Recommended By"
-          register={{
-            ...recommendedByRegister,
-            onChange: (e) => handleAlphabeticInput(e, recommendedByRegister),
-          }}
+          register={register("recommendedBy", {
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Recommended By should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "recommendedBy", form.setValue),
+          })}
           placeholder="Enter recommender's name"
           error={errors.recommendedBy}
         />

@@ -11,6 +11,7 @@ import {
   TextareaField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
+import { handleAlphabeticInput } from "@shared/lib/utils";
 
 interface PersonalDetailsStepProps {
   form: UseFormReturn<FormValues>;
@@ -71,6 +72,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               message:
                 "Full name should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "fullName", form.setValue),
           })}
           placeholder="Enter full name"
           error={errors.fullName}

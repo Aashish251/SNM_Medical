@@ -19,3 +19,12 @@ export const calculateAge = (dobString: string) => {
   return calculatedAge;
 };
 
+export const handleAlphabeticInput = (
+  e: React.ChangeEvent<HTMLInputElement>,
+  fieldName: any,
+  setValue: any
+) => {
+  const value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+  setValue(fieldName, value, { shouldValidate: true });
+};
+

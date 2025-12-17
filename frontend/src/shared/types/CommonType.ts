@@ -153,8 +153,8 @@ export type FormValues = {
 
   qualificationId: string;
   departmentId: string;
-  availability: string;
-  shift: string;
+  availableDayId: string;
+  shiftTimeId: string;
   experience: string;
   lastSewa: string;
   recommendedBy: string;
