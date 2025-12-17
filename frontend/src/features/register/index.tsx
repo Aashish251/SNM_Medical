@@ -76,6 +76,7 @@ const Register = () => {
   const onSubmit = async (data: FormValues) => {
     try {
       console.log("Form submission data:", data);
+      setDisabled(true);
 
       // Validate required fields
       const requiredFields = [
@@ -149,6 +150,7 @@ const Register = () => {
       setDisabled(false);
       navigate("/login"); // redirect on success
     } catch (error: any) {
+      setDisabled(false);
       console.error("Registration failed:", error);
       toast.error(error?.data?.message || "Something went wrong");
     }

@@ -146,7 +146,6 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
             type="submit"
             size="lg"
             disabled={disabled}
-            onClick={() => setDisabled(true)}
             className="w-full sm:w-auto px-6 py-2 bg-green-600 rounded-2xl font-bold text-white"
           >
             Submit
