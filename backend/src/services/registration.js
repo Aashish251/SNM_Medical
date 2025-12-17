@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const { promisePool } = require("../config/database");
 const { sanitizeInput } = require("../utils/sanitize");
 const { validators } = require("../utils/validators");
-const BCRYPT_ROUNDS = 12; 
+const BCRYPT_ROUNDS = 12;
 
 
 exports.getDropdownData = async () => {
@@ -42,7 +42,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
   const connection = await promisePool.getConnection();
 
   try {
-      const {
+    const {
       fullName,
       email,
       password,
@@ -56,7 +56,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       departmentId,
       qualificationId,
       availableDayId,
-      shiftTimeId = 0,            
+      shiftTimeId,
       isPresent = 0,
       passEntry = 0,
       sewaLocationId = 0,
@@ -120,8 +120,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
     -------------------------------------------------------- */
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS); // hash password securely with bcrypt 
     const loginId = `${userType}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-
-      const paramArr = [
+    const paramArr = [
       "insert",
       0,
       userType,
