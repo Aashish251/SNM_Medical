@@ -98,7 +98,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           name="gender"
           control={control}
           options={DUMMY.genders}
-          valueKey="value"
+          valueKey="id"
           labelKey="label"
           required
           placeholder="Select gender"

@@ -133,9 +133,8 @@ export function DataTable<T extends Record<string, any>>({
     const active = sortState.column === header;
     return (
       <span
-        className={`inline-flex items-center text-xs transition-opacity ${
-          active ? "opacity-100" : "opacity-50"
-        }`}
+        className={`inline-flex items-center text-xs transition-opacity ${active ? "opacity-100" : "opacity-50"
+          }`}
         aria-hidden
       >
         {active ? (
@@ -202,9 +201,8 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={String(col.key)}
                   onClick={() => handleHeaderClick(String(col.key), col.sortable)}
-                  className={`px-4 py-3 text-left align-middle ${
-                    col.sortable ? "cursor-pointer select-none" : ""
-                  }`}
+                  className={`px-4 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""
+                    }`}
                   aria-sort={
                     sortState.column === String(col.key)
                       ? sortState.direction === "ASC"
@@ -236,9 +234,8 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={String(col.key)}
                   onClick={() => handleHeaderClick(String(col.key), col.sortable)}
-                  className={`px-8 py-3 text-left align-middle ${
-                    col.sortable ? "cursor-pointer select-none" : ""
-                  }`}
+                  className={`px-8 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""
+                    }`}
                   aria-sort={
                     sortState.column === String(col.key)
                       ? sortState.direction === "ASC"
@@ -282,13 +279,12 @@ export function DataTable<T extends Record<string, any>>({
                 return (
                   <TableRow
                     key={keyStr || idx}
-                    className={`transition-colors group ${
-                      isSelected
-                        ? "bg-blue-50"
-                        : idx % 2 === 0
+                    className={`transition-colors group ${isSelected
+                      ? "bg-blue-50"
+                      : idx % 2 === 0
                         ? "bg-white"
                         : "bg-gray-50"
-                    } hover:bg-blue-50/60 focus-within:ring-2 focus-within:ring-blue-100`}
+                      } hover:bg-blue-50/60 focus-within:ring-2 focus-within:ring-blue-100`}
                     tabIndex={-1}
                   >
                     {config.showCheckbox && (

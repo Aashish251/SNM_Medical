@@ -97,7 +97,7 @@ export const ProfessionalDetailsStep = ({
 
         <SelectField
           label="Available Days"
-          name="availability"
+          name="availableDayId"
           control={control}
           options={availableDays}
           labelKey="available_day"
@@ -108,7 +108,7 @@ export const ProfessionalDetailsStep = ({
 
         <SelectField
           label="Preferred Shift Time"
-          name="shift"
+          name="shiftTimeId"
           control={control}
           options={shiftTimes}
           labelKey="shifttime"

@@ -54,37 +54,36 @@ export default function MasterSearchPage() {
     passEntry: null,
     limit: 100000, // Fetch all for client-side pagination
     page: 1,
-    sortBy: "fullName",
+    sortBy: "regId",
     sortOrder: "ASC",
   });
 
-  const { data: masterSearchData, refetch: triggerMasterSearch } =
+  const { data: masterSearchData, refetch: triggerMasterSearch, isFetching } =
     useMasterSearchQuery(searchPayload);
-  const [users, setUsers] = useState<User[]>([]);
 
-  // console.log(searchPayload)
+  // Removed users state
 
-  // Update users when masterSearchData changes
-  useEffect(() => {
-    if (masterSearchData?.data && Array.isArray(masterSearchData.data)) {
-      setUsers(masterSearchData.data);
-    }
-  }, [masterSearchData]);
-
-  // Update searchPayload when sortState changes to trigger API sort
+  // Update searchPayload when sortState changes
   useEffect(() => {
     setSearchPayload(prev => ({
       ...prev,
-      sortBy: sortState.column || "fullName",
+      sortBy: sortState.column || "regId",
       sortOrder: sortState.direction,
     }));
   }, [sortState.column, sortState.direction]);
 
-  const totalPages = Math.max(1, Math.ceil(users.length / pageLimit));
-  const pagedUsers = users.slice(
+  // Client-side pagination logic
+  const allUsers = masterSearchData?.data || [];
+  const totalRecords = allUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageLimit));
+
+  const pagedUsers = allUsers.slice(
     (currentPage - 1) * pageLimit,
     currentPage * pageLimit
   );
+
+  // If data is not an array (e.g. error), default to empty
+  const safeUsers = Array.isArray(pagedUsers) ? pagedUsers : [];
 
   // Filter Form
   const {
@@ -189,6 +188,9 @@ export default function MasterSearchPage() {
 
   const onSearch = async (data: any) => {
     try {
+      // Reset to page 1 for new search
+      setCurrentPage(1);
+
       const newPayload = {
         searchKey: data?.searchTerm?.trim() || "",
         departmentId: data?.departmentId || null,
@@ -198,7 +200,7 @@ export default function MasterSearchPage() {
         stateId: data?.stateId || null,
         isPresent: data?.isPresent || null,
         passEntry: data?.passEntry || null,
-        limit: 100000, // Fetch all for client-side pagination
+        limit: 100000,
         page: 1,
         sortBy: sortState.column,
         sortOrder: sortState.direction,
@@ -209,28 +211,10 @@ export default function MasterSearchPage() {
       // Update the search payload which will trigger a new search
       setSearchPayload(newPayload);
 
-      // Show loading toast
-      toast.promise(
-        new Promise((resolve) => {
-          // Wait for the next render cycle when masterSearchData will be updated
-          setTimeout(resolve, 100);
-        }),
-        {
-          loading: "Searching users...",
-          success: "Search completed successfully!",
-          error: "Failed to fetch search results.",
-        }
-      );
+      // No need for manual toast here, RQ handles loading state via isFetching if desired
     } catch (error: any) {
       console.error("Search error:", error);
-      if (error?.status === "FETCH_ERROR") {
-        toast.error("Network error — please check your connection.");
-      } else if (error?.data?.message) {
-        toast.error(error.data.message);
-      } else {
-        toast.error(error.message || "Something went wrong while searching.");
-      }
-      setUsers([]);
+      toast.error("Something went wrong while searching.");
     }
   };
 
@@ -539,7 +523,7 @@ export default function MasterSearchPage() {
       <section className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
         <div className="overflow-x-auto">
           <DataTable
-            data={pagedUsers}
+            data={safeUsers}
             config={userTableConfig}
             changeUserStatue={changeUserStatue}
             selectedIds={selectedIds}
@@ -561,7 +545,7 @@ export default function MasterSearchPage() {
           pageLimit={pageLimit}
           onLimitChange={(limit) => {
             setPageLimit(limit);
-            setCurrentPage(1);
+            setCurrentPage(1); // Reset to page 1 on limit change
           }}
           onPageChange={setCurrentPage}
         />

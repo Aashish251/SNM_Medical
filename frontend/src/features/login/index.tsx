@@ -19,9 +19,9 @@ const Login = () => {
     useLoginForm();
 
   return (
-    <div className="bg-[#f9f9f6] min-h-screen flex flex-col overflow-hidden space-y-6">
-      <div className="pt-24 flex-1 flex flex-col lg:flex-row items-center justify-center w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-1 w-full max-w-5xl mx-auto shadow-2xl rounded-3xl bg-white/60 flex-col lg:flex-row max-h-[90vh] overflow-hidden">
+    <div className="bg-[#f9f9f6] h-full flex flex-col overflow-hidden space-y-6">
+      <div className="py-24 flex-1 flex flex-col lg:flex-row items-center justify-center w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-1 w-full max-w-5xl mx-auto shadow-2xl rounded-3xl bg-white/60 flex-col lg:flex-row lg:max-h-[90vh] overflow-hidden">
           {/* Left Section */}
           <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 bg-[#f9f9f6]">
             <motion.div

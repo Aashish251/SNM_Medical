@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { STEPS } from "@shared/config/common";
 import { useUpdateProfileForm } from "./hooks/useUpdateProfileForm";
@@ -19,6 +19,7 @@ import { FormValues } from "@shared/types/CommonType";
 const UpdateProfile = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
+  const [disabled, setDisabled] = useState(false);
 
   const { id: regId } = useParams();
 
@@ -33,7 +34,50 @@ const UpdateProfile = () => {
     form,
   } = useUpdateProfileForm();
 
-  const { handleSubmit, reset } = form;
+  const { handleSubmit, reset, resetField } = form;
+
+  // Field definitions for each step
+  const step1Fields: (keyof FormValues)[] = [
+    "title",
+    "fullName",
+    "mobileNo",
+    "gender",
+    "email",
+    "dateOfBirth",
+    "age",
+    "stateId",
+    "cityId",
+    "profilePic",
+    "address",
+  ];
+
+  const step2Fields: (keyof FormValues)[] = [
+    "qualificationId",
+    "departmentId",
+    "availability",
+    "shift",
+    "experience",
+    "samagamHeldIn",
+    "lastSewa",
+    "recommendedBy",
+    "certificate",
+  ];
+
+  const step3Fields: (keyof FormValues)[] = [
+    "password",
+    "confirmPassword",
+    "favoriteFood",
+    "childhoodNickname",
+    "motherMaidenName",
+    "hobbies",
+    "remark",
+  ];
+
+  const resetFields = (fields: (keyof FormValues)[]) => {
+    fields.forEach((field) => {
+      resetField(field);
+    });
+  };
 
   // 🔹 Call API as soon as we have an ID
   const {
@@ -89,7 +133,7 @@ const UpdateProfile = () => {
         success: "Registered successfully!",
         error: "Failed to register",
       });
-
+      setDisabled(false);
       navigate("/login");
     } catch (error: any) {
       console.error("Registration failed:", error);
@@ -128,7 +172,7 @@ const UpdateProfile = () => {
               cities={cities}
               citiesLoading={citiesLoading}
               nextStep={nextStep}
-              reset={reset}
+              reset={() => resetFields(step1Fields)}
             />
           )}
 
@@ -138,11 +182,18 @@ const UpdateProfile = () => {
               dropdownOption={dropdownOption}
               nextStep={nextStep}
               prevStep={prevStep}
+              reset={() => resetFields(step2Fields)}
             />
           )}
 
           {currentStep === 3 && (
-            <LoginDetailsStep form={form} prevStep={prevStep} />
+            <LoginDetailsStep
+              form={form}
+              disabled={disabled}
+              setDisabled={setDisabled}
+              prevStep={prevStep}
+              reset={() => resetFields(step3Fields)}
+            />
           )}
         </motion.form>
       </div>

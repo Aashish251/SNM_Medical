@@ -4,6 +4,7 @@ import { TextareaField, TextField } from "@shared/components/FormInputs";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import { RootState } from "@app/store";
 import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
 export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled }: any) => {
   const {
@@ -13,12 +14,12 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
   } = form;
 
   const userType = useSelector((state: RootState) => state.auth.userType);
-
+  const { id: regId } = useParams();
   return (
     <>
       {/* Responsive grid for inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full">
-        <PasswordField
+        {!regId && <><PasswordField
           label="Password"
           autoComplete="new-password"
           required
@@ -33,18 +34,18 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           error={errors.password}
         />
 
-        <PasswordField
-          label="Confirm Password"
-          autoComplete="confirm-password"
-          required
-          register={register("confirmPassword", {
-            required: "Confirm password",
-            validate: (v: string) =>
-              v === watch("password") || "Passwords do not match",
-          })}
-          placeholder="Re-enter password"
-          error={errors.confirmPassword}
-        />
+          <PasswordField
+            label="Confirm Password"
+            autoComplete="confirm-password"
+            required
+            register={register("confirmPassword", {
+              required: "Confirm password",
+              validate: (v: string) =>
+                v === watch("password") || "Passwords do not match",
+            })}
+            placeholder="Re-enter password"
+            error={errors.confirmPassword}
+          /></>}
 
         <TextField
           label="What is your favorite food?"

@@ -42,7 +42,7 @@ export interface RegistrationDropdownResponse {
     cities: CityOption[];
     departments: string[];
     qualifications: string[];
-    sewaLocations:SewaLocationOption[];
+    sewaLocations: SewaLocationOption[];
   };
 }
 
@@ -73,6 +73,7 @@ export interface SearchResponse {
   status: boolean;
   message: string;
   data: User[];
+  total?: number;
 }
 
 
@@ -128,7 +129,7 @@ export interface RegistrationDropdownResponse {
     cities: CityOption[];
     departments: string[];
     qualifications: string[];
-    sewaLocations:SewaLocationOption[];
+    sewaLocations: SewaLocationOption[];
   };
 }
 
