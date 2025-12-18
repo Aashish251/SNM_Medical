@@ -10,7 +10,7 @@ exports.addUserRole = async (req, res) => {
       isDeleted,
       isAdmin,
       remark,
-      sewaLocationId,
+      sewaLocation,
       samagamHeldIn
     } = req.body;
 
@@ -28,7 +28,7 @@ exports.addUserRole = async (req, res) => {
       isDeleted,
       isAdmin,
       remark,
-      sewaLocationId,
+      sewaLocation,
       samagamHeldIn
     });
 

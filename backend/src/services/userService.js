@@ -7,7 +7,7 @@ exports.addUserRole = async ({
   isDeleted = null,
   isAdmin = null,
   remark = null,
-  sewaLocationId = null,
+  sewaLocation = null,
   samagamHeldIn = null
 }) => {
   let connection;
@@ -25,7 +25,7 @@ exports.addUserRole = async ({
         boolToTinyInt(isDeleted),
         boolToTinyInt(isAdmin),
         remark,
-        sewaLocationId,
+        sewaLocation,
         samagamHeldIn
       ]
     );
@@ -137,7 +137,7 @@ exports.getUserProfile = async (userId) => {
       isPresent: toInt(user.is_present, 0),
       passEntry: toInt(user.pass_entry, 0),
 
-      sewaLocationId: toInt(user.sewa_location_id, 0),
+      sewaLocation: toInt(user.sewa_location_id, 0),
 
       // other fields
       remark: user.remark || "",
