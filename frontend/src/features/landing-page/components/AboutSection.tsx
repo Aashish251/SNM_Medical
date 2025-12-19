@@ -10,8 +10,14 @@ import {
   HOME_ABOUT_SECTION_TITLE,
 } from "@shared/constants";
 
+interface AboutItem {
+  image: string;
+  title: string;
+  content: string;
+}
+
 interface AboutSectionProps {
-  aboutImages: string[];
+  aboutImages: AboutItem[];
 }
 
 export default function AboutSection({ aboutImages }: AboutSectionProps) {
@@ -30,13 +36,13 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
       </div>
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 overflow-hidden">
         <Carousel
-          slides={aboutImages.map((src, index) => (
+          slides={aboutImages.map((item, index) => (
             <div key={index} className="outline-none">
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 {/* Image Side */}
                 <div className="relative rounded-xl overflow-hidden h-80 md:h-96">
                   <img
-                    src={src}
+                    src={item?.image}
                     alt={`About Slide ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -45,9 +51,9 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
                 {/* Content Side */}
                 <div>
                   <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                    {HOME_ABOUT_SECTION_TITLE}
+                    {item?.title}
                   </h3>
-                  <p className="text-gray-600 mb-6">{HOME_ABOUT_SECTION_CONTENT}</p>
+                  <p className="text-gray-600 mb-6 whitespace-pre-line">{item?.content}</p>
                   <motion.div whileHover={{ scale: 1.05 }}>
                     <Link
                       to="/about"
@@ -61,8 +67,8 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
             </div>
           ))}
           autoPlay
-          dots={true}
-          interval={4000}
+          dots={false}
+          interval={2000}
           className="pb-12"
           settings={{
             arrows: false,

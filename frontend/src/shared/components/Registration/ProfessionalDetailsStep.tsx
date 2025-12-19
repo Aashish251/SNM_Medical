@@ -17,6 +17,7 @@ export const ProfessionalDetailsStep = ({
   nextStep,
   prevStep,
   reset,
+  existingCertificate,
 }: any) => {
   const {
     control,
@@ -142,14 +143,16 @@ export const ProfessionalDetailsStep = ({
 
         <FileUploadField
           label="Upload Certificate"
+          existingUrl={existingCertificate}
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
           required
           register={register("certificate", {
-            required: "Please upload a certificate",
             validate: {
               fileType: (fileList) => {
-                if (!fileList || fileList.length === 0)
+                if (!fileList || (fileList instanceof FileList && fileList.length === 0)) {
+                  if (existingCertificate) return true;
                   return "Please upload a certificate";
+                }
 
                 const allowedExtensions = [
                   "jpg",

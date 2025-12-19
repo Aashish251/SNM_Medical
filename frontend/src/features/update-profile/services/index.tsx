@@ -7,9 +7,9 @@ export const UpdateProfileApi = createApi({
   baseQuery: customBaseQueryWithAuth,
   tagTypes: [],
   endpoints: (builder) => ({
-    registerUser: builder.mutation<any, FormData>({
-      query: (formData) => ({
-        url: `/api/user/update-profile/${formData?.id}`,
+    registerUser: builder.mutation<any, { id: string | number; formData: FormData }>({
+      query: ({ id, formData }) => ({
+        url: `/api/user/update-profile/${id}`,
         method: "PUT",
         body: formData,
       }),

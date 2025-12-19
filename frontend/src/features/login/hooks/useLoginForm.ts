@@ -43,7 +43,7 @@ export const useLoginForm = () => {
       const payload = {
         ...(isEmail
           ? { email: data.identifier }
-          : { contact: data.identifier }),
+          : { mobileNo: data.identifier }),
         password: data.password,
         role:
           role === SNM_ADMIN_USERTYPE ? SNM_ADMIN_USERTYPE : SNM_MS_USERTYPE,

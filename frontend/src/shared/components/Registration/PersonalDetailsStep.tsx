@@ -20,6 +20,7 @@ interface PersonalDetailsStepProps {
   citiesLoading: boolean;
   nextStep: () => void;
   reset: () => void;
+  existingProfilePic?: string;
 }
 
 export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
@@ -29,6 +30,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   citiesLoading,
   nextStep,
   reset,
+  existingProfilePic,
 }) => {
   const {
     control,
@@ -170,18 +172,20 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         {/* Profile Picture */}
         <FileUploadField
           label="Profile Picture"
+          existingUrl={existingProfilePic}
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
           register={register("profilePic", {
             validate: {
               fileType: (fileInput) => {
                 let file: File | undefined;
 
-                if (!fileInput) {
+                if (!fileInput || (fileInput instanceof FileList && fileInput.length === 0)) {
+                  // If we have an existing picture and no new file is selected, it's valid
+                  if (existingProfilePic) return true;
                   return "Please upload a profile picture";
                 }
 
                 if (fileInput instanceof FileList) {
-                  if (fileInput.length === 0) return "Please upload a profile picture";
                   file = fileInput[0];
                 } else if (fileInput instanceof File) {
                   file = fileInput;

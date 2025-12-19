@@ -139,6 +139,7 @@ interface GetCitiesByStateResponse {
 }
 
 export type FormValues = {
+  id?: string | number;
   title: string;
   fullName: string;
   mobileNo: string;
@@ -149,7 +150,8 @@ export type FormValues = {
   address: string;
   stateId: string;
   cityId: string;
-  profilePic?: File | null;
+  profilePic?: File | string | null;
+  profileImage?: string | null;
 
   qualificationId: string;
   departmentId: string;
@@ -158,7 +160,7 @@ export type FormValues = {
   experience: string;
   lastSewa: string;
   recommendedBy: string;
-  certificate?: File | null;
+  certificate?: File | string | null;
   samagamHeldIn: string;
 
   password: string;
