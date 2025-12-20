@@ -7,11 +7,29 @@ exports.login = async (req, res) => {
     const result = await authService.login(req.body);
     sendResponse(res, 200, true, 'Login successful', result);
   } catch (error) {
-    const status =
-      /permission/i.test(error.message) || /invalid/i.test(error.message)
-        ? 401
-        : 500;
-    sendResponse(res, status, false, error.message);
+    // Determine status code based on error type/message
+    let status = 500;
+    
+    if (/invalid request/i.test(error.message)) {
+      status = 400; // Bad Request - missing required fields
+    } else if (
+      /permission/i.test(error.message) || 
+      /invalid/i.test(error.message) ||
+      /not authorized/i.test(error.message) ||
+      /deactivated/i.test(error.message) ||
+      /not approved/i.test(error.message)
+    ) {
+      status = 401; // Unauthorized - auth failed
+    }
+    
+    // Log the error for debugging
+    console.error('Login error:', {
+      message: error.message,
+      status,
+      timestamp: new Date().toISOString()
+    });
+    
+    sendResponse(res, status, false, error.message || 'An error occurred during login');
   }
 };
 
