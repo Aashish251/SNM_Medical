@@ -4,7 +4,7 @@ import {
   CitiesByStateRequest,
   CitiesByStateResponse,
   RegistrationDropdownResponse,
-} from "../type";
+} from "@shared/types/CommonType";
 
 export const RegisterApi = createApi({
   reducerPath: "RegisterApi",

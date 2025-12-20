@@ -1,9 +1,9 @@
 import React from "react";
 import { Button } from "@shared/components/ui/button";
 import { TextField } from "@shared/components/FormInputs/TextField";
-import { DUMMY } from "../../../features/register/config";
+import { DUMMY } from "@shared/config/common";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues, CityItem } from "../../../features/register/type";
+import { FormValues, CityItem } from "@shared/types/CommonType";
 import {
   FileUploadField,
   NumberField,
@@ -11,6 +11,7 @@ import {
   TextareaField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
+import { handleAlphabeticInput } from "@shared/lib/utils";
 
 interface PersonalDetailsStepProps {
   form: UseFormReturn<FormValues>;
@@ -19,6 +20,7 @@ interface PersonalDetailsStepProps {
   citiesLoading: boolean;
   nextStep: () => void;
   reset: () => void;
+  existingProfilePic?: string;
 }
 
 export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
@@ -28,6 +30,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   citiesLoading,
   nextStep,
   reset,
+  existingProfilePic,
 }) => {
   const {
     control,
@@ -35,6 +38,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     formState: { errors },
     watch,
   } = form;
+
 
   const states = Array.isArray(dropdownOption?.data?.states)
     ? dropdownOption.data.states
@@ -70,6 +74,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               message:
                 "Full name should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "fullName", form.setValue),
           })}
           placeholder="Enter full name"
           error={errors.fullName}
@@ -79,8 +85,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <NumberField
           label="Contact Number"
           required
-          maxLength={13}
-          register={register("contact", {
+          maxLength={10}
+          register={register("mobileNo", {
             required: "Contact number is required",
             pattern: {
               value: /^(?:\+91|91|0)?[-\s]?[6-9]\d{9}$/, // must start with 6–9 and be 10 digits
@@ -88,7 +94,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             },
           })}
           placeholder="Enter 10-digit mobile number"
-          error={errors.contact}
+          error={errors.mobileNo}
         />
 
         {/* Gender */}
@@ -97,7 +103,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           name="gender"
           control={control}
           options={DUMMY.genders}
-          valueKey="value"
+          valueKey="id"
           labelKey="label"
           required
           placeholder="Select gender"
@@ -124,11 +130,11 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             label="Birthdate"
             type="date"
             required
-            register={register("birthdate", {
+            register={register("dateOfBirth", {
               required: "Birthdate is required",
             })}
             placeholder="Select birthdate"
-            error={errors.birthdate}
+            error={errors.dateOfBirth}
           />
           <TextField
             label="Age"
@@ -166,18 +172,20 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         {/* Profile Picture */}
         <FileUploadField
           label="Profile Picture"
+          existingUrl={existingProfilePic}
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
           register={register("profilePic", {
             validate: {
               fileType: (fileInput) => {
                 let file: File | undefined;
 
-                if (!fileInput) {
+                if (!fileInput || (fileInput instanceof FileList && fileInput.length === 0)) {
+                  // If we have an existing picture and no new file is selected, it's valid
+                  if (existingProfilePic) return true;
                   return "Please upload a profile picture";
                 }
 
                 if (fileInput instanceof FileList) {
-                  if (fileInput.length === 0) return "Please upload a profile picture";
                   file = fileInput[0];
                 } else if (fileInput instanceof File) {
                   file = fileInput;

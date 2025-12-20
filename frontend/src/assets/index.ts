@@ -11,9 +11,11 @@ export const HOME_HERO_BANNER_IMAGE4 = "/img/SD03.jpg";
 
 // ✅ About section images
 export const HOME_HERO_ABOUT_IMAGE1 = "/img/babaji.jpg";
-export const HOME_HERO_ABOUT_IMAGE2 = "/img/snmd.jpg";
-export const HOME_HERO_ABOUT_IMAGE3 = "/img/blood_donation.jpg";
+export const HOME_HERO_ABOUT_IMAGE2 = "/img/blood_donation.jpg";
+export const HOME_HERO_ABOUT_IMAGE3 = "/img/snmd.jpg";
 export const HOME_HERO_ABOUT_IMAGE4 = "/img/snm1.png";
+export const HOME_HERO_ABOUT_IMAGE5 = "/img/Healthcheckup.png";
+export const HOME_HERO_ABOUT_IMAGE6 = "/img/Healthcheckup1.png";
 
 // ✅ Default profile
 export const DEFAULT_PROFILE_IMAGE = "/img/default-avatar.png";

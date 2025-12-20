@@ -22,17 +22,12 @@ app.use(
   })
 ); 
 
-// Basic middleware setup
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // Swagger UI setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // ✅ __dirname works automatically in CommonJS (no need for fileURLToPath)
 const __dirnameResolved = __dirname;
 
-app.use('/api/user', require('./routes/user'));
 // ✅ Serve static files from /uploads folder
 app.use("/uploads", express.static(path.join(__dirnameResolved, "../uploads")));
 
@@ -50,10 +45,7 @@ app.use(
   })
 );
 
-
-
-// Serve uploaded files
-app.use("/uploads", express.static("uploads"));
+// Serve uploaded files (primary)
 app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 
 // Logging (before routes)
@@ -80,13 +72,15 @@ if (process.env.NODE_ENV === "development") {
 // Main routes (file/form-data routes first, e.g. registration)
 try {
   app.use("/api/registration", require("./routes/registration")); // includes file upload endpoints
+  app.use("/api/dashboard", require("./routes/dashboard")); // includes profile update with file upload
+  
   // Add JSON/body-parsing middleware only after above:
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
   // All other non-file routes
   app.use("/api/auth", require("./routes/auth"));
-  app.use("/api/dashboard", require("./routes/dashboard"));
+  app.use("/api/user", require("./routes/user"));
   app.use("/api/search", require("./routes/search"));
   app.use("/api/dutychart", require("./routes/dutychart"));
   app.use("/api/reports", require("./routes/reports"));

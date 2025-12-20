@@ -27,10 +27,11 @@ const PrevArrow = ({ onClick }: { onClick?: () => void }) => (
 
 export function Carousel({
     slides,
-    dots=true,
+    dots = true,
     autoPlay = true,
     interval = 5000,
     className,
+    ...props
 }: CarouselProps) {
     const settings = {
         dots: dots,
@@ -53,5 +54,5 @@ export function Carousel({
         ),
     };
 
-    return <Slider {...settings} className={className}>{slides}</Slider>;
+    return <Slider {...settings} {...(props.settings || {})} className={className}>{slides}</Slider>;
 }

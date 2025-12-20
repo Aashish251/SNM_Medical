@@ -10,12 +10,12 @@ import {
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRole?: "admin" | "ms"; 
+  allowedRoles?: ("admin" | "ms")[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
-  allowedRole,
+  allowedRoles,
 }) => {
   const { isSignedIn, userType } = useSelector((state: RootState) => state.auth);
 
@@ -25,9 +25,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Wrong role → redirect to homepage (or unauthorized page)
-  // if (allowedRole && userType !== allowedRole) {
-  //   return <Navigate to={SNM_NAV_HOME_LINK} replace />;
-  // }
+  if (allowedRoles && !allowedRoles.includes(userType as "admin" | "ms")) {
+    return <Navigate to={SNM_NAV_HOME_LINK} replace />;
+  }
 
   // Authorized → render the protected component
   return <>{children}</>;

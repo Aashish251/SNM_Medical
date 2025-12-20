@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@shared/components/ui/button";
 import { SelectField } from "@shared/components/FormInputs/SelectField";
-import { DUMMY } from "../../../features/register/config";
+import { DUMMY } from "@shared/config/common";
 import {
   FileUploadField,
   NumberField,
@@ -9,12 +9,15 @@ import {
   TextField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
+import { handleAlphabeticInput } from "@shared/lib/utils";
 
 export const ProfessionalDetailsStep = ({
   form,
   dropdownOption,
   nextStep,
   prevStep,
+  reset,
+  existingCertificate,
 }: any) => {
   const {
     control,
@@ -28,6 +31,14 @@ export const ProfessionalDetailsStep = ({
 
   const departments = Array.isArray(dropdownOption?.data?.departments)
     ? dropdownOption.data.departments
+    : [];
+
+  const availableDays = Array.isArray(dropdownOption?.data?.availableDays)
+    ? dropdownOption.data.availableDays
+    : [];
+
+  const shiftTimes = Array.isArray(dropdownOption?.data?.shiftTimes)
+    ? dropdownOption.data.shiftTimes
     : [];
 
   return (
@@ -57,22 +68,22 @@ export const ProfessionalDetailsStep = ({
 
         <SelectField
           label="Available Days"
-          name="availability"
+          name="availableDayId"
           control={control}
-          options={DUMMY.availabilities}
-          labelKey="label"
-          valueKey="value"
+          options={availableDays}
+          labelKey="available_day"
+          valueKey="id"
           required
           placeholder="Select Availability"
         />
 
         <SelectField
           label="Preferred Shift Time"
-          name="shift"
+          name="shiftTimeId"
           control={control}
-          options={DUMMY.shifts}
-          labelKey="label"
-          valueKey="value"
+          options={shiftTimes}
+          labelKey="shifttime"
+          valueKey="id"
           required
           placeholder="Select Shift"
         />
@@ -86,13 +97,30 @@ export const ProfessionalDetailsStep = ({
         />
 
         <TextField
+          label="Samagam Held In"
+          register={register("samagamHeldIn", {
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Samagam Held In should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "samagamHeldIn", form.setValue),
+          })}
+          placeholder="Enter samagam held in"
+          error={errors.samagamHeldIn}
+        />
+
+        <TextField
           label="Sewa Performed During Last Samagam"
           register={register("lastSewa", {
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/,
               message:
                 "Last Sewa should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "lastSewa", form.setValue),
           })}
           placeholder="Enter last Sewa performed"
           error={errors.lastSewa}
@@ -102,10 +130,12 @@ export const ProfessionalDetailsStep = ({
           label="Recommended By"
           register={register("recommendedBy", {
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/,
               message:
                 "Recommended By should contain only alphabets and spaces (no numbers or symbols)",
             },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "recommendedBy", form.setValue),
           })}
           placeholder="Enter recommender's name"
           error={errors.recommendedBy}
@@ -113,14 +143,16 @@ export const ProfessionalDetailsStep = ({
 
         <FileUploadField
           label="Upload Certificate"
+          existingUrl={existingCertificate}
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
           required
           register={register("certificate", {
-            required: "Certificate is required",
             validate: {
               fileType: (fileList) => {
-                if (!fileList || fileList.length === 0)
+                if (!fileList || (fileList instanceof FileList && fileList.length === 0)) {
+                  if (existingCertificate) return true;
                   return "Please upload a certificate";
+                }
 
                 const allowedExtensions = [
                   "jpg",
@@ -155,15 +187,34 @@ export const ProfessionalDetailsStep = ({
               },
             },
           })}
-          error={errors.profilePic}
+          error={errors.certificate}
         />
       </div>
 
       <div className="mt-8 flex justify-between">
-        <Button size="lg" className="bg-primary rounded-2xl font-bold text-white" onClick={prevStep}>
+        <Button
+          size="lg"
+          className="bg-primary rounded-2xl font-bold text-white"
+          onClick={prevStep}
+        >
           Previous
         </Button>
-        <Button size="lg" onClick={nextStep} className="bg-primary rounded-2xl font-bold text-white">Next</Button>
+        <div className="flex gap-4 w-full sm:w-auto">
+          <Button
+            size="lg"
+            className="bg-red-600 rounded-2xl font-bold text-white"
+            onClick={reset}
+          >
+            Reset
+          </Button>
+          <Button
+            size="lg"
+            onClick={nextStep}
+            className="bg-primary rounded-2xl font-bold text-white"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ exports.addUserRole = async (req, res) => {
       isDeleted,
       isAdmin,
       remark,
-      sewaLocationId,
+      sewaLocation,
       samagamHeldIn
     } = req.body;
 
@@ -28,7 +28,7 @@ exports.addUserRole = async (req, res) => {
       isDeleted,
       isAdmin,
       remark,
-      sewaLocationId,
+      sewaLocation,
       samagamHeldIn
     });
 
@@ -65,22 +65,16 @@ exports.getUserProfile = async (req, res) => {
 exports.updateUserProfile = async (req, res) => {
   try {
     const { regId } = req.params;
+    const profileData = {
+      ...req.body,
+      profileImage: req.file // Contains: fieldname, originalname, encoding, mimetype, destination, filename, path, size
+    };
 
-    if (!regId || isNaN(regId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID"
-      });
-    }
-
-    const result = await userService.updateUserProfile(regId, req.body);
-
-    return res.status(result.success ? 200 : 404).json(result);
+    const result = await userService.updateUserProfile(regId, profileData);
+    sendResponse(res, 200, true, 'Profile updated successfully', result);
   } catch (error) {
-    console.error("❌ Controller Update Profile Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update user profile",
-    });
+    console.error('❌ Update Profile Error:', error);
+    const status = /not found/i.test(error.message) ? 404 : 500;
+    sendResponse(res, status, false, error.message || 'Failed to update profile');
   }
 };

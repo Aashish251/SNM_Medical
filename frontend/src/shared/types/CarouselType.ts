@@ -4,4 +4,5 @@ export interface CarouselProps {
   interval?: number;
   className?: string;
   dots?: boolean;
+  settings?: any;
 }

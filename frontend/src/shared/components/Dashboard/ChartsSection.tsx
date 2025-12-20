@@ -17,7 +17,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
   selectedMonth,
 }) => {
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <section className="grid grid-cols-1 pb-12 md:grid-cols-2 gap-6">
       {/* Bar Chart */}
       <div className="bg-white rounded-xl shadow-md p-6">
         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">

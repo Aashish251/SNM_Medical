@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { STEPS } from "./config";
+import { STEPS } from "@shared/config/common";
 import { useRegistrationForm } from "./hooks/useRegistrationForm";
 import {
   Stepper,
@@ -11,11 +11,12 @@ import {
 import { useRegisterUserMutation } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { FormValues } from "./type";
+import { FormValues } from "@shared/types/CommonType";
 
 const Register = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
+  const [disabled, setDisabled] = useState(false);
   const {
     currentStep,
     setCurrentStep,
@@ -27,19 +28,63 @@ const Register = () => {
     form,
   } = useRegistrationForm();
 
-  const { handleSubmit, reset } = form;
+  const { handleSubmit, reset, resetField } = form;
+
+  // Field definitions for each step
+  const step1Fields: (keyof FormValues)[] = [
+    "title",
+    "fullName",
+    "mobileNo",
+    "gender",
+    "email",
+    "dateOfBirth",
+    "age",
+    "stateId",
+    "cityId",
+    "profilePic",
+    "address",
+  ];
+
+  const step2Fields: (keyof FormValues)[] = [
+    "qualificationId",
+    "departmentId",
+    "availableDayId",
+    "shiftTimeId",
+    "experience",
+    "samagamHeldIn",
+    "lastSewa",
+    "recommendedBy",
+    "certificate",
+  ];
+
+  const step3Fields: (keyof FormValues)[] = [
+    "password",
+    "confirmPassword",
+    "favoriteFood",
+    "childhoodNickname",
+    "motherMaidenName",
+    "hobbies",
+    "remark",
+  ];
+
+  const resetFields = (fields: (keyof FormValues)[]) => {
+    fields.forEach((field) => {
+      resetField(field);
+    });
+  };
 
   const onSubmit = async (data: FormValues) => {
     try {
       console.log("Form submission data:", data);
+      setDisabled(true);
 
       // Validate required fields
       const requiredFields = [
         "fullName",
         "email",
         "password",
-        "contact",
-        "birthdate",
+        "mobileNo",
+        "dateOfBirth",
       ];
       const missingFields = requiredFields.filter(
         (field) => !data[field as keyof FormValues]
@@ -52,19 +97,13 @@ const Register = () => {
 
       const formData = new FormData();
 
-      // Required fields with field name mapping
-      const fieldMapping = {
-        contact: "mobileNo",
-        birthdate: "dateOfBirth",
-      };
-
       // Required fields
       formData.append("fullName", data.fullName);
       formData.append("email", data.email);
       formData.append("password", data.password);
       formData.append("confirmPassword", data.confirmPassword || data.password);
-      formData.append("mobileNo", data.contact); // mapped from contact
-      formData.append("dateOfBirth", data.birthdate); // mapped from birthdate
+      formData.append("mobileNo", data.mobileNo); // mapped from contact
+      formData.append("dateOfBirth", data.dateOfBirth); // mapped from birthdate
       formData.append("address", data.address || "");
       formData.append("stateId", String(data.stateId || ""));
       formData.append("cityId", String(data.cityId || ""));
@@ -73,18 +112,20 @@ const Register = () => {
 
       // Optional fields
       formData.append("title", data.title || "Mr");
-      formData.append("gender", data.gender || "1");
+      formData.append("age", String(data.age || 0));
+      formData.append("shiftTimeId", data.shiftTimeId || "");
+      formData.append("availableDayId", data.availableDayId || "");
+      formData.append("gender", data.gender || "Male");
       formData.append("userType", data.userType || "ms");
       formData.append("experience", String(data.experience || 0));
       formData.append("lastSewa", data.lastSewa || "");
       formData.append("recommendedBy", data.recommendedBy || "");
-      formData.append("samagamHeldIn", "");
+      formData.append("samagamHeldIn", data.samagamHeldIn || "");
 
       formData.append("favoriteFood", data.favoriteFood || "");
       formData.append("childhoodNickname", data.childhoodNickname || "");
       formData.append("motherMaidenName", data.motherMaidenName || "");
       formData.append("hobbies", data.hobbies || "");
-
 
       // Handle file uploads
       if (data.profilePic instanceof FileList && data.profilePic.length > 0) {
@@ -96,6 +137,7 @@ const Register = () => {
 
       // Debug: Log form data entries
       console.log("FormData contents:", formData);
+      // return;
       for (const pair of (formData as any).entries()) {
         console.log(pair[0], pair[1]);
       }
@@ -105,9 +147,10 @@ const Register = () => {
         success: "Registered successfully!",
         error: "Failed to register",
       });
-
+      setDisabled(false);
       navigate("/login"); // redirect on success
     } catch (error: any) {
+      setDisabled(false);
       console.error("Registration failed:", error);
       toast.error(error?.data?.message || "Something went wrong");
     }
@@ -144,7 +187,7 @@ const Register = () => {
               cities={cities}
               citiesLoading={citiesLoading}
               nextStep={nextStep}
-              reset={reset}
+              reset={() => resetFields(step1Fields)}
             />
           )}
 
@@ -154,11 +197,18 @@ const Register = () => {
               dropdownOption={dropdownOption}
               nextStep={nextStep}
               prevStep={prevStep}
+              reset={() => resetFields(step2Fields)}
             />
           )}
 
           {currentStep === 3 && (
-            <LoginDetailsStep form={form} prevStep={prevStep} />
+            <LoginDetailsStep
+              form={form}
+              prevStep={prevStep}
+              disabled={disabled}
+              setDisabled={setDisabled}
+              reset={() => resetFields(step3Fields)}
+            />
           )}
         </motion.form>
       </div>

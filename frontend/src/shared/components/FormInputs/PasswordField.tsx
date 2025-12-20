@@ -63,7 +63,7 @@ export const PasswordField = ({
           onClick={() => setShowPassword((prev) => !prev)}
           tabIndex={-1}
         >
-          {showPassword ? <EyeOff size={25} /> : <Eye size={25} />}
+          {showPassword ? <Eye size={25} /> : <EyeOff size={25} />}
         </Button>
       </div>
 

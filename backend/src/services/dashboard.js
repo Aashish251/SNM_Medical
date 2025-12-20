@@ -96,88 +96,56 @@ exports.getUserProfile = async (userId) => {
   };
 };
 
-
-/**
- * Fetch all users (for admin dashboard) with filters and pagination.
- */
-// exports.getAllUsers = async (filters) => {
-//   const { search = '', department = '', userType = '', page = 1, limit = 50 } = filters;
-//   const offset = (page - 1) * limit;
-
-//   const [[usersResult], [countResult]] = await Promise.all([
-//     promisePool.execute('CALL sp_get_users_filtered(?, ?, ?, ?, ?)', [
-//       search || null,
-//       department || null,
-//       userType || null,
-//       limit,
-//       offset,
-//     ]),
-//     promisePool.execute('CALL sp_get_users_count_filtered(?, ?, ?)', [
-//       search || null,
-//       department || null,
-//       userType || null,
-//     ]),
-//   ]);
-
-//   const users = usersResult[0] || [];
-//   const totalUsers = countResult[0]?.[0]?.total || 0;
-//   const totalPages = Math.ceil(totalUsers / limit);
-
-//   return {
-//     users: users.map((u) => ({
-//       id: u.reg_id,
-//       name: u.full_name,
-//       title: u.title,
-//       email: u.email,
-//       role: u.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
-//       department: u.department_name || 'Not assigned',
-//       qualification: u.qualification_name || 'Not specified',
-//       mobile: u.mobile_no,
-//       location:
-//         u.city_name && u.state_name
-//           ? `${u.city_name}, ${u.state_name}`
-//           : 'Not specified',
-//       joinedDate: u.created_datetime,
-//       isPresent: u.is_present === 1,
-//       hasPass: u.pass_entry === 1,
-//       experience: u.total_exp || 0,
-//       profileImage: u.profile_img_path || null,
-//     })),
-//     pagination: {
-//       currentPage: page,
-//       totalPages,
-//       totalUsers,
-//       limit,
-//       hasNext: page < totalPages,
-//       hasPrevious: page > 1,
-//     },
-//   };
-// };
-
 /**
  * Update user profile.
  */
 exports.updateUserProfile = async (userId, data) => {
-  const { fullName, email, mobileNo, address, stateId, cityId, departmentId, qualificationId } = data;
+  const {
+    fullName,
+    email,
+    mobileNo,
+    address,
+    stateId,
+    cityId,
+    departmentId,
+    qualificationId,
+  } = data;
 
-  if (email) {
-    const [check] = await promisePool.execute('CALL sp_check_email_for_update(?, ?)', [email, userId]);
-    if (check[0]?.[0]?.email_exists > 0) throw new Error('Email address already taken');
-  }
+  const [result] = await promisePool.execute(
+    `CALL sp_save_user_profile(
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    )`,
+    [
+      'update',                 // p_action
+      userId,                   // p_id
+      null,                     // p_user_type (no change)
+      null,                     // p_login_id
+      null,                     // p_title
+      fullName || null,
+      email || null,
+      null,                     // p_password (do NOT update here)
+      mobileNo || null,
+      null,                     // p_dob
+      null,                     // p_gender
+      address || null,
+      stateId || null,
+      cityId || null,
+      qualificationId || null,
+      departmentId || null,
+      null, null, null, null,
+      null, null, null,
+      null,                     // p_remark
+      null,                     // p_total_exp
+      null,                     // p_prev_sewa_perform
+      null,                     // p_recom_by
+      null,                     // p_samagam_held_in
+      0,                        // p_is_deleted
+      null, null, null, null,
+      null                      // p_is_approved (don’t change here)
+    ]
+  );
 
-  const [result] = await promisePool.execute('CALL sp_update_user_profile(?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-    userId,
-    fullName || null,
-    email || null,
-    mobileNo || null,
-    address || null,
-    stateId || null,
-    cityId || null,
-    departmentId || null,
-    qualificationId || null,
-  ]);
-
-  const affected = result[0]?.affected_rows || 0;
+  const affected = result?.[0]?.affected_rows || 0;
   if (!affected) throw new Error('User not found or no changes made');
   return true;
 };
@@ -186,13 +154,21 @@ exports.updateUserProfile = async (userId, data) => {
  * Update presence (Admin only).
  */
 exports.updateUserPresence = async (userId, isPresent, passEntry) => {
-  const [result] = await promisePool.execute('CALL sp_update_user_presence(?, ?, ?)', [
-    userId,
-    isPresent || null,
-    passEntry || null,
-  ]);
+  const [result] = await promisePool.execute(
+    'CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      userId,          // p_reg_id (CSV or single)
+      isPresent ?? null,
+      passEntry ?? null,
+      null,            // is_deleted
+      null,            // is_admin
+      null,            // remark
+      null,            // sewa_location_id
+      null             // samagam_held_in
+    ]
+  );
 
-  const affected = result[0]?.affected_rows || 0;
+  const affected = result?.[0]?.[0]?.affected_rows || 0;
   if (!affected) throw new Error('User not found');
   return true;
 };

@@ -54,6 +54,7 @@ export const userTableConfig: TableConfig<User> = {
     {
       key: "isPresent",
       header: "Is Present",
+      sortable: true,
       render: (user: User) => (user?.isPresent === 1 ? "Yes" : "No"),
     },
     { key: "stateName", header: "State" },

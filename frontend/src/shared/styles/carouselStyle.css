@@ -4,3 +4,17 @@
   justify-content: center;
   align-items: center;
 }
+
+.slick-slide {
+  outline: none !important;
+}
+
+.slick-slide>div {
+  outline: none !important;
+}
+
+.slick-list {
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}

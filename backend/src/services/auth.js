@@ -3,91 +3,91 @@ const jwt = require('jsonwebtoken');
 const { promisePool } = require('../config/database');
 const jwtConfig = require('../config/jwt');
 
-exports.login = async ({ role, email, password }) => {
-  if (!email || !password) throw new Error('Email and password are required');
+exports.login = async ({ role, email, mobileNo, password }) => {
+  try {
+    const loginIdentifier = email || mobileNo;
+    
+    if (!loginIdentifier || !password) {
+      throw new Error('Invalid request: Email or mobile number and password are required');
+    }
 
-  const userType = role?.toLowerCase() === 'admin' ? 'admin' : 'ms';
-  const loginId = email.trim();
-  // Phone number login can be added similarly if needed
+    const userType = role?.toLowerCase() === 'admin' ? 'admin' : 'ms';
 
-  // Step 1: Get user details from DB
-  const [existingRows] = await promisePool.execute(
-    'SELECT reg_id, password, user_type, is_approved, is_deleted FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND is_deleted = 0 AND is_approved = 1',
-    [loginId, loginId]
-  );
- 
-  if (!existingRows.length) throw new Error('Invalid loginID or password');
+    const loginId = String(loginIdentifier).trim();
 
-  const userRecord = existingRows[0];
-  const hashedPassword = userRecord.password; // Stored hashed password
+    
+    const [spResult] = await promisePool.execute(
+      'CALL sp_validate_login(?, ?)',
+      [userType, loginId]
+    );
 
-  // Step 2: Validate password first
-  const isValid = await bcrypt.compare(password, hashedPassword);
+    const rows = spResult[0] || [];
 
-  if (!isValid) throw new Error('Invalid password');
+    if (!rows.length) {
+      throw new Error('Invalid login ID or password');
+    }
 
-  // Step 3: Check if user is approved
-  if (userRecord.is_approved !== 1) {
-    throw new Error('Your account is not yet approved. Please contact the administrator for approval.');
+    const user = rows[0];
+   
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      throw new Error('Invalid login ID or password');
+    }
+
+    
+    if (user.is_deleted === 1) {
+      throw new Error('Your account has been deactivated.');
+    }
+
+    if (user.is_approved !== 1) {
+      throw new Error('Your account is not approved yet.');
+    }
+
+    if (user.user_type !== userType) {
+      throw new Error(
+        `You are not authorized to login as ${
+          userType === 'admin' ? 'Administrator' : 'Medical Staff'
+        }`
+      );
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.reg_id,
+        userType: user.user_type,
+        loginId: user.login_id
+      },
+      jwtConfig.secret || process.env.JWT_SECRET,
+      { expiresIn: jwtConfig.expiresIn || '1d' }
+    );
+    return {
+      token,
+      user: {
+        id: user.reg_id,
+        name: user.full_name,
+        email: user.email,
+        userType: user.user_type,
+        role: user.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
+        profilePic: user.profile_img_path || '/uploads/default_profile.png',
+      },
+    };
+  } catch (error) {
+    // Re-throw authentication errors as-is
+    if (error instanceof Error && (
+      error.message.includes('Invalid') ||
+      error.message.includes('not approved') ||
+      error.message.includes('deactivated') ||
+      error.message.includes('not authorized')
+    )) {
+      throw error;
+    }
+    
+    // Log database or other errors and provide generic message
+    console.error('Login service error:', error);
+    throw new Error('An error occurred during login. Please try again.');
   }
-
-  // Deleted users check
-  if (userRecord.is_deleted === 1) {
-    throw new Error('Your account has been deactivated. Please contact support for assistance.');
-  }
-
-  // Step 4: Validate role/user_type match
-  if (userRecord.user_type !== userType) {
-    const requestedRoleName = userType === 'admin' ? 'Administrator' : 'Medical Staff';
-    throw new Error(`You are not authorized to login as ${requestedRoleName}. Please contact the administrator.`);
-  }
-
-  // Step 5: Call SP with the same hash (only after all validations pass)
-  const [spResult] = await promisePool.execute('CALL sp_validate_login(?, ?, ?)', [
-    userType,
-    loginId,
-    hashedPassword
-  ]);
- 
-
-  const rows = spResult[0] || spResult;
-  if (!rows.length) throw new Error('Invalid email or password');
-
-  const userRow = rows[0];
-
-  // Step 6: Fetch full record
-const [dbRows] = await promisePool.execute(
-  'SELECT reg_id, login_id, user_type, full_name, email, profile_img_path FROM registration_tbl WHERE reg_id = ?',
-  [userRow.reg_id]
-);
-  const user = dbRows[0];
-
-
-  // Step 7: JWT
-  const token = jwt.sign(
-    {
-      userId: user.reg_id,
-      email: user.email,
-      userType: user.user_type,
-    },
-    jwtConfig.secret || process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: jwtConfig.expiresIn || '1d' }
-  );
-
-  console.log('✅ Login success for', user.email);
-
-  return {
-    token,
-    user: {
-      id: user.reg_id,
-      name: user.full_name,
-      email: user.email,
-      userType: user.user_type,
-      role: user.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
-      profilePic: user.profile_img_path || '/uploads/default_profile.png',
-    },
-  };
 };
+
 
 
 /**
