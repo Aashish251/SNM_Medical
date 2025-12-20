@@ -75,7 +75,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <>
       <div className="pt-18 md:pt-18 lg:pt-18">
-        <ProfileSection {...user} />
+        <ProfileSection />
       </div>
 
       <DashboardLayout>
