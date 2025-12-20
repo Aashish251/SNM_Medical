@@ -12,6 +12,9 @@ export const UpdateProfileApi = createApi({
         url: `/api/user/update-profile/${id}`,
         method: "PUT",
         body: formData,
+        headers: {
+          "x-is-form-data": "true",
+        },
       }),
     }),
     getUserDetailsQuery: builder.query<GetUserProfileResponse, number>({
