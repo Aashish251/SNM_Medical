@@ -39,6 +39,7 @@ export default function MasterSearchPage() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(10);
+  const [searchTriggered, setSearchTriggered] = useState(false);
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
   const [triggerGetChangeStatus] = useGetChangeStatusMutation();
@@ -59,7 +60,7 @@ export default function MasterSearchPage() {
   });
 
   const { data: masterSearchData, refetch: triggerMasterSearch, isFetching } =
-    useMasterSearchQuery(searchPayload);
+    useMasterSearchQuery(searchPayload, { skip: !searchTriggered });
 
   // Removed users state
 
@@ -188,6 +189,9 @@ export default function MasterSearchPage() {
 
   const onSearch = async (data: any) => {
     try {
+      // Mark search as triggered to allow data fetching
+      setSearchTriggered(true);
+
       // Reset to page 1 for new search
       setCurrentPage(1);
 

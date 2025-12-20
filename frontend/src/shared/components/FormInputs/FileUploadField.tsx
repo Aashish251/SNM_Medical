@@ -1,8 +1,14 @@
-import * as React from "react";
 import { UseFormRegisterReturn, FieldError } from "react-hook-form";
 import { Label } from "@shared/components/ui/label";
 import { Input } from "@shared/components/ui/input";
 import { cn } from "@shared/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@shared/components/ui/dialog";
 
 interface FileUploadFieldProps {
   label: string;
@@ -43,13 +49,28 @@ export const FileUploadField = ({
       {fullUrl && (
         <div className="mb-2">
           {isImage(fullUrl) ? (
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
-              <img
-                src={fullUrl}
-                alt="Existing File"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  type="button"
+                  className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold"
+                >
+                  Preview
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-2xl bg-white p-2 overflow-hidden border-none shadow-2xl">
+                <DialogHeader className="sr-only">
+                  <DialogTitle>Preview</DialogTitle>
+                </DialogHeader>
+                <div className="relative w-full aspect-auto max-h-[80vh] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+                  <img
+                    src={fullUrl}
+                    alt="Profile Preview"
+                    className="max-w-full max-h-full object-contain shadow-sm"
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
           ) : (
             <a
               href={fullUrl}

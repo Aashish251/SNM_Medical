@@ -44,7 +44,7 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
                   <img
                     src={item?.image}
                     alt={`About Slide ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
 
