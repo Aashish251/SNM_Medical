@@ -1,21 +1,8 @@
 import React from "react";
-import { BsFillPersonFill, BsFillCameraFill } from "react-icons/bs";
-import { IoIosMail } from "react-icons/io";
-import { HOME_HERO_BANNER_IMAGE3, DEFAULT_PROFILE_IMAGE } from "@assets/index";
 import { Carousel } from "../Carousel";
 import { imagesDashBoard } from "@shared/config/common";
 
-interface ProfileSectionProps {
-  name: string;
-  qualification: string;
-  profileImage?: string | null;
-}
-
-export const ProfileSection: React.FC<ProfileSectionProps> = ({
-  name,
-  qualification,
-  profileImage,
-}) => {
+export const ProfileSection = () => {
   return (
     <section className="overflow-hidden">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -30,9 +17,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <img
                   src={src}
                   alt={`Slide ${i + 1}`}
-                  className="w-full h-[150] object-contain lg:object-cover xl:object-contain 
-                    object-center 
-                    transition-all duration-500"
+                  className="w-full h-full object-cover object-center transition-all duration-500"
                 />
               </div>
             ))}

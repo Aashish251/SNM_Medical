@@ -42,47 +42,50 @@ export const FileUploadField = ({
 
   return (
     <div className="space-y-1">
-      <Label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </Label>
+      <div className="flex items-center gap-4">
+        <Label className="block text-sm font-medium text-gray-700">
+          {label} {required && <span className="text-red-500">*</span>}
+        </Label>
 
-      {fullUrl && (
-        <div className="mb-2">
-          {isImage(fullUrl) ? (
-            <Dialog>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold"
-                >
-                  Preview
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-2xl bg-white p-2 overflow-hidden border-none shadow-2xl">
-                <DialogHeader className="sr-only">
-                  <DialogTitle>Preview</DialogTitle>
-                </DialogHeader>
-                <div className="relative w-full aspect-auto max-h-[80vh] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
-                  <img
-                    src={fullUrl}
-                    alt="Profile Preview"
-                    className="max-w-full max-h-full object-contain shadow-sm"
-                  />
-                </div>
-              </DialogContent>
-            </Dialog>
-          ) : (
-            <a
-              href={fullUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-            >
-              View existing document
-            </a>
-          )}
-        </div>
-      )}
+        {fullUrl && (
+          <div className="flex items-center gap-2">
+            {isImage(fullUrl) ? (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    Preview
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-2xl bg-white p-2 overflow-hidden border-none shadow-2xl">
+                  <DialogHeader className="sr-only">
+                    <DialogTitle>Preview</DialogTitle>
+                  </DialogHeader>
+                  <div className="relative w-full aspect-auto max-h-[80vh] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+                    <img
+                      src={fullUrl}
+                      alt="Profile Preview"
+                      className="max-w-full max-h-full object-contain shadow-sm"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <a
+                href={fullUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline flex items-center gap-1 font-semibold"
+              >
+                View File
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
 
       <Input
         type="file"
