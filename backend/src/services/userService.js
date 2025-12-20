@@ -178,3 +178,89 @@ exports.getUserProfile = async (userId) => {
     throw err;
   }
 };
+exports.updateUserProfile = async (regId, data) => {
+  let connection;
+  try {
+    if (!regId || isNaN(regId)) {
+      throw new Error('Invalid registration ID');
+    }
+
+    const {
+      fullName,
+      email,
+      mobileNo,
+      address,
+      stateId,
+      cityId,
+      departmentId,
+      qualificationId,
+      profileImage
+    } = data;
+
+    // Handle profile image path if file was uploaded
+    let profileImagePath = null;
+    if (profileImage) {
+      // Get relative path from the uploads directory
+      profileImagePath = `/uploads/${profileImage.filename}`;
+    }
+
+    connection = await promisePool.getConnection();
+
+    // Call stored procedure to update user profile
+    const [result] = await connection.query(
+      `CALL sp_save_user_profile(
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      )`,
+      [
+        'update',                 // p_action
+        regId,                    // p_id
+        null,                     // p_user_type (no change)
+        null,                     // p_login_id
+        null,                     // p_title
+        fullName || null,
+        email || null,
+        null,                     // p_password (do NOT update here)
+        mobileNo || null,
+        null,                     // p_dob
+        null,                     // p_gender
+        address || null,
+        stateId || null,
+        cityId || null,
+        qualificationId || null,
+        departmentId || null,
+        null, null, null, null,
+        profileImagePath || null,
+        null, null,
+        null,                     // p_remark
+        null,                     // p_total_exp
+        null,                     // p_prev_sewa_perform
+        null,                     // p_recom_by
+        null,                     // p_samagam_held_in
+        0,                        // p_is_deleted
+        null, null, null, null,
+        null                      // p_is_approved (don't change here)
+      ]
+    );
+
+    const affected = result?.affectedRows || 0;
+    
+    // Debug log to see what SP returns
+    console.log('SP Update Result:', {
+      affectedRows: affected,
+      result: result
+    });
+    
+    if (!affected) throw new Error('User not found or no changes made');
+    
+    return {
+      success: true,
+      message: 'Profile updated successfully',
+      affectedRows: affected
+    };
+  } catch (error) {
+    console.error('❌ updateUserProfile Service Error:', error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+};

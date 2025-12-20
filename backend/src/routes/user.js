@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middlewares/auth');
 const userController = require('../controllers/userController');
+const upload = require('../middlewares/upload');
 
 /**
  * @swagger
@@ -52,5 +53,7 @@ router.put('/update-role',authenticateToken, userController.addUserRole);
 // Get User Profile 
 router.get("/update-profile/:regId", authenticateToken, userController.getUserProfile);
 
-// Update User Profile 
+// Update User Profile (with optional file upload)
+router.put("/update-profile/:regId", authenticateToken, upload.single('profileImage'), userController.updateUserProfile);
+
 module.exports = router;

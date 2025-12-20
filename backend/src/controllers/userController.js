@@ -62,3 +62,19 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { regId } = req.params;
+    const profileData = {
+      ...req.body,
+      profileImage: req.file // Contains: fieldname, originalname, encoding, mimetype, destination, filename, path, size
+    };
+
+    const result = await userService.updateUserProfile(regId, profileData);
+    sendResponse(res, 200, true, 'Profile updated successfully', result);
+  } catch (error) {
+    console.error('❌ Update Profile Error:', error);
+    const status = /not found/i.test(error.message) ? 404 : 500;
+    sendResponse(res, status, false, error.message || 'Failed to update profile');
+  }
+};
