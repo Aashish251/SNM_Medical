@@ -6,7 +6,7 @@ const jwtConfig = require('../config/jwt');
 exports.login = async ({ role, email, mobileNo, password }) => {
   try {
     const loginIdentifier = email || mobileNo;
-    
+
     if (!loginIdentifier || !password) {
       throw new Error('Invalid request: Email or mobile number and password are required');
     }
@@ -15,7 +15,7 @@ exports.login = async ({ role, email, mobileNo, password }) => {
 
     const loginId = String(loginIdentifier).trim();
 
-    
+
     const [spResult] = await promisePool.execute(
       'CALL sp_validate_login(?, ?)',
       [userType, loginId]
@@ -24,31 +24,41 @@ exports.login = async ({ role, email, mobileNo, password }) => {
     const rows = spResult[0] || [];
 
     if (!rows.length) {
-      throw new Error('Invalid login ID or password');
+      // User not found - email/mobile is incorrect
+      const isEmail = loginId.includes('@');
+      throw new Error(
+        isEmail
+          ? 'Your mail ID is not correct. Please verify your email address and try again.'
+          : 'Your mobile number is not correct. Please verify your phone number and try again.'
+      );
     }
 
     const user = rows[0];
-   
+
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      throw new Error('Invalid login ID or password');
+      throw new Error(' Your password is not correct. Please check your password and try again.');
     }
 
-    
     if (user.is_deleted === 1) {
-      throw new Error('Your account has been deactivated.');
+      throw new Error('Your account has been deactivated. Please contact the administrator.');
     }
 
     if (user.is_approved !== 1) {
-      throw new Error('Your account is not approved yet.');
+      throw new Error(' This account is not approved yet. Please wait for administrator approval before you can log in.');
     }
 
     if (user.user_type !== userType) {
-      throw new Error(
-        `You are not authorized to login as ${
-          userType === 'admin' ? 'Administrator' : 'Medical Staff'
-        }`
-      );
+      if (user.user_type === 'admin' && userType === 'ms') {
+        throw new Error(
+          'You are an Admin. Please login using the Admin login option.'
+        );
+      }
+      if (user.user_type === 'ms' && userType === 'admin') {
+        throw new Error(
+          'You are a Medical Staff member. Please login using the Medical Staff login option.'
+        );
+      }
     }
 
     const token = jwt.sign(
@@ -67,21 +77,21 @@ exports.login = async ({ role, email, mobileNo, password }) => {
         name: user.full_name,
         email: user.email,
         userType: user.user_type,
-        role: user.user_type === 'admin' ? 'Administrator' : 'Medical Staff',
+        role: user.user_type === 'admin' ? 'admin' : 'ms',
         profilePic: user.profile_img_path || '/uploads/default_profile.png',
       },
     };
   } catch (error) {
     // Re-throw authentication errors as-is
     if (error instanceof Error && (
-      error.message.includes('Invalid') ||
+      error.message.includes('not correct') ||
       error.message.includes('not approved') ||
       error.message.includes('deactivated') ||
-      error.message.includes('not authorized')
+      error.message.includes('not authorized') ||
+      error.message.includes('you are')
     )) {
       throw error;
     }
-    
     // Log database or other errors and provide generic message
     console.error('Login service error:', error);
     throw new Error('An error occurred during login. Please try again.');
@@ -156,7 +166,6 @@ exports.validateForgotPassword = async ({
  */
 
 exports.resetPassword = async ({ regId, newPassword, confirmPassword, status }) => {
-  
   if (newPassword !== confirmPassword) {
     throw new Error('Passwords do not match.');
   }
