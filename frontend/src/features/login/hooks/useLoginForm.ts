@@ -23,7 +23,7 @@ export interface FormData {
 
 export const useLoginForm = () => {
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<Role>(SNM_ADMIN_USERTYPE);
+  const [role, setRole] = useState<Role>(SNM_MS_USERTYPE);
   const [triggerLoginUser] = useLoginUserMutation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -49,11 +49,15 @@ export const useLoginForm = () => {
           role === SNM_ADMIN_USERTYPE ? SNM_ADMIN_USERTYPE : SNM_MS_USERTYPE,
       };
 
-      const response = await toast.promise(triggerLoginUser(payload).unwrap(), {
-        loading: "Logging in...",
-        success: "Login successful!",
-        error: "Login failed",
-      });
+      // Show loading toast
+      const loadingToast = toast.loading("Logging in...");
+
+      // Call login API
+      const response = await triggerLoginUser(payload).unwrap();
+
+      // Dismiss loading and show success
+      toast.dismiss(loadingToast);
+      toast.success("Login successful!");
 
       const { token, user } = response?.data;
 
@@ -72,8 +76,16 @@ export const useLoginForm = () => {
         navigate(SNM_NAV_MS_DASHBOARD_LINK, { replace: true });
       }
     } catch (err: any) {
-      // console.error("Login failed:", err);
-      toast.error(err?.data?.message || err?.message || "Something went wrong");
+      // Dismiss loading toast if it exists
+      toast.dismiss();
+
+      // Show specific error message from backend
+      const errorMessage = err?.data?.message || err?.message || "Something went wrong. Please try again.";
+      toast.error(errorMessage, {
+        duration: 20000, // 20 seconds
+      });
+
+      console.error("Login error:", errorMessage);
     } finally {
       setLoading(false);
     }

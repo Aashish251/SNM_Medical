@@ -17,14 +17,14 @@ export const MasterSearchApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              { type: "MasterSearch" as const, id: "LIST" },
-              ...(Array.isArray(result)
-                ? result.map(({ id }) => ({
-                    type: "MasterSearch" as const,
-                    id: id.toString(),
-                  }))
-                : []),
-            ]
+            { type: "MasterSearch" as const, id: "LIST" },
+            ...(Array.isArray(result)
+              ? result.map(({ id }) => ({
+                type: "MasterSearch" as const,
+                id: id.toString(),
+              }))
+              : []),
+          ]
           : [{ type: "MasterSearch" as const, id: "LIST" }],
     }),
 
@@ -35,6 +35,19 @@ export const MasterSearchApi = createApi({
         method: "POST",
       }),
       invalidatesTags: [{ type: "MasterSearch", id: "LIST" }],
+    }),
+
+    // 📤 Export search results
+    exportSearch: builder.mutation<Blob, any>({
+      query: (payload) => ({
+        url: "/api/search/export",
+        method: "POST",
+        body: payload,
+        responseHandler: async (response) => {
+          return await response.blob();
+        },
+        cache: "no-cache",
+      }),
     }),
 
     // 🧩 Update user role endpoint
@@ -52,6 +65,7 @@ export const MasterSearchApi = createApi({
 // ✅ Export hooks
 export const {
   useMasterSearchQuery,
+  useExportSearchMutation,
   useGetChangeStatusMutation,
   useGetChangeUsersRoleMutation,
 } = MasterSearchApi;

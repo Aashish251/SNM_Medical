@@ -24,12 +24,13 @@ import {
   useGetChangeStatusMutation,
   useGetChangeUsersRoleMutation,
   useMasterSearchQuery,
+  useExportSearchMutation,
 } from "./services/masterSearchApi";
 import { toast } from "@shared/lib/toast";
 import { User } from "@shared/types/CommonType";
 
 export default function MasterSearchPage() {
-  const [showFilter, setShowFilter] = useState(false);
+  const [showFilter, setShowFilter] = useState(true);
   const [cities, setCities] = useState([]);
   const [showUserRole, setShowUserRole] = useState(false);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
@@ -61,6 +62,8 @@ export default function MasterSearchPage() {
 
   const { data: masterSearchData, refetch: triggerMasterSearch, isFetching } =
     useMasterSearchQuery(searchPayload, { skip: !searchTriggered });
+
+  const [triggerExportSearch, { isLoading: isExporting }] = useExportSearchMutation();
 
   // Removed users state
 
@@ -222,7 +225,45 @@ export default function MasterSearchPage() {
     }
   };
 
-  const onExport = () => console.log("Exporting filtered data...");
+  const onExport = async () => {
+    try {
+      // Use the current search payload to export filtered results
+      const exportPayload = {
+        ...searchPayload,
+        limit: 1000000, // Get all matching records for export
+      };
+
+      console.log("📤 Exporting with payload:", exportPayload);
+
+      const blob = await toast.promise(
+        triggerExportSearch(exportPayload).unwrap(),
+        {
+          loading: "Preparing export...",
+          success: "Export completed successfully!",
+          error: "Failed to export data. Please try again.",
+        }
+      );
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `master_search_export_${Date.now()}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error("Export error:", error);
+      if (error?.status === "FETCH_ERROR") {
+        toast.error("Network error — please check your connection.");
+      } else if (error?.data?.message) {
+        toast.error(error.data.message);
+      } else {
+        toast.error("Something went wrong while exporting.");
+      }
+    }
+  };
 
   const onRoleSubmit = async (data: any) => {
     try {
@@ -397,9 +438,10 @@ export default function MasterSearchPage() {
               <button
                 type="button"
                 onClick={onExport}
-                className="px-4 py-2 bg-gray-600 text-white rounded-2xl font-bold hover:bg-gray-700 w-full col-span-1"
+                disabled={isExporting}
+                className="px-4 py-2 bg-gray-600 text-white rounded-2xl font-bold hover:bg-gray-700 w-full col-span-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Export
+                {isExporting ? "Exporting..." : "Export"}
               </button>
             </form>
           </CollapsibleContent>

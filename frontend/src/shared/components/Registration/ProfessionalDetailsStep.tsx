@@ -202,6 +202,7 @@ export const ProfessionalDetailsStep = ({
         <div className="flex gap-4 w-full sm:w-auto">
           <Button
             size="lg"
+            type="button"
             className="bg-red-600 rounded-2xl font-bold text-white"
             onClick={reset}
           >

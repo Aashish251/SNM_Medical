@@ -13,6 +13,7 @@ import {
   SNM_NAV_REGISTER_LINK,
   SNM_LOGIN_LABEL_TITLE,
 } from "@shared/constants";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const { form, role, handleRoleChange, onSubmit, loading } =
@@ -74,12 +75,12 @@ const Login = () => {
             </p>
 
             <motion.div whileHover={{ scale: 1.05 }}>
-              <a
-                href={SNM_NAV_REGISTER_LINK}
+              <Link
+                to={SNM_NAV_REGISTER_LINK}
                 className="border-2 border-white px-5 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-bold hover:bg-white hover:text-indigo-700 transition-all duration-300 shadow-lg text-center"
               >
                 {SNM_LOGIN_LABEL_TITLE}
-              </a>
+              </Link>
             </motion.div>
 
             <motion.div

@@ -64,16 +64,14 @@ export const userTableConfig: TableConfig<User> = {
       header: "Certificate",
       render: (user: User) =>
         user.certificateDocPath ? (
-          <a
-            href={`${import.meta.env?.VITE_API_BASE_URL}${
-              user.certificateDocPath
-            }`}
+          <Link
+            to={`${import.meta.env?.VITE_API_BASE_URL}${user.certificateDocPath}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
           >
             View
-          </a>
+          </Link>
         ) : (
           <span className="text-gray-400">No File</span>
         ),
@@ -85,19 +83,18 @@ export const userTableConfig: TableConfig<User> = {
     key: "approved",
     render: (user: User) => (
       <span
-        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium  ${
-          user.isDeleted == 1 || user.isDeleted == "1"
-            ? "text-red-700"
-            : user.isApproved
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium  ${user.isDeleted == 1 || user.isDeleted == "1"
+          ? "text-red-700"
+          : user.isApproved
             ? "text-green-700"
             : "text-red-700"
-        }`}
+          }`}
       >
         {user.isDeleted == 1 || user.isDeleted == "1"
           ? "Deleted"
           : user.isApproved
-          ? "Approved"
-          : "Pending"}
+            ? "Approved"
+            : "Pending"}
       </span>
     ),
   },

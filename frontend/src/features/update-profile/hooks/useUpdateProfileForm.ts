@@ -11,7 +11,7 @@ import { requiredFields } from "@shared/config/common";
 export const useUpdateProfileForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [cities, setCities] = useState<CityItem[]>([]);
-  const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
+  const { data: dropdownOption, isLoading: dropdownLoading } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState, { isLoading: citiesLoading }] =
     useLazyGetCitiesByStateQuery();
 
@@ -88,6 +88,7 @@ export const useUpdateProfileForm = () => {
     nextStep,
     prevStep,
     dropdownOption,
+    dropdownLoading,
     cities,
     citiesLoading,
     form,

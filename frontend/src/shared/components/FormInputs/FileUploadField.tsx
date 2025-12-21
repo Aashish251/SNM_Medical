@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@shared/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 interface FileUploadFieldProps {
   label: string;
@@ -75,14 +76,14 @@ export const FileUploadField = ({
                 </DialogContent>
               </Dialog>
             ) : (
-              <a
-                href={fullUrl}
+              <Link
+                to={fullUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
               >
                 View existing document
-              </a>
+              </Link>
             )}
           </>
         )}

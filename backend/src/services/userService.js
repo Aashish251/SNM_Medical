@@ -194,7 +194,19 @@ exports.updateUserProfile = async (regId, data) => {
       cityId,
       departmentId,
       qualificationId,
-      profileImage
+      profileImage,
+      dateOfBirth,
+      gender,
+      remark,
+      experience,
+      lastSewa,
+      recommendedBy,
+      samagamHeldIn,
+      favoriteFood,
+      childhoodNickname,
+      motherMaidenName,
+      hobbies,
+      certificate
     } = data;
 
     // Handle profile image path if file was uploaded
@@ -203,6 +215,16 @@ exports.updateUserProfile = async (regId, data) => {
       // Get relative path from the uploads directory
       profileImagePath = `/uploads/${profileImage.filename}`;
     }
+
+    // Handle certificate document path if file was uploaded
+    let certificatePath = null;
+    if (certificate && certificate.filename) {
+      certificatePath = `/uploads/${certificate.filename}`;
+    } else if (typeof certificate === 'string') {
+      // If certificate is already a string path, use it as-is
+      certificatePath = certificate;
+    }
+
 
     connection = await promisePool.getConnection();
 
@@ -221,37 +243,44 @@ exports.updateUserProfile = async (regId, data) => {
         email || null,
         null,                     // p_password (do NOT update here)
         mobileNo || null,
-        null,                     // p_dob
-        null,                     // p_gender
+        dateOfBirth || null,      // p_dob
+        gender || null,           // p_gender
         address || null,
         stateId || null,
         cityId || null,
         qualificationId || null,
         departmentId || null,
-        null, null, null, null,
+        null,                     // p_available_day_id
+        null,                     // p_shifttime_id
         profileImagePath || null,
-        null, null,
-        null,                     // p_remark
-        null,                     // p_total_exp
-        null,                     // p_prev_sewa_perform
-        null,                     // p_recom_by
-        null,                     // p_samagam_held_in
+        certificatePath || null,  // p_certificate_doc_path
+        null,                     // p_is_present
+        null,                     // p_pass_entry
+        null,                     // p_sewa_location_id
+        remark || null,           // p_remark
+        experience || null,       // p_total_exp
+        lastSewa || null,         // p_prev_sewa_perform
+        recommendedBy || null,    // p_recom_by
+        samagamHeldIn || null,    // p_samagam_held_in
         0,                        // p_is_deleted
-        null, null, null, null,
+        favoriteFood || null,     // p_favorite_food
+        childhoodNickname || null, // p_childhood_nickname
+        motherMaidenName || null,  // p_mother_maiden_name
+        hobbies || null,          // p_hobbies
         null                      // p_is_approved (don't change here)
       ]
     );
 
     const affected = result?.affectedRows || 0;
-    
+
     // Debug log to see what SP returns
     console.log('SP Update Result:', {
       affectedRows: affected,
       result: result
     });
-    
+
     if (!affected) throw new Error('User not found or no changes made');
-    
+
     return {
       success: true,
       message: 'Profile updated successfully',

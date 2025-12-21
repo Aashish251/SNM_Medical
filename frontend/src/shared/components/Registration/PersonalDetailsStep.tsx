@@ -245,7 +245,12 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
 
       {/* Buttons */}
       <div className="mt-8 flex flex-col sm:flex-row justify-end gap-4">
-        <Button size="lg" className="bg-red-600 rounded-2xl font-bold text-white" onClick={reset}>
+        <Button
+          size="lg"
+          type="button"
+          className="bg-red-600 rounded-2xl font-bold text-white"
+          onClick={reset}
+        >
           Reset
         </Button>
         <Button size="lg" onClick={nextStep} className="bg-primary rounded-2xl font-bold text-white">Next</Button>
