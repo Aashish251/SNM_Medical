@@ -11,6 +11,7 @@ import {
   SNM_NAV_FORGOT_PASSWORD_LINK,
 } from "@shared/constants";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
+import { Link } from "react-router-dom";
 
 interface LoginFormProps {
   form: UseFormReturn<FormData>;
@@ -38,15 +39,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {/* Role Selector */}
       <div className="flex justify-center gap-2 flex-wrap mb-2">
         <RoleButton
-          roleName={SNM_ADMIN_USERTYPE}
-          label={SNM_ADMIN_USERTYPE_LABEL}
+          roleName={SNM_MS_USERTYPE}
+          label={SNM_MS_USERTYPE_LABEL}
           currentRole={role}
           onClick={handleRoleChange}
           loading={loading}
         />
         <RoleButton
-          roleName={SNM_MS_USERTYPE}
-          label={SNM_MS_USERTYPE_LABEL}
+          roleName={SNM_ADMIN_USERTYPE}
+          label={SNM_ADMIN_USERTYPE_LABEL}
           currentRole={role}
           onClick={handleRoleChange}
           loading={loading}
@@ -92,23 +93,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Forgot Password */}
       <div className="text-right">
-        <a
-          href={SNM_NAV_FORGOT_PASSWORD_LINK}
+        <Link
+          to={SNM_NAV_FORGOT_PASSWORD_LINK}
           className="text-xs sm:text-sm text-teal-600 hover:underline"
         >
           Forgot password?
-        </a>
+        </Link>
       </div>
 
       {/* Submit Button */}
       <button
         type="submit"
         disabled={loading}
-        className={`w-full py-2 rounded-full bg-to-two-right-theme-gradient to-yellow-200 shadow-md text-white font-bold text-base transition-transform duration-300 ${
-          loading
+        className={`w-full py-2 rounded-full bg-to-two-right-theme-gradient to-yellow-200 shadow-md text-white font-bold text-base transition-transform duration-300 ${loading
             ? "opacity-70 cursor-not-allowed"
             : "hover:scale-105 hover:from-purple-600 hover:to-indigo-600"
-        }`}
+          }`}
       >
         {loading ? (
           <span className="flex items-center justify-center">

@@ -23,7 +23,7 @@ export interface FormData {
 
 export const useLoginForm = () => {
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<Role>(SNM_ADMIN_USERTYPE);
+  const [role, setRole] = useState<Role>(SNM_MS_USERTYPE);
   const [triggerLoginUser] = useLoginUserMutation();
   const navigate = useNavigate();
   const dispatch = useDispatch();

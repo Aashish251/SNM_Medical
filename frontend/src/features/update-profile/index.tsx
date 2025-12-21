@@ -17,6 +17,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FormValues } from "@shared/types/CommonType";
 import { useSelector } from "react-redux";
 import { RootState } from "@app/store";
+import LoadingSpinner from "@shared/components/LoadingSpinner";
 
 const UpdateProfile = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
@@ -31,12 +32,62 @@ const UpdateProfile = () => {
     nextStep,
     prevStep,
     dropdownOption,
+    dropdownLoading,
     cities,
     citiesLoading,
     form,
   } = useUpdateProfileForm();
 
   const { handleSubmit, reset, resetField } = form;
+
+  // 🔹 Call API as soon as we have an ID
+  const {
+    data: userDetails,
+    isLoading,
+    isError,
+    error,
+  } = useGetUserDetailsQueryQuery(regId ? Number(regId) : 0, {
+    skip: !regId, // don't call if id is missing
+  });
+
+  const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
+  const [existingCertificate, setExistingCertificate] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (isLoading) {
+      toast.loading("Fetching user details...", { id: "fetch-user" });
+    } else {
+      toast.dismiss("fetch-user");
+    }
+
+    if (isError) {
+      toast.error("Failed to load user details");
+      console.error("Get user details error:", error);
+    }
+
+    if (userDetails) {
+      console.log("API response data:", userDetails); // ✅ console log
+
+      // Store existing file URLs
+      setExistingProfilePic(userDetails.data.profileImage);
+      setExistingCertificate(userDetails.data.certificate as string);
+
+      const formattedData: any = {
+        ...userDetails.data,
+        profilePic: undefined,
+        certificate: undefined,
+      };
+
+      reset(formattedData);
+      toast.success("Profile details loaded!");
+    }
+  }, [isLoading, isError, userDetails, error, reset]);
+
+  // Show loading spinner until dropdown data is loaded
+  // NOTE: This must be placed AFTER all hooks are called to avoid React hooks ordering error
+  if (dropdownLoading || !dropdownOption) {
+    return <LoadingSpinner />;
+  }
 
   // Field definitions for each step
   const step1Fields: (keyof FormValues)[] = [
@@ -75,54 +126,20 @@ const UpdateProfile = () => {
     "remark",
   ];
 
+  // Reset specific step fields to original API values (for Update Profile)
   const resetFields = (fields: (keyof FormValues)[]) => {
     fields.forEach((field) => {
-      resetField(field);
+      if (field === "profilePic") {
+        form.setValue(field, undefined as any);
+        setExistingProfilePic(undefined);
+      } else if (field === "certificate") {
+        form.setValue(field, undefined as any);
+        setExistingCertificate(undefined);
+      } else {
+        form.setValue(field, "" as any);
+      }
     });
   };
-
-  // 🔹 Call API as soon as we have an ID
-  const {
-    data: userDetails,
-    isLoading,
-    isError,
-    error,
-  } = useGetUserDetailsQueryQuery(regId ? Number(regId) : 0, {
-    skip: !regId, // don't call if id is missing
-  });
-
-  const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
-  const [existingCertificate, setExistingCertificate] = useState<string | undefined>();
-
-  useEffect(() => {
-    if (isLoading) {
-      toast.loading("Fetching user details...", { id: "fetch-user" });
-    } else {
-      toast.dismiss("fetch-user");
-    }
-
-    if (isError) {
-      toast.error("Failed to load user details");
-      console.error("Get user details error:", error);
-    }
-
-    if (userDetails) {
-      console.log("API response data:", userDetails); // ✅ console log
-
-      // Store existing file URLs
-      setExistingProfilePic(userDetails.data.profileImage); // Fixed: profileImage now exists in FormValues
-      setExistingCertificate(userDetails.data.certificate as string); // Using as string since setExistingCertificate expects string | undefined
-
-      const formattedData: any = {
-        ...userDetails.data,
-        profilePic: undefined,
-        certificate: undefined,
-      };
-
-      reset(formattedData);
-      toast.success("Profile details loaded!");
-    }
-  }, [isLoading, isError, userDetails, error, reset]);
 
   const onSubmit = async (data: FormValues) => {
     try {

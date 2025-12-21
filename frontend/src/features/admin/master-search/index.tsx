@@ -30,7 +30,7 @@ import { toast } from "@shared/lib/toast";
 import { User } from "@shared/types/CommonType";
 
 export default function MasterSearchPage() {
-  const [showFilter, setShowFilter] = useState(false);
+  const [showFilter, setShowFilter] = useState(true);
   const [cities, setCities] = useState([]);
   const [showUserRole, setShowUserRole] = useState(false);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);

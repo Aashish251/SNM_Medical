@@ -138,24 +138,24 @@ const Footer: React.FC = () => {
                 <span className="mt-1 text-lg text-white/80">
                   <FiPhone />
                 </span>
-                <a
-                  href={`tel:${SNM_SITE_PHONE}`}
+                <Link
+                  to={`tel:${SNM_SITE_PHONE}`}
                   className="text-sm hover:text-yellow-200 transition"
                 >
                   {SNM_SITE_PHONE}
-                </a>
+                </Link>
               </div>
 
               <div className="flex items-start gap-3">
                 <span className="mt-1 text-lg text-white/80">
                   <GoMail />
                 </span>
-                <a
-                  href={`mailto:${SNM_SITE_EMAIL}`}
+                <Link
+                  to={`mailto:${SNM_SITE_EMAIL}`}
                   className="text-sm hover:text-yellow-200 transition"
                 >
                   {SNM_SITE_EMAIL}
-                </a>
+                </Link>
               </div>
             </address>
           </div>

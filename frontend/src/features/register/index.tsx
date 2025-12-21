@@ -12,6 +12,7 @@ import { useRegisterUserMutation } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { FormValues } from "@shared/types/CommonType";
+import LoadingSpinner from "@shared/components/LoadingSpinner";
 
 const Register = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
@@ -23,10 +24,16 @@ const Register = () => {
     nextStep,
     prevStep,
     dropdownOption,
+    dropdownLoading,
     cities,
     citiesLoading,
     form,
   } = useRegistrationForm();
+
+  // Show loading spinner until dropdown data is loaded
+  if (dropdownLoading || !dropdownOption) {
+    return <LoadingSpinner />;
+  }
 
   const { handleSubmit, reset, resetField } = form;
 

@@ -13,6 +13,7 @@ import {
 } from "../constants/constants";
 import { useForgotPasswordMutation } from "@features/forgot-password/service/ForgotPasswordApi";
 import { toast } from "@shared/lib/toast";
+import { handleAlphabeticInput } from "@shared/lib/utils";
 
 interface Props {
   onSuccess: (data: SecurityQuestions) => void;
@@ -25,6 +26,7 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm<SecurityQuestions>({ mode: "onTouched" });
 
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
@@ -52,7 +54,7 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
       } else {
         toast.error(
           response?.message ||
-            "Failed to process your request. Please try again."
+          "Failed to process your request. Please try again."
         );
       }
     } catch (error: any) {
@@ -101,6 +103,13 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
           required
           register={register("favoriteFood", {
             required: "Favorite food is required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Favorite food should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "favoriteFood", setValue),
           })}
           placeholder="Enter favorite food"
           error={errors.favoriteFood}
@@ -111,6 +120,13 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
           required
           register={register("childhoodNickname", {
             required: "Childhood nickname is required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Childhood nickname should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "childhoodNickname", setValue),
           })}
           placeholder="Enter childhood nickname"
           error={errors.childhoodNickname}
@@ -121,6 +137,13 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
           required
           register={register("motherMaidenName", {
             required: "Mother's maiden name is required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Mother's maiden name should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "motherMaidenName", setValue),
           })}
           placeholder="Enter mother's maiden name"
           error={errors.motherMaidenName}
@@ -129,7 +152,16 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
         <TextField
           label="What are your hobbies?"
           required
-          register={register("hobbies", { required: "Hobbies are required" })}
+          register={register("hobbies", {
+            required: "Hobbies are required",
+            pattern: {
+              value: /^[A-Za-z\s]+$/,
+              message:
+                "Hobbies should contain only alphabets and spaces (no numbers or symbols)",
+            },
+            onChange: (e: any) =>
+              handleAlphabeticInput(e, "hobbies", setValue),
+          })}
           placeholder="Enter hobbies"
           error={errors.hobbies}
         />
