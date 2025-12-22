@@ -25,10 +25,10 @@ app.use(
 // Swagger UI setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// ✅ __dirname works automatically in CommonJS (no need for fileURLToPath)
+//  __dirname works automatically in CommonJS (no need for fileURLToPath)
 const __dirnameResolved = __dirname;
 
-// ✅ Serve static files from /uploads folder
+//  Serve static files from /uploads folder
 app.use("/uploads", express.static(path.join(__dirnameResolved, "../uploads")));
 
 // Security middleware

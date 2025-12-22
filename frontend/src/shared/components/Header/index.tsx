@@ -23,7 +23,7 @@ import {
 import { Button } from "../ui/button";
 import { signOut } from "@features/login/redux/authSlice";
 
-// ✅ Shadcn Components
+//  Shadcn Components
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -38,7 +38,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { handleNavigate } from "@shared/config/common";
 
-// ✅ Mobile Drawer remains unchanged
+//  Mobile Drawer remains unchanged
 const MobileDrawer = ({
   isOpen,
   onClose,
@@ -153,7 +153,7 @@ const MobileDrawer = ({
   );
 };
 
-// ✅ Header with Shadcn Profile Dropdown
+//  Header with Shadcn Profile Dropdown
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -238,7 +238,7 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* ✅ Desktop Menu */}
+          {/*  Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {publicNav.map((link: any, index: number) => (
               <Link
@@ -252,7 +252,7 @@ const Header = () => {
               </Link>
             ))}
 
-            {/* ✅ Profile Dropdown (Shadcn UI) */}
+            {/*  Profile Dropdown (Shadcn UI) */}
             {isAuthenticated && (
               <>
                 <span className=" py-2 text-white font-semibold transition capitalize">
@@ -370,7 +370,7 @@ const Header = () => {
         </div>
       </header>
 
-      {/* ✅ Mobile Drawer */}
+      {/*  Mobile Drawer */}
       <MobileDrawer
         isOpen={drawerOpen}
         isAuthenticated={isAuthenticated}

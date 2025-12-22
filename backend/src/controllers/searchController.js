@@ -28,7 +28,7 @@ exports.masterSearch = async (req, res) => {
   }
 };
 
-// ✅ Export to Excel
+//  Export to Excel
 exports.exportSearch = async (req, res) => {
   try {
     const result = await searchService.masterSearch({
@@ -107,7 +107,7 @@ exports.exportSearch = async (req, res) => {
   }
 };
 
-// ✅ Approve user
+//  Approve user
 exports.approveUser = async (req, res) => {
   try {
     const { regId } = req.params;
@@ -121,7 +121,7 @@ exports.approveUser = async (req, res) => {
   }
 };
 
-// ✅ Update selected users
+//  Update selected users
 exports.updateSelected = async (req, res) => {
   try {
     const { users } = req.body;

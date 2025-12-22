@@ -14,7 +14,7 @@ interface NumberFieldProps {
   autoComplete?: string;
   className?: string;
   maxLength?: number;
-  allowDecimal?: boolean; // ✅ NEW prop
+  allowDecimal?: boolean; //  NEW prop
   disabled?: boolean;
 }
 
@@ -30,11 +30,11 @@ export const NumberField = ({
   disabled = false,
   className = "",
   maxLength,
-  allowDecimal = false, // ✅ default: false
+  allowDecimal = false, //  default: false
 }: NumberFieldProps) => {
   const inputProps = value ? { defaultValue: value } : {};
 
-  // ✅ Allow only numbers (and one dot if allowDecimal)
+  //  Allow only numbers (and one dot if allowDecimal)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
 
@@ -52,7 +52,7 @@ export const NumberField = ({
     e.preventDefault();
   };
 
-  // ✅ Prevent invalid paste
+  //  Prevent invalid paste
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pasted = e.clipboardData.getData("text");
     const regex = allowDecimal ? /^[0-9]*\.?[0-9]*$/ : /^[0-9]+$/;

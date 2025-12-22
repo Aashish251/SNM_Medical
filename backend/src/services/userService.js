@@ -41,7 +41,7 @@ exports.addUserRole = async ({
       affectedRows: affected
     };
   } catch (error) {
-    console.error('❌ approve Service Error:', error);
+    console.error(' approve Service Error:', error);
     throw error;
   } finally {
     if (connection) connection.release();
@@ -287,7 +287,7 @@ exports.updateUserProfile = async (regId, data) => {
       affectedRows: affected
     };
   } catch (error) {
-    console.error('❌ updateUserProfile Service Error:', error);
+    console.error(' updateUserProfile Service Error:', error);
     throw error;
   } finally {
     if (connection) connection.release();

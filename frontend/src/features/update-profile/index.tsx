@@ -10,7 +10,7 @@ import {
 } from "@shared/components/Registration";
 import {
   useRegisterUserMutation,
-  useGetUserDetailsQueryQuery,        // ✅ use this
+  useGetUserDetailsQueryQuery,        //  use this
 } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
@@ -66,7 +66,7 @@ const UpdateProfile = () => {
     }
 
     if (userDetails) {
-      console.log("API response data:", userDetails); // ✅ console log
+      console.log("API response data:", userDetails); //  console log
 
       // Store existing file URLs
       setExistingProfilePic(userDetails.data.profileImage);

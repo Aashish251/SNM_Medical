@@ -70,7 +70,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               message: "Full name must be at least 2 characters long",
             },
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
               message:
                 "Full name should contain only alphabets and spaces (no numbers or symbols)",
             },

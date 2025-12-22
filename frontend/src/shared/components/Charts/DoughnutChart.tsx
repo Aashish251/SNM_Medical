@@ -7,7 +7,7 @@ import {
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
-// ✅ Register chart elements only once
+//  Register chart elements only once
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface DoughnutChartProps {

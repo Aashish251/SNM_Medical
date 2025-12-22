@@ -8,7 +8,7 @@ router.post('/master', authenticateToken, searchController.masterSearch);
 // 📤 Export grid data
 router.post('/export', authenticateToken, searchController.exportSearch);
 
-// ✅ Approve user
+//  Approve user
 router.post('/approve/:regId', authenticateToken, searchController.approveUser);
 
 // 🔄 Update selected users
