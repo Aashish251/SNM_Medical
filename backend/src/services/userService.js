@@ -120,7 +120,7 @@ exports.getUserProfile = async (userId) => {
       age: age === null ? null : age,
 
       // numeric gender as in form: 1/2/3
-      gender: user.gender == null ? 1 : (user.gender == 1 ? 1 : user.gender == 2 ? 2 : 3),
+      gender: user.gender == null ? null : toInt(user.gender, 1),
 
       // address & ids
       address: user.address || "",
@@ -209,6 +209,18 @@ exports.updateUserProfile = async (regId, data) => {
       certificate
     } = data;
 
+    /* --------------------------------------------------------
+       Normalize Gender (Dynamic)
+    -------------------------------------------------------- */
+    let genderValue = null;
+    if (typeof gender === "number") genderValue = gender;
+    else if (typeof gender === "string") {
+      const g = gender.toLowerCase();
+      if (g === "male") genderValue = 1;
+      else if (g === "female") genderValue = 2;
+      else genderValue = 3;
+    }
+
     // Handle profile image path if file was uploaded
     let profileImagePath = null;
     if (profileImage) {
@@ -244,7 +256,7 @@ exports.updateUserProfile = async (regId, data) => {
         null,                     // p_password (do NOT update here)
         mobileNo || null,
         dateOfBirth || null,      // p_dob
-        gender || null,           // p_gender
+        genderValue || null,      // p_gender
         address || null,
         stateId || null,
         cityId || null,

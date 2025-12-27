@@ -154,6 +154,19 @@ exports.updateUserProfile = async (userId, data) => {
  * Update presence (Admin only).
  */
 exports.updateUserPresence = async (userId, isPresent, passEntry) => {
+  // First fetch current user data to preserve sewa_location
+  const [userResult] = await promisePool.execute(
+    'CALL sp_get_user_profile(?)',
+    [userId]
+  );
+  
+  const userData = userResult?.[0]?.[0];
+  if (!userData) {
+    throw new Error('User not found');
+  }
+  
+  const sewaLocationId = userData.sewa_location_id;
+  
   const [result] = await promisePool.execute(
     'CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)',
     [
@@ -163,7 +176,7 @@ exports.updateUserPresence = async (userId, isPresent, passEntry) => {
       null,            // is_deleted
       null,            // is_admin
       null,            // remark
-      null,            // sewa_location_id
+      sewaLocationId || null,  // sewa_location_id (preserve existing)
       null             // samagam_held_in
     ]
   );
