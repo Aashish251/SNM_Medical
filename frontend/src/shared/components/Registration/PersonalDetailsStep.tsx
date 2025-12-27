@@ -132,11 +132,13 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             name="dateOfBirth"
             control={control}
             required
-            placeholder="DD-MM-YYYY"
-            fromYear={1900}
-            toYear={new Date().getFullYear()}
-            disabledDates={{ after: new Date() }}
+            register={register("dateOfBirth", {
+              required: "Birthdate is required",
+            })}
+            placeholder="DD/MM/YYYY"
+            error={errors.dateOfBirth}
           />
+
           <TextField
             label="Age"
             readOnly
