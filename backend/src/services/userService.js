@@ -1,3 +1,4 @@
+const e = require('express');
 const { promisePool } = require('../config/database');
 
 exports.addUserRole = async ({
@@ -14,7 +15,9 @@ exports.addUserRole = async ({
   try {
     connection = await promisePool.getConnection();
 
-    const boolToTinyInt = (val) => (val === null ? null : val ? 1 : 0);
+    const boolToTinyInt = (val) => (val === null ? null : val ? 1 : 0); const normalize = (val) =>
+    val === undefined || val === null || val === "" ? null : val;
+
 
     const [resultSets] = await connection.query(
       `CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -24,9 +27,9 @@ exports.addUserRole = async ({
         boolToTinyInt(passEntry),
         boolToTinyInt(isDeleted),
         boolToTinyInt(isAdmin),
-        remark,
-        sewaLocation,
-        samagamHeldIn
+        normalize(remark),
+        normalize(sewaLocation),     
+        normalize(samagamHeldIn) 
       ]
     );
 
@@ -209,16 +212,37 @@ exports.updateUserProfile = async (regId, data) => {
       certificate
     } = data;
 
+    // Fetch existing user data to preserve unchanged fields
+    const [existingUserResult] = await promisePool.execute(
+      'CALL sp_get_user_profile(?)',
+      [regId]
+    );
+
+    const existingUser = existingUserResult?.[0]?.[0];
+    if (!existingUser) {
+      throw new Error('User not found');
+    }
+
     /* --------------------------------------------------------
-       Normalize Gender (Dynamic)
+       Normalize Gender (Dynamic) - only if provided
     -------------------------------------------------------- */
     let genderValue = null;
-    if (typeof gender === "number") genderValue = gender;
-    else if (typeof gender === "string") {
-      const g = gender.toLowerCase();
-      if (g === "male") genderValue = 1;
-      else if (g === "female") genderValue = 2;
-      else genderValue = 3;
+    if (gender !== null && gender !== undefined && gender !== "") {
+      if (typeof gender === "number") {
+        genderValue = gender;
+      } else if (typeof gender === "string") {
+        // Try to parse as number first (e.g., "1", "2", "3")
+        const numGender = parseInt(gender, 10);
+        if (!isNaN(numGender) && numGender > 0) {
+          genderValue = numGender;
+        } else {
+          // Parse as text (e.g., "male", "female")
+          const g = gender.toLowerCase();
+          if (g === "male") genderValue = 1;
+          else if (g === "female") genderValue = 2;
+          else genderValue = 3;
+        }
+      }
     }
 
     // Handle profile image path if file was uploaded
@@ -232,11 +256,18 @@ exports.updateUserProfile = async (regId, data) => {
     let certificatePath = null;
     if (certificate && certificate.filename) {
       certificatePath = `/uploads/${certificate.filename}`;
-    } else if (typeof certificate === 'string') {
+    } else if (typeof certificate === 'string' && certificate) {
       // If certificate is already a string path, use it as-is
       certificatePath = certificate;
     }
 
+    // Helper function to normalize empty values to null
+    const normalize = (val) => {
+      if (val === null || val === undefined || val === "") {
+        return null;
+      }
+      return val;
+    };
 
     connection = await promisePool.getConnection();
 
@@ -246,40 +277,40 @@ exports.updateUserProfile = async (regId, data) => {
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
       )`,
       [
-        'update',                 // p_action
-        regId,                    // p_id
-        null,                     // p_user_type (no change)
-        null,                     // p_login_id
-        null,                     // p_title
-        fullName || null,
-        email || null,
-        null,                     // p_password (do NOT update here)
-        mobileNo || null,
-        dateOfBirth || null,      // p_dob
-        genderValue || null,      // p_gender
-        address || null,
-        stateId || null,
-        cityId || null,
-        qualificationId || null,
-        departmentId || null,
-        null,                     // p_available_day_id
-        null,                     // p_shifttime_id
-        profileImagePath || null,
-        certificatePath || null,  // p_certificate_doc_path
-        null,                     // p_is_present
-        null,                     // p_pass_entry
-        null,                     // p_sewa_location_id
-        remark || null,           // p_remark
-        experience || null,       // p_total_exp
-        lastSewa || null,         // p_prev_sewa_perform
-        recommendedBy || null,    // p_recom_by
-        samagamHeldIn || null,    // p_samagam_held_in
-        0,                        // p_is_deleted
-        favoriteFood || null,     // p_favorite_food
-        childhoodNickname || null, // p_childhood_nickname
-        motherMaidenName || null,  // p_mother_maiden_name
-        hobbies || null,          // p_hobbies
-        null                      // p_is_approved (don't change here)
+        'update',                         // p_action
+        regId,                            // p_id
+        existingUser.user_type,           // p_user_type (preserve existing)
+        existingUser.login_id,            // p_login_id (preserve existing)
+        existingUser.title,               // p_title (preserve existing)
+        normalize(fullName),              // Only update if provided
+        normalize(email),                 // Only update if provided
+        existingUser.password,            // p_password (do NOT update here)
+        normalize(mobileNo),              // Only update if provided
+        normalize(dateOfBirth),           // Only update if provided
+        genderValue,                      // Only update if provided
+        normalize(address),               // Only update if provided
+        stateId ? parseInt(stateId) : null,
+        cityId ? parseInt(cityId) : null,
+        qualificationId ? parseInt(qualificationId) : null,
+        departmentId ? parseInt(departmentId) : null,
+        existingUser.available_day_id,   // p_available_day_id (no change)
+        existingUser.shifttime_id,       // p_shifttime_id (no change)
+        profileImagePath,                 // Only if file uploaded
+        certificatePath,                  // Only if file uploaded
+        existingUser.is_present,          // p_is_present (no change)
+        existingUser.pass_entry,          // p_pass_entry (no change)
+        existingUser.sewa_location_id,    // p_sewa_location_id (no change)
+        normalize(remark),                // Only update if provided
+        experience ? parseFloat(experience) : null,
+        normalize(lastSewa),              // Only update if provided
+        normalize(recommendedBy),         // Only update if provided
+        normalize(samagamHeldIn),         // Only update if provided
+        existingUser.is_deleted,          // p_is_deleted (no change)
+        normalize(favoriteFood),          // Only update if provided
+        normalize(childhoodNickname),     // Only update if provided
+        normalize(motherMaidenName),      // Only update if provided
+        normalize(hobbies),               // Only update if provided
+        existingUser.is_approved,         // p_is_approved (don't change here)
       ]
     );
 
