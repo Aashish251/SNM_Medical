@@ -18,3 +18,5 @@ export * from "./table";
 export * from "./textarea";
 export * from "./table";
 export * from "./pagination";
+export * from "./calendar";
+

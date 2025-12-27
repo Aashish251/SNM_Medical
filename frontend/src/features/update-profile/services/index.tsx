@@ -19,6 +19,7 @@ export const UpdateProfileApi = createApi({
     }),
     getUserDetailsQuery: builder.query<GetUserProfileResponse, number>({
       query: (id) => ({
+        
         url: `/api/user/update-profile/${id}`,
         method: "GET",
       }),
