@@ -2,7 +2,7 @@ import toast, { Toaster, ToastBar } from "react-hot-toast";
 
 export default function CustomToaster() {
   return (
-    <Toaster position="top-right" toastOptions={{ duration: 6000 }}>
+    <Toaster position="top-right" toastOptions={{ duration: 5000 }}>
       {(t) => (
         <ToastBar toast={t}>
           {({ icon, message }) => (

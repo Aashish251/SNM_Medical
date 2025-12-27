@@ -58,14 +58,14 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
                     <p className="text-gray-600 mb-8 whitespace-pre-line leading-relaxed text-base">
                       {item?.content}
                     </p>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <div>
                       <Link
                         to=""
                         className="inline-flex items-center justify-center bg-to-two-right-theme-gradient text-white px-10 py-3.5 rounded-full font-semibold shadow-lg hover:shadow-2xl hover:opacity-90 transition-all duration-300"
                       >
                         Learn More
                       </Link>
-                    </motion.div>
+                    </div>
                   </div>
                 </div>
               </div>
