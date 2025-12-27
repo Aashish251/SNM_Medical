@@ -67,7 +67,8 @@ exports.updateUserProfile = async (req, res) => {
     const { regId } = req.params;
     const profileData = {
       ...req.body,
-      profileImage: req.file // Contains: fieldname, originalname, encoding, mimetype, destination, filename, path, size
+      profileImage: req.files?.profilePic?.[0],  // Get profilePic from files array
+      certificate: req.files?.certificate?.[0]   // Get certificate from files array
     };
 
     const result = await userService.updateUserProfile(regId, profileData);
