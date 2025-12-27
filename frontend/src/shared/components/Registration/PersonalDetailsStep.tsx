@@ -126,10 +126,9 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
 
         {/* Birthdate & Age */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <DatePickerField
+          <TextField
             label="Birthdate"
-            name="dateOfBirth"
-            control={control}
+            type="date"
             required
             register={register("dateOfBirth", {
               required: "Birthdate is required",
