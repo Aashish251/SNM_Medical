@@ -107,12 +107,20 @@ exports.createUser = async (data = {}, filePaths = {}) => {
        4️⃣ Normalize Gender (Dynamic)
     -------------------------------------------------------- */
     let genderValue = null;
-    if (typeof gender === "number") genderValue = gender;
-    else if (typeof gender === "string") {
-      const g = gender.toLowerCase();
-      if (g === "male") genderValue = 1;
-      else if (g === "female") genderValue = 2;
-      else genderValue = 3;
+    if (typeof gender === "number") {
+      genderValue = gender;
+    } else if (typeof gender === "string") {
+      // Try to parse as number first (e.g., "1", "2", "3")
+      const numGender = parseInt(gender, 10);
+      if (!isNaN(numGender) && numGender > 0) {
+        genderValue = numGender;
+      } else {
+        // Parse as text (e.g., "male", "female")
+        const g = gender.toLowerCase();
+        if (g === "male") genderValue = 1;
+        else if (g === "female") genderValue = 2;
+        else genderValue = 3;
+      }
     }
 
     /* --------------------------------------------------------

@@ -13,7 +13,7 @@ export const CommonApi = createApi({
   tagTypes: ["RegistrationDropdown", "Cities"],
 
   endpoints: (builder) => ({
-    // ✅ Dropdown master data
+    //  Dropdown master data
     getRegistrationDropdownData: builder.query<
       RegistrationDropdownResponse,
       void
@@ -25,7 +25,7 @@ export const CommonApi = createApi({
       providesTags: ["RegistrationDropdown"],
     }),
 
-    // ✅ Get cities by selected state
+    //  Get cities by selected state
     getCitiesByState: builder.query<
       CitiesByStateResponse,
       CitiesByStateRequest
@@ -39,7 +39,7 @@ export const CommonApi = createApi({
   }),
 });
 
-// ✅ Export auto-generated hooks
+//  Export auto-generated hooks
 export const {
   useGetRegistrationDropdownDataQuery,
   useLazyGetCitiesByStateQuery,

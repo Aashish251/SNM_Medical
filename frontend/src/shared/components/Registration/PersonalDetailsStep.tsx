@@ -5,6 +5,7 @@ import { DUMMY } from "@shared/config/common";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues, CityItem } from "@shared/types/CommonType";
 import {
+  DatePickerField,
   FileUploadField,
   NumberField,
   SelectField,
@@ -70,7 +71,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               message: "Full name must be at least 2 characters long",
             },
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
               message:
                 "Full name should contain only alphabets and spaces (no numbers or symbols)",
             },
@@ -126,15 +127,15 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
 
         {/* Birthdate & Age */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <TextField
+          <DatePickerField
             label="Birthdate"
-            type="date"
+            name="dateOfBirth"
+            control={control}
             required
-            register={register("dateOfBirth", {
-              required: "Birthdate is required",
-            })}
-            placeholder="Select birthdate"
-            error={errors.dateOfBirth}
+            placeholder="DD-MM-YYYY"
+            fromYear={1900}
+            toYear={new Date().getFullYear()}
+            disabledDates={{ after: new Date() }}
           />
           <TextField
             label="Age"

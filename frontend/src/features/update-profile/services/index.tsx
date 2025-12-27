@@ -18,6 +18,7 @@ export const UpdateProfileApi = createApi({
       }),
     }),
     getUserDetailsQuery: builder.query<GetUserProfileResponse, number>({
+      keepUnusedDataFor: 0, // Disable caching, always fetch
       query: (id) => ({
         url: `/api/user/update-profile/${id}`,
         method: "GET",

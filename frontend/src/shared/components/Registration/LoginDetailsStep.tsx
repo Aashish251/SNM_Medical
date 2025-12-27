@@ -54,7 +54,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           register={register("favoriteFood", {
             required: "Favorite food is required",
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
               message:
                 "Favorite food should contain only alphabets and spaces (no numbers or symbols)",
             },
@@ -71,7 +71,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           register={register("childhoodNickname", {
             required: "Childhood nickname is required",
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
               message:
                 "Childhood nickname should contain only alphabets and spaces (no numbers or symbols)",
             },
@@ -88,7 +88,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           register={register("motherMaidenName", {
             required: "Mother's maiden name is required",
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
               message:
                 "Mother's maiden name should contain only alphabets and spaces (no numbers or symbols)",
             },
@@ -105,7 +105,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           register={register("hobbies", {
             required: "Hobbies are required",
             pattern: {
-              value: /^[A-Za-z\s]+$/, // ✅ Only letters and spaces allowed
+              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
               message:
                 "Hobbies should contain only alphabets and spaces (no numbers or symbols)",
             },

@@ -23,7 +23,7 @@ exports.getSewaLocations = async () => {
     const results = resultSets[0] || resultSets;
     return results.map(toCamelCase);
   } catch (error) {
-    console.error('❌ getSewaLocations Error:', error);
+    console.error(' getSewaLocations Error:', error);
     throw error;
   } finally {
     if (connection) connection.release();
@@ -49,7 +49,7 @@ exports.masterSearch = async ({
   try {
     connection = await promisePool.getConnection();
 
-    // ✅ Call SP with 10 parameters (as per your definition)
+    //  Call SP with 10 parameters (as per your definition)
     const [resultSets] = await connection.query(
       'CALL sp_master_search(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
@@ -67,14 +67,14 @@ exports.masterSearch = async ({
     );
 
     /**
-     * ✅ MySQL returns 2 result sets from your SP:
+     *  MySQL returns 2 result sets from your SP:
      *  - resultSets[0] → actual paginated data
      *  - resultSets[1] → total count (from SELECT FOUND_ROWS())
      */
     const results = resultSets[0] || [];
     const totalRecords = resultSets[1]?.[0]?.TOTAL_RECORDS || 0;
 
-    // ✅ Convert column names to camelCase
+    //  Convert column names to camelCase
     const formattedResults = results.map((row) => {
       const formatted = {};
       Object.keys(row).forEach((key) => {
@@ -91,7 +91,7 @@ exports.masterSearch = async ({
       return formatted;
     });
 
-    // ✅ Build pagination object
+    //  Build pagination object
     const totalPages = Math.ceil(totalRecords / limit);
     const currentCount = formattedResults.length;
 
@@ -102,7 +102,7 @@ exports.masterSearch = async ({
       totalRecords
     };
 
-    // ✅ Optional: apply frontend sorting (if MySQL doesn’t do it)
+    //  Optional: apply frontend sorting (if MySQL doesn’t do it)
     formattedResults.sort((a, b) => {
       const fieldA = (a?.[sortBy] ?? '').toString().toLowerCase();
       const fieldB = (b?.[sortBy] ?? '').toString().toLowerCase();
@@ -128,7 +128,7 @@ exports.masterSearch = async ({
 
 exports.approveUser = async (regId) => {
   try {
-    // ✅ Call your stored procedure
+    //  Call your stored procedure
     const [resultSets] = await promisePool.execute(
       `CALL sp_update_IsApproved(?, ?)`,
       [regId, 1] // 1 means approved (true)
@@ -148,13 +148,13 @@ exports.approveUser = async (regId) => {
       affectedRows: affected
     };
   } catch (error) {
-    console.error('❌ approveUser Service Error:', error);
+    console.error(' approveUser Service Error:', error);
     throw error;
   }
 };
 
 
-// ✅ Update selected users' values
+//  Update selected users' values
 exports.updateSelectedUsers = async (userUpdates) => {
   const queries = userUpdates.map((u) =>
     promisePool.execute(

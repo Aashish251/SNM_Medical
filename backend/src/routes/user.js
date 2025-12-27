@@ -54,6 +54,9 @@ router.put('/update-role',authenticateToken, userController.addUserRole);
 router.get("/update-profile/:regId", authenticateToken, userController.getUserProfile);
 
 // Update User Profile (with optional file upload)
-router.put("/update-profile/:regId", authenticateToken, upload.single('profileImage'), userController.updateUserProfile);
+router.put("/update-profile/:regId", authenticateToken, upload.fields([
+  { name: 'profilePic', maxCount: 1 },
+  { name: 'certificate', maxCount: 1 }
+]), userController.updateUserProfile);
 
 module.exports = router;

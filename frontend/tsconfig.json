@@ -15,7 +15,7 @@
       "@routes/*": ["src/routes/*"]
     },
 
-    // ✅ Loosen strict checks and remove unused warnings
+    //  Loosen strict checks and remove unused warnings
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "strict": false,

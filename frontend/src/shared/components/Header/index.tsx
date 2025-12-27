@@ -23,7 +23,7 @@ import {
 import { Button } from "../ui/button";
 import { signOut } from "@features/login/redux/authSlice";
 
-// ✅ Shadcn Components
+//  Shadcn Components
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -38,7 +38,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { handleNavigate } from "@shared/config/common";
 
-// ✅ Mobile Drawer remains unchanged
+//  Mobile Drawer remains unchanged
 const MobileDrawer = ({
   isOpen,
   onClose,
@@ -153,7 +153,7 @@ const MobileDrawer = ({
   );
 };
 
-// ✅ Header with Shadcn Profile Dropdown
+//  Header with Shadcn Profile Dropdown
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -216,11 +216,10 @@ const Header = () => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-to-right-theme-gradient shadow-lg py-4"
-            : "bg-to-right-theme-gradient py-4"
-        }`}
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled
+          ? "bg-to-right-theme-gradient shadow-lg py-4"
+          : "bg-to-right-theme-gradient py-4"
+          }`}
       >
         <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Left Logo */}
@@ -238,21 +237,20 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* ✅ Desktop Menu */}
+          {/*  Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {publicNav.map((link: any, index: number) => (
               <Link
                 key={index}
                 to={link.href}
-                className={`px-4 py-2 text-white font-semibold ${
-                  activeMenu === link.href && "text-yellow-200"
-                } hover:text-yellow-200 transition`}
+                className={`px-4 py-2 text-white font-semibold ${activeMenu === link.href && "text-yellow-200"
+                  } hover:text-yellow-200 transition`}
               >
                 {link.text}
               </Link>
             ))}
 
-            {/* ✅ Profile Dropdown (Shadcn UI) */}
+            {/*  Profile Dropdown (Shadcn UI) */}
             {isAuthenticated && (
               <>
                 <span className=" py-2 text-white font-semibold transition capitalize">
@@ -266,9 +264,8 @@ const Header = () => {
                         <AvatarImage
                           src={
                             loggedInUserDetails?.profilePic
-                              ? `${import.meta.env.VITE_API_BASE_URL}${
-                                  loggedInUserDetails?.profilePic
-                                }`
+                              ? `${import.meta.env.VITE_API_BASE_URL}${loggedInUserDetails?.profilePic
+                              }`
                               : DEFAULT_PROFILE_IMAGE
                           }
                           alt="User Avatar"
@@ -280,7 +277,7 @@ const Header = () => {
                     </button>
                   </DropdownMenuTrigger>
 
-                  <DropdownMenuContent className="w-48 mt-2 bg-gradient-to-b from-purple-800 to-pink-700 text-white shadow-lg rounded-md font-semibold transition">
+                  <DropdownMenuContent className="w-48 mt-2 bg-to-bottom-theme-gradient text-white shadow-lg rounded-md font-semibold transition">
                     {filteredDashboardNav.map((link) => {
                       if (link.children && link.children.length > 0) {
                         return (
@@ -292,7 +289,7 @@ const Header = () => {
                               {link.text}
                             </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
-                              <DropdownMenuSubContent className="w-48 mt-2 bg-gradient-to-b from-purple-800 to-pink-700 text-white shadow-lg rounded-md font-semibold transition">
+                              <DropdownMenuSubContent className="w-48 mt-2 bg-to-bottom-theme-gradient text-white shadow-lg rounded-md font-semibold transition">
                                 {link.children.map((child) => (
                                   <DropdownMenuItem
                                     key={child.href}
@@ -370,7 +367,7 @@ const Header = () => {
         </div>
       </header>
 
-      {/* ✅ Mobile Drawer */}
+      {/*  Mobile Drawer */}
       <MobileDrawer
         isOpen={drawerOpen}
         isAuthenticated={isAuthenticated}

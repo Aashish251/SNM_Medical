@@ -28,7 +28,7 @@ export const MasterSearchApi = createApi({
           : [{ type: "MasterSearch" as const, id: "LIST" }],
     }),
 
-    // ✅ POST /approve/:regId
+    //  POST /approve/:regId
     getChangeStatus: builder.mutation({
       query: ({ regId }) => ({
         url: `/api/search/approve/${regId}`,
@@ -62,7 +62,7 @@ export const MasterSearchApi = createApi({
   }),
 });
 
-// ✅ Export hooks
+//  Export hooks
 export const {
   useMasterSearchQuery,
   useExportSearchMutation,

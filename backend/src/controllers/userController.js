@@ -34,7 +34,7 @@ exports.addUserRole = async (req, res) => {
 
     sendResponse(res, 200, true, data.message, data);
   } catch (error) {
-    console.error('❌ approve Controller Error:', error);
+    console.error(' approve Controller Error:', error);
     sendResponse(res, 500, false, 'Failed to update user role');
   }
 };
@@ -49,7 +49,7 @@ exports.getUserProfile = async (req, res) => {
     return res.status(200).json({ success: true, data: user });
 
   } catch (error) {
-    console.error("❌ Controller User Profile Error:", error);
+    console.error(" Controller User Profile Error:", error);
     // If the service throws a 'not found' error, return 404
     if (error && error.message && error.message.toLowerCase().includes('not found')) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -67,13 +67,14 @@ exports.updateUserProfile = async (req, res) => {
     const { regId } = req.params;
     const profileData = {
       ...req.body,
-      profileImage: req.file // Contains: fieldname, originalname, encoding, mimetype, destination, filename, path, size
+      profileImage: req.files?.profilePic?.[0],  // Get profilePic from files array
+      certificate: req.files?.certificate?.[0]   // Get certificate from files array
     };
 
     const result = await userService.updateUserProfile(regId, profileData);
     sendResponse(res, 200, true, 'Profile updated successfully', result);
   } catch (error) {
-    console.error('❌ Update Profile Error:', error);
+    console.error(' Update Profile Error:', error);
     const status = /not found/i.test(error.message) ? 404 : 500;
     sendResponse(res, status, false, error.message || 'Failed to update profile');
   }
