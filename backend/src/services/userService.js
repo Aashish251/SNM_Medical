@@ -197,9 +197,12 @@ exports.updateUserProfile = async (regId, data) => {
       cityId,
       departmentId,
       qualificationId,
+      availableDayId,
+      shiftTimeId,
       profileImage,
       dateOfBirth,
       gender,
+      title,
       remark,
       experience,
       lastSewa,
@@ -247,15 +250,16 @@ exports.updateUserProfile = async (regId, data) => {
 
     // Handle profile image path if file was uploaded
     let profileImagePath = null;
-    if (profileImage) {
-      // Get relative path from the uploads directory
-      profileImagePath = `/uploads/${profileImage.filename}`;
+    if (profileImage && profileImage.filename) {
+      // File goes to uploads/profile/ directory via multer
+      profileImagePath = `/uploads/profile/${profileImage.filename}`;
     }
 
     // Handle certificate document path if file was uploaded
     let certificatePath = null;
     if (certificate && certificate.filename) {
-      certificatePath = `/uploads/${certificate.filename}`;
+      // File goes to uploads/certificates/ directory via multer
+      certificatePath = `/uploads/certificates/${certificate.filename}`;
     } else if (typeof certificate === 'string' && certificate) {
       // If certificate is already a string path, use it as-is
       certificatePath = certificate;
@@ -281,7 +285,7 @@ exports.updateUserProfile = async (regId, data) => {
         regId,                            // p_id
         existingUser.user_type,           // p_user_type (preserve existing)
         existingUser.login_id,            // p_login_id (preserve existing)
-        existingUser.title,               // p_title (preserve existing)
+        normalize(title) || existingUser.title,  // p_title (update if provided, else preserve)
         normalize(fullName),              // Only update if provided
         normalize(email),                 // Only update if provided
         existingUser.password,            // p_password (do NOT update here)
@@ -293,10 +297,10 @@ exports.updateUserProfile = async (regId, data) => {
         cityId ? parseInt(cityId) : null,
         qualificationId ? parseInt(qualificationId) : null,
         departmentId ? parseInt(departmentId) : null,
-        existingUser.available_day_id,   // p_available_day_id (no change)
-        existingUser.shifttime_id,       // p_shifttime_id (no change)
-        profileImagePath,                 // Only if file uploaded
-        certificatePath,                  // Only if file uploaded
+        availableDayId ? parseInt(availableDayId) : existingUser.available_day_id,
+        shiftTimeId ? parseInt(shiftTimeId) : existingUser.shifttime_id,
+        profileImagePath || existingUser.profile_img_path || null,
+        certificatePath || existingUser.certificate_doc_path || null,
         existingUser.is_present,          // p_is_present (no change)
         existingUser.pass_entry,          // p_pass_entry (no change)
         existingUser.sewa_location_id,    // p_sewa_location_id (no change)
