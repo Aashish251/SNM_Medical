@@ -7,86 +7,59 @@
  * - Others          →  uploads/others/
  */
 
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const logger = require("../utils/logger");
 
-// -------------------------------------
-//  Ensure directory exists
-// -------------------------------------
-const ensureDir = (dirPath) => {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+const BASE_UPLOAD_DIR = path.join(__dirname, "../../uploads");
+
+const ensureDir = (dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 };
 
-// -------------------------------------
-// 📂 Base uploads directory
-// -------------------------------------
-const BASE_UPLOAD_DIR = path.join(__dirname, '../../uploads');
-
-// -------------------------------------
-// ⚙️ Multer storage configuration
-// -------------------------------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let uploadDir = 'others';
+    let folder = "others";
 
-    switch (file.fieldname) {
-      case 'profilePic':
-        uploadDir = 'profile';
-        break;
-      case 'certificate':
-        uploadDir = 'certificates';
-        break;
+    if (["profilePic", "profileImage"].includes(file.fieldname)) {
+      folder = "profile";
+    } else if (file.fieldname === "certificate") {
+      folder = "certificates";
     }
 
-    const fullPath = path.join(BASE_UPLOAD_DIR, uploadDir);
+    const fullPath = path.join(BASE_UPLOAD_DIR, folder);
     ensureDir(fullPath);
-    
-    req.uploadSubDir = uploadDir;
-    
+
     cb(null, fullPath);
   },
 
   filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    const random = Math.round(Math.random() * 1e9);
-    const safeOriginalName = path.basename(file.originalname, path.extname(file.originalname))
-      .replace(/\s+/g, '_')
-      .replace(/[^\w\-]/g, '');
-
-    const finalFileName = `${safeOriginalName}_${timestamp}_${random}${path.extname(file.originalname)}`;
-    cb(null, finalFileName);
-  },
+    const safeName =
+      file.originalname.replace(/\s+/g, "_").replace(/[^\w.-]/g, "");
+    cb(null, `${Date.now()}_${safeName}`);
+  }
 });
 
-// -------------------------------------
-// 🧩 File validation
-// -------------------------------------
 const fileFilter = (req, file, cb) => {
-  const allowedExts = ['.jpg', '.jpeg', '.png', '.pdf'];
+  const allowed = [".jpg", ".jpeg", ".png", ".pdf", ".webp", ".doc", ".docx", ".xls", ".xlsx", ".txt"];
   const ext = path.extname(file.originalname).toLowerCase();
 
-  if (!allowedExts.includes(ext)) {
-    return cb(new Error(`Unsupported file type: ${ext}. Allowed: ${allowedExts.join(', ')}`));
+  if (!allowed.includes(ext)) {
+    logger.warn("Invalid file upload attempt", { ext });
+    return cb(new Error("Invalid file type"));
   }
 
   cb(null, true);
 };
 
-// -------------------------------------
-// 🚀 Create Multer upload instance
-// -------------------------------------
 const upload = multer({
   storage,
   fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, //  5MB max per file
-  },
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// -------------------------------------
-// 🧾 Export upload middleware
-// -------------------------------------
 module.exports = upload;
+
