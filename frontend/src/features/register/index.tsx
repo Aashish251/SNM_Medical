@@ -82,7 +82,7 @@ const Register = () => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      console.log("Form submission data:", data);
+      // console.log("Form submission data:", data);
       setDisabled(true);
 
       // Validate required fields
@@ -143,7 +143,7 @@ const Register = () => {
       }
 
       // Debug: Log form data entries
-      console.log("FormData contents:", formData);
+      //console.log("FormData contents:", formData);
       // return;
       for (const pair of (formData as any).entries()) {
         console.log(pair[0], pair[1]);
