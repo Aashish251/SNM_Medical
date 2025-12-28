@@ -7,6 +7,7 @@ require("dotenv").config();
 const path = require("path");
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger-output.json');
+const errorMiddleware = require("./middlewares/error");
 
 
 const app = express();
