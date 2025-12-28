@@ -108,7 +108,7 @@ const Footer: React.FC = () => {
                   </div>
                   <div>
                     <Link
-                      to="/services"
+                      to=""
                       className="text-sm font-medium block hover:text-yellow-200 transition"
                     >
                       {s.title}
@@ -173,13 +173,13 @@ const Footer: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <Link
-              to="/privacy"
+              to=""
               className="text-sm text-white/70 hover:text-white transition"
             >
               Privacy Policy
             </Link>
             <Link
-              to="/terms"
+              to=""
               className="text-sm text-white/70 hover:text-white transition"
             >
               Terms

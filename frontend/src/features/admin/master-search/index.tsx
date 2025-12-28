@@ -213,7 +213,7 @@ export default function MasterSearchPage() {
         sortOrder: sortState.direction,
       };
 
-      console.log("🔍 Search Payload:", newPayload);
+      // console.log("🔍 Search Payload:", newPayload);
 
       // Update the search payload which will trigger a new search
       setSearchPayload(newPayload);
@@ -233,7 +233,7 @@ export default function MasterSearchPage() {
         limit: 1000000, // Get all matching records for export
       };
 
-      console.log("📤 Exporting with payload:", exportPayload);
+      // console.log("📤 Exporting with payload:", exportPayload);
 
       const blob = await toast.promise(
         triggerExportSearch(exportPayload).unwrap(),

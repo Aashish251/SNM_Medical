@@ -26,7 +26,7 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
   return (
     <section className="py-16 bg-white">
       <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 whitespace-nowrap">
           {HOME_ABOUT_PAGE_TITLE}
         </h2>
         <div className="w-24 h-1 bg-to-two-right-theme-gradient mx-auto mb-6" />
@@ -37,9 +37,9 @@ export default function AboutSection({ aboutImages }: AboutSectionProps) {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 overflow-hidden">
         <Carousel
           slides={aboutImages.map((item, index) => (
-            <div key={index} className="outline-none p-4">
+            <div key={index} className="outline-none p-10">
               {/* Card wrapper with shadow and border */}
-              <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
+              <div className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
                 <div className="grid md:grid-cols-2 gap-0 items-center">
                   {/* Image Side */}
                   <div className="relative h-80 md:h-96 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-6">

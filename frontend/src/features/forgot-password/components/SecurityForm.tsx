@@ -44,7 +44,7 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
         toast.success(
           response?.message || "You may now change or update your password."
         );
-        console.log(response?.data?.reg_id);
+        // console.log(response?.data?.reg_id);
         setUserRegIDObj({
           status: response?.data?.status,
           regId: response?.data?.reg_id,

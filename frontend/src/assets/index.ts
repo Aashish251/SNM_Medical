@@ -1,13 +1,18 @@
 //  Logos
 export const SNM_WEBSITE_LOGO = "/img/snmlogo.jpeg";
 export const SNM_LOGO_SVG = "/img/snmlogo.svg";
-export const SNM_LOGO_WEBP = "/img/Logo-1.webp";
 
 //  Hero / Banner images
-export const HOME_HERO_BANNER_IMAGE1 = "/img/SD02.jpg";
-export const HOME_HERO_BANNER_IMAGE2 = "/img/matasudikshaji.png";
-export const HOME_HERO_BANNER_IMAGE3 = "/img/satgurumataji1.png";
-export const HOME_HERO_BANNER_IMAGE4 = "/img/SD03.jpg";
+export const HOME_HERO_BANNER_IMAGE1 = "/img/Banner1.jpg";
+export const HOME_HERO_BANNER_IMAGE2 = "/img/Banner2.jpg";
+export const HOME_HERO_BANNER_IMAGE3 = "/img/Banner3.jpg";
+export const HOME_HERO_BANNER_IMAGE4 = "/img/Banner4.jpg";
+export const HOME_HERO_BANNER_IMAGE5 = "/img/Banner5.jpg";
+export const HOME_HERO_BANNER_IMAGE6 = "/img/Banner6.jpg";
+export const HOME_HERO_BANNER_IMAGE7 = "/img/Banner7.jpg";
+export const HOME_HERO_BANNER_IMAGE8 = "/img/Banner8.jpg";
+export const HOME_HERO_BANNER_IMAGE9 = "/img/Banner9.jpg";
+export const HOME_HERO_BANNER_IMAGE10 = "/img/Banner10.jpg";
 
 //  About section images
 export const HOME_HERO_ABOUT_IMAGE1 = "/img/babaji.jpg";
@@ -42,6 +47,6 @@ export const IMAGE_SNMD = "/img/snmd.jpg";
 export const IMAGE_SNM1 = "/img/snm1.png";
 
 // dashborad caresual banner image
-export const DASHBOARD_BANNER1 = "/img/dashboard-banner-1.jpeg";
-export const DASHBOARD_BANNER2 = "/img/dashboard-banner-2.jpeg";
-export const DASHBOARD_BANNER3 = "/img/dashboard-banner-3.jpeg";
+export const DASHBOARD_BANNER1 = "/img/Banner1.jpg";
+export const DASHBOARD_BANNER2 = "/img/Banner5.jpg";
+export const DASHBOARD_BANNER3 = "/img/Banner10.jpg";

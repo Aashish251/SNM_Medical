@@ -61,25 +61,25 @@ export const SNMSocialMedia = [
   {
     id: 1,
     title: "facebook",
-    link: "https://www.facebook.com/santnirankarimission",
+    link: "",
     icon: FaFacebook,
   },
   {
     id: 2,
     title: "twitter",
-    link: "https://x.com/santnirankari",
+    link: "",
     icon: FaTwitter,
   },
   {
     id: 3,
     title: "instagram",
-    link: "https://www.instagram.com/santnirankariofficial/",
+    link: "",
     icon: FaInstagram,
   },
   {
     id: 4,
     title: "youtube",
-    link: "https://www.youtube.com/user/SantNirankariMission",
+    link: "",
     icon: FaYoutube,
   },
 ];
