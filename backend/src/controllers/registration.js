@@ -57,9 +57,14 @@ exports.registerUser = async (req, res, next) => {
       });
     }
 
+    // Convert file paths to relative URLs for storage in database
     const filePaths = {
-      profileImagePath: files?.profilePic?.[0]?.path || null,
-      certificatePath: files?.certificate?.[0]?.path || null
+      profileImagePath: files?.profilePic?.[0]?.filename 
+        ? `/uploads/profile/${files.profilePic[0].filename}` 
+        : null,
+      certificatePath: files?.certificate?.[0]?.filename 
+        ? `/uploads/certificates/${files.certificate[0].filename}` 
+        : null
     };
 
     const result = await registrationService.createUser(userData, filePaths);

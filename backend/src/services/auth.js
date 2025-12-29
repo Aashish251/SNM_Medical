@@ -72,6 +72,18 @@ exports.login = async ({ role, email, mobileNo, password }) => {
     { expiresIn: jwtConfig.expiresIn || '1d' }
   );
 
+  // Ensure profile picture path is properly formatted
+  let profileImagePath = null;
+  if (user.profile_img_path && user.profile_img_path.trim() !== '') {
+    // If path doesn't start with /, add it
+    profileImagePath = user.profile_img_path.startsWith('/') 
+      ? user.profile_img_path 
+      : '/' + user.profile_img_path;
+  } else {
+    // If no profile image, return null to use frontend default
+    profileImagePath = null;
+  }
+
   return {
     token,
     user: {
@@ -80,7 +92,7 @@ exports.login = async ({ role, email, mobileNo, password }) => {
       email: user.email,
       userType: user.user_type,
       role: user.user_type === 'admin' ? 'admin' : 'ms',
-      profilePic: user.profile_img_path || '/uploads/default_profile.png'
+      profilePic: profileImagePath
     }
   };
 };
