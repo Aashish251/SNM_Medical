@@ -105,6 +105,7 @@ export default function MasterSearchPage() {
       stateId: "",
       cityId: "",
       passEntry: "",
+      onDuty: "",
       isPresent: "",
     },
   });
@@ -126,6 +127,7 @@ export default function MasterSearchPage() {
       passEntry: null,
       isAdmin: null,
       isDeleted: null,
+      onDuty: "",
       sewaLocation: "",
       samagamHeldIn: "",
       remark: "",
@@ -467,7 +469,7 @@ export default function MasterSearchPage() {
           <CollapsibleContent className="p-4 border-t">
             <form
               onSubmit={handleRoleSubmit(onRoleSubmit)}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end"
             >
               <SelectField
                 control={roleControl}
@@ -513,6 +515,17 @@ export default function MasterSearchPage() {
                 placeholder="Select isDelete"
               />
 
+              <SelectField
+                control={roleControl}
+                name="onDuty"
+                label=""
+                options={DUMMY.onDuty}
+                labelKey="label"
+                valueKey="value"
+                defaultValue={null}
+                placeholder="Select onDuty"
+              />
+
               <SearchableSelect
                 control={roleControl} // use roleControl
                 name="sewaLocation"
@@ -529,37 +542,39 @@ export default function MasterSearchPage() {
                 placeholder="Enter samagam location"
               />
 
-              <TextareaField
-                label=""
-                placeholder="Enter remark message"
-                register={registerRole("remark", {
-                  validate: (value) => {
-                    if (isDeleteSelected) {
-                      if (!value || String(value).trim().length === 0) {
-                        return "Please enter the remark.";
+              <div className="lg:col-span-2 xl:col-span-1">
+                <TextField
+                  label=""
+                  placeholder="Enter remark message"
+                  register={registerRole("remark", {
+                    validate: (value) => {
+                      if (isDeleteSelected) {
+                        if (!value || String(value).trim().length === 0) {
+                          return "Please enter the remark.";
+                        }
                       }
-                    }
-                    return true;
-                  },
-                })}
-                rows={1}
-                className="w-full resize-none lg:col-span-2"
-                error={roleErrors.remark}
-              />
+                      return true;
+                    },
+                  })}
+                  error={roleErrors.remark}
+                />
+              </div>
 
-              <button
-                type="button"
-                onClick={() => resetRoleForm()}
-                className="px-4 py-2 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 w-full col-span-1"
-              >
-                Reset
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 w-full col-span-1"
-              >
-                Submit
-              </button>
+              <div className="flex gap-2 lg:col-span-2 xl:col-span-2">
+                <button
+                  type="button"
+                  onClick={() => resetRoleForm()}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-colors h-[38px] flex items-center justify-center"
+                >
+                  Reset
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition-colors h-[38px] flex items-center justify-center"
+                >
+                  Submit
+                </button>
+              </div>
             </form>
           </CollapsibleContent>
         </Collapsible>
