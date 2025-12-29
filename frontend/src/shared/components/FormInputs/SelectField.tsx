@@ -76,7 +76,7 @@ export const SelectField = <T extends FieldValues>({
                       Otherwise keep normal padding so no extra empty space appears on the right. */}
                   <SelectTrigger
                     id={id}
-                    className={hasValue && !readOnly ? "pr-8" : "pr-2"}
+                    className={`${hasValue && !readOnly ? "pr-8" : "pr-2"} font-medium text-gray-700`}
                   >
                     <SelectValue placeholder={placeholder}>
                       {options.find(

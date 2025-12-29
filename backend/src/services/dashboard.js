@@ -153,38 +153,38 @@ exports.updateUserProfile = async (userId, data) => {
 /**
  * Update presence (Admin only).
  */
-exports.updateUserPresence = async (userId, isPresent, passEntry) => {
-  // First fetch current user data to preserve sewa_location
-  const [userResult] = await promisePool.execute(
-    'CALL sp_get_user_profile(?)',
-    [userId]
-  );
+// exports.updateUserPresence = async (userId, isPresent, passEntry) => {
+//   // First fetch current user data to preserve sewa_location
+//   const [userResult] = await promisePool.execute(
+//     'CALL sp_get_user_profile(?)',
+//     [userId]
+//   );
   
-  const userData = userResult?.[0]?.[0];
-  if (!userData) {
-    throw new Error('User not found');
-  }
+//   const userData = userResult?.[0]?.[0];
+//   if (!userData) {
+//     throw new Error('User not found');
+//   }
   
-  const sewaLocationId = userData.sewa_location_id;
+//   const sewaLocationId = userData.sewa_location_id;
   
-  const [result] = await promisePool.execute(
-    'CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)',
-    [
-      userId,          // p_reg_id (CSV or single)
-      isPresent ?? null,
-      passEntry ?? null,
-      null,            // is_deleted
-      null,            // is_admin
-      null,            // remark
-      sewaLocationId || null,  // sewa_location_id (preserve existing)
-      null             // samagam_held_in
-    ]
-  );
+//   const [result] = await promisePool.execute(
+//     'CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)',
+//     [
+//       userId,          // p_reg_id (CSV or single)
+//       isPresent ?? null,
+//       passEntry ?? null,
+//       null,            // is_deleted
+//       null,            // is_admin
+//       null,            // remark
+//       sewaLocationId || null,  // sewa_location_id (preserve existing)
+//       null             // samagam_held_in
+//     ]
+//   );
 
-  const affected = result?.[0]?.[0]?.affected_rows || 0;
-  if (!affected) throw new Error('User not found');
-  return true;
-};
+//   const affected = result?.[0]?.[0]?.affected_rows || 0;
+//   if (!affected) throw new Error('User not found');
+//   return true;
+// };
 
 /**
  * Fetch admin dashboard summary.

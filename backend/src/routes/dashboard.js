@@ -11,7 +11,7 @@ router.put('/profile', authenticateToken, dashboardController.updateProfile);
 
 // Admin routes
 // router.get('/users', authenticateToken, isAdmin, dashboardController.getAllUsers);
-router.put('/users/:userId/presence', authenticateToken, isAdmin, dashboardController.updatePresence);
+// router.put('/users/:userId/presence', authenticateToken, isAdmin, dashboardController.updatePresence);
 router.get('/summary', authenticateToken, isAdmin, dashboardController.getAdminSummary);
 
 module.exports = router;

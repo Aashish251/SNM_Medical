@@ -3,7 +3,6 @@ const router = express.Router();
 const upload = require('../middlewares/upload');
 const path = require('path');
 const registrationController = require('../controllers/registration');
-const formData = new FormData();
 
 /**
  * @swagger

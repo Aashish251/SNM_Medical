@@ -52,6 +52,11 @@ export const userTableConfig: TableConfig<User> = {
       render: (user: User) => (user?.passEntry == 1 ? "Yes" : "No"),
     },
     {
+      key: "onduty",
+      header: "On Duty",
+      render: (user: User) => (user?.onduty),
+    },
+    {
       key: "isPresent",
       header: "Is Present",
       sortable: true,
@@ -127,6 +132,10 @@ export const DUMMY = {
   isDelete: [
     { id: 1, label: "Yes", value: 1 },
     { id: 2, label: "No", value: 0 },
+  ],
+  onDuty: [
+    { id: 1, label: "Yes", value: "Yes" },
+    { id: 2, label: "No", value: "No" },
   ],
   UserRoleChecks: [
     { id: 1, name: "isPresent", label: "Is Present", defaultChecked: true },

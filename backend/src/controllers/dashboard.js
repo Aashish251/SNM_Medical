@@ -29,17 +29,17 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-exports.updatePresence = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { isPresent, passEntry } = req.body;
-    await dashboardService.updateUserPresence(userId, isPresent, passEntry);
-    sendResponse(res, 200, true, 'User presence updated successfully');
-  } catch (error) {
-    const status = /not found/i.test(error.message) ? 404 : 500;
-    sendResponse(res, status, false, error.message);
-  }
-};
+// exports.updatePresence = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+//     const { isPresent, passEntry } = req.body;
+//     await dashboardService.updateUserPresence(userId, isPresent, passEntry);
+//     sendResponse(res, 200, true, 'User presence updated successfully');
+//   } catch (error) {
+//     const status = /not found/i.test(error.message) ? 404 : 500;
+//     sendResponse(res, status, false, error.message);
+//   }
+// };
 
 exports.getAdminSummary = async (req, res) => {
   try {

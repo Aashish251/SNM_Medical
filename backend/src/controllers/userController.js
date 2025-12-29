@@ -11,7 +11,8 @@ exports.addUserRole = async (req, res) => {
       isAdmin,
       remark,
       sewaLocation,
-      samagamHeldIn
+      samagamHeldIn,
+      onDuty
     } = req.body;
 
     if (!regId) {
@@ -29,7 +30,8 @@ exports.addUserRole = async (req, res) => {
       isAdmin,
       remark,
       sewaLocation,
-      samagamHeldIn
+      samagamHeldIn,
+      onduty: onDuty
     });
 
     sendResponse(res, 200, true, data.message, data);

@@ -156,15 +156,87 @@ exports.approveUser = async (regId) => {
 
 //  Update selected users' values
 exports.updateSelectedUsers = async (userUpdates) => {
-  const queries = userUpdates.map((u) =>
-    promisePool.execute(
-      `UPDATE registration_tbl 
-       SET is_present = ?, pass_entry = ?, department_id = ?, qualification_id = ? 
-       WHERE reg_id = ?`,
-      [u.is_present, u.pass_entry, u.department_id, u.qualification_id, u.reg_id]
-    )
-  );
+  let connection;
+  try {
+    connection = await promisePool.getConnection();
+    
+    const queries = userUpdates.map((u) => {
+      // Build dynamic UPDATE query based on provided fields
+      const updateFields = [];
+      const updateValues = [];
 
-  await Promise.all(queries);
-  return true;
+      if (u.is_present !== undefined && u.is_present !== null) {
+        updateFields.push('is_present = ?');
+        updateValues.push(u.is_present);
+      }
+
+      if (u.pass_entry !== undefined && u.pass_entry !== null) {
+        updateFields.push('pass_entry = ?');
+        updateValues.push(u.pass_entry);
+      }
+
+      if (u.department_id !== undefined && u.department_id !== null) {
+        updateFields.push('department_id = ?');
+        updateValues.push(u.department_id);
+      }
+
+      if (u.qualification_id !== undefined && u.qualification_id !== null) {
+        updateFields.push('qualification_id = ?');
+        updateValues.push(u.qualification_id);
+      }
+
+      if (u.sewa_location_id !== undefined && u.sewa_location_id !== null) {
+        updateFields.push('sewa_location_id = ?');
+        updateValues.push(u.sewa_location_id);
+      }
+
+      if (u.is_deleted !== undefined && u.is_deleted !== null) {
+        updateFields.push('is_deleted = ?');
+        updateValues.push(u.is_deleted);
+      }
+
+      if (u.is_admin !== undefined && u.is_admin !== null) {
+        updateFields.push('is_admin = ?');
+        updateValues.push(u.is_admin);
+      }
+
+      if (u.remark !== undefined && u.remark !== null && u.remark !== '') {
+        updateFields.push('remark = ?');
+        updateValues.push(u.remark);
+      }
+
+      if (u.samagam_held_in !== undefined && u.samagam_held_in !== null && u.samagam_held_in !== '') {
+        updateFields.push('samagam_held_in = ?');
+        updateValues.push(u.samagam_held_in);
+      }
+
+      if (u.on_duty !== undefined && u.on_duty !== null && u.on_duty !== '') {
+        updateFields.push('on_duty = ?');
+        updateValues.push(u.on_duty);
+      }
+
+      // Return early if no fields to update
+      if (updateFields.length === 0) {
+        return Promise.resolve();
+      }
+
+      // Add regId at the end for WHERE clause
+      updateValues.push(u.reg_id);
+
+      return connection.execute(
+        `UPDATE registration_tbl 
+         SET ${updateFields.join(', ')} 
+         WHERE reg_id = ?`,
+        updateValues
+      );
+    });
+
+    await Promise.all(queries);
+    return true;
+  } catch (error) {
+    console.error(' updateSelectedUsers Service Error:', error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
 };

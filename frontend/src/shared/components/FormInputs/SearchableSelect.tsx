@@ -15,6 +15,7 @@ import {
   CommandList,
 } from "@shared/components/ui/command";
 import { RequiredMark } from "./FormHelpers";
+import { ChevronDown } from "lucide-react";
 
 interface Option {
   id: number;
@@ -124,9 +125,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                       aria-expanded={openPopover}
                       aria-controls={`${name}-listbox`}
                       aria-haspopup="listbox"
-                      className={`w-full justify-between text-sm font-medium text-gray-700 ${
-                        disabled ? "opacity-50 pointer-events-none" : ""
-                      }`}
+                      className={`w-full justify-between text-sm font-medium text-gray-700 ${disabled ? "opacity-50 pointer-events-none" : ""
+                        }`}
                       type="button"
                       onClick={() => !disabled && setOpenPopover((s) => !s)}
                     >
@@ -135,25 +135,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                       </span>
 
                       <div className="ml-2 flex items-center gap-2">
-                        
+
 
                         {/* simple caret */}
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden
-                        >
-                          <path
-                            d="M6 9l6 6 6-6"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                        <ChevronDown className="h-4 w-4 font-medium" />
 
                         {/* clear button shown only when something is selected and allowClear */}
                         {allowClear && selectedOption && !disabled && (
@@ -187,11 +172,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                       {Array.isArray(filteredOptions) && filteredOptions.length > 0 ? (
                         filteredOptions.map((item) => (
                           <CommandItem
-                            className={`text-sm font-medium text-gray-700 hover:text-grey-900 truncate ${
-                              selectedOption && item[valueKey] === selectedOption[valueKey]
-                                ? "bg-gray-100"
-                                : ""
-                            }`}
+                            className={`text-sm font-medium text-gray-700 hover:text-grey-900 truncate ${selectedOption && item[valueKey] === selectedOption[valueKey]
+                              ? "bg-gray-100"
+                              : ""
+                              }`}
                             key={String(item[valueKey])}
                             value={String(item[labelKey])?.toLowerCase()}
                             onSelect={() => handleSelect(item[valueKey])}

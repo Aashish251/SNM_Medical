@@ -9,18 +9,20 @@ exports.addUserRole = async ({
   isAdmin = null,
   remark = null,
   sewaLocation = null,
-  samagamHeldIn = null
+  samagamHeldIn = null,
+  onduty = null
 }) => {
   let connection;
   try {
     connection = await promisePool.getConnection();
 
-    const boolToTinyInt = (val) => (val === null ? null : val ? 1 : 0); const normalize = (val) =>
+    const boolToTinyInt = (val) => (val === null ? null : val ? 1 : 0); 
+    const normalize = (val) =>
     val === undefined || val === null || val === "" ? null : val;
 
 
     const [resultSets] = await connection.query(
-      `CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)`,
+      `CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         regId.toString(), // supports "1" or "1,2,3"
         boolToTinyInt(isPresent),
@@ -29,7 +31,8 @@ exports.addUserRole = async ({
         boolToTinyInt(isAdmin),
         normalize(remark),
         normalize(sewaLocation),     
-        normalize(samagamHeldIn) 
+        normalize(samagamHeldIn),
+        normalize(onduty)
       ]
     );
 
@@ -253,6 +256,9 @@ exports.updateUserProfile = async (regId, data) => {
     if (profileImage && profileImage.filename) {
       // File goes to uploads/profile/ directory via multer
       profileImagePath = `/uploads/profile/${profileImage.filename}`;
+    } else if (typeof profileImage === 'string' && profileImage && profileImage.trim() !== '') {
+      // If already a string path, use it (for no-upload scenarios)
+      profileImagePath = profileImage;
     }
 
     // Handle certificate document path if file was uploaded
@@ -260,7 +266,7 @@ exports.updateUserProfile = async (regId, data) => {
     if (certificate && certificate.filename) {
       // File goes to uploads/certificates/ directory via multer
       certificatePath = `/uploads/certificates/${certificate.filename}`;
-    } else if (typeof certificate === 'string' && certificate) {
+    } else if (typeof certificate === 'string' && certificate && certificate.trim() !== '') {
       // If certificate is already a string path, use it as-is
       certificatePath = certificate;
     }
