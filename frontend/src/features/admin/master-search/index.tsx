@@ -44,7 +44,7 @@ export default function MasterSearchPage() {
   const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
   const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
   const [triggerGetChangeStatus] = useGetChangeStatusMutation();
-  const [triggerChangeUsersRole] = useGetChangeUsersRoleMutation();
+  const [triggerChangeUsersRole, { isLoading: isUpdatingRole }] = useGetChangeUsersRoleMutation();
   const [searchPayload, setSearchPayload] = useState({
     searchKey: "",
     departmentId: null,
@@ -64,6 +64,8 @@ export default function MasterSearchPage() {
     useMasterSearchQuery(searchPayload, { skip: !searchTriggered });
 
   const [triggerExportSearch, { isLoading: isExporting }] = useExportSearchMutation();
+
+  console.log("isFetching", isFetching)
 
   // Removed users state
 
@@ -433,9 +435,10 @@ export default function MasterSearchPage() {
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-primary text-white rounded-2xl font-bold hover:bg-blue-700 w-full col-span-1"
+                disabled={isFetching}
+                className="px-4 py-2 bg-primary text-white rounded-2xl font-bold hover:bg-blue-700 w-full col-span-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Search
+                {isFetching ? "Searching..." : "Search"}
               </button>
               <button
                 type="button"
@@ -570,9 +573,10 @@ export default function MasterSearchPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition-colors h-[38px] flex items-center justify-center"
+                  disabled={isUpdatingRole}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition-colors h-[38px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit
+                  {isUpdatingRole ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </form>

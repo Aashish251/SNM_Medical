@@ -52,9 +52,9 @@ export const userTableConfig: TableConfig<User> = {
       render: (user: User) => (user?.passEntry == 1 ? "Yes" : "No"),
     },
     {
-      key: "onDuty",
+      key: "onduty",
       header: "On Duty",
-      render: (user: User) => (user?.onDuty),
+      render: (user: User) => (user?.onduty),
     },
     {
       key: "isPresent",

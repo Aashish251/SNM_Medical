@@ -60,7 +60,7 @@ export interface User {
   email?: string;
   dob?: string;
   passEntry?: number | string;
-  onDuty?: string | number;
+  onduty?: string | number;
   isPresent?: number | string;
   userType?: string;
   isDeleted: number | string;      // keep consistent shape
