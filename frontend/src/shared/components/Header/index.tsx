@@ -221,7 +221,7 @@ const Header = () => {
       >
         <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Left Logo */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <Link to={SNM_NAV_HOME_LINK} className="flex items-center gap-2 md:gap-4">
             <img
               src={SNM_WEBSITE_LOGO}
               alt={SNM_SITE_LOGO_TITLE}
@@ -233,7 +233,7 @@ const Header = () => {
             >
               {SNM_SITE_LOGO_TITLE}
             </Link>
-          </div>
+          </Link>
 
           {/*  Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
