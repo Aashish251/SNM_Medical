@@ -16,7 +16,7 @@ export default function HeroSlider({ images }: HeroSliderProps) {
             ))}
             autoPlay
             dots={false}
-            interval={1000}
+            interval={5000}
             className="mt-18 md:mt-18"
         />
     );
