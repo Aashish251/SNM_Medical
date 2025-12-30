@@ -33,6 +33,7 @@ export const userTableConfig: TableConfig<User> = {
       key: "fullName",
       header: "Full Name",
       sortable: true,
+      afterStatus: true,
       render: (user: User) => (
         <Link
           to={`/${user?.userType}/update-profile/${user.regId}`}
@@ -42,31 +43,34 @@ export const userTableConfig: TableConfig<User> = {
         </Link>
       ),
     },
-    { key: "mobileNo", header: "Contact" },
-    { key: "qualificationName", header: "Qualification" },
-    { key: "departmentName", header: "Department", sortable: true },
-    { key: "sewalocationName", header: "Sewa Location" },
-    {
-      key: "passEntry",
-      header: "Pass Entry",
-      render: (user: User) => (user?.passEntry == 1 ? "Yes" : "No"),
-    },
-    {
-      key: "onduty",
-      header: "On Duty",
-      render: (user: User) => (user?.onduty),
-    },
+    { key: "mobileNo", header: "Contact", afterStatus: true },
+    { key: "departmentName", header: "Department", sortable: true, afterStatus: true },
+    { key: "sewalocationName", header: "Sewa Location", afterStatus: true },
     {
       key: "isPresent",
       header: "Is Present",
       sortable: true,
+      afterStatus: true,
       render: (user: User) => (user?.isPresent === 1 ? "Yes" : "No"),
     },
-    { key: "stateName", header: "State" },
-    { key: "cityName", header: "City" },
+    {
+      key: "passEntry",
+      header: "Pass Entry",
+      afterStatus: true,
+      render: (user: User) => (user?.passEntry == 1 ? "Yes" : "No"),
+    },
+    { key: "shifttime", header: "Shift time", afterStatus: true },
+    {
+      key: "onduty",
+      header: "On Duty",
+      afterStatus: true,
+      render: (user: User) => (user?.onduty),
+    },
+    { key: "qualificationName", header: "Qualification", afterStatus: true },
     {
       key: "certificateDocPath",
       header: "Certificate",
+      afterStatus: true,
       render: (user: User) =>
         user.certificateDocPath ? (
           <Link
@@ -81,8 +85,9 @@ export const userTableConfig: TableConfig<User> = {
           <span className="text-gray-400">No File</span>
         ),
     },
-    { key: "shifttime", header: "Shift Time", afterStatus: true },
     { key: "email", header: "Email", afterStatus: true },
+    { key: "cityName", header: "City", afterStatus: true },
+    { key: "stateName", header: "State", afterStatus: true },
   ],
   statusColumn: {
     key: "approved",

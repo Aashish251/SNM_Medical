@@ -158,6 +158,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           placeholder="Select state"
         />
 
+
         {/* City */}
         <SearchableSelect
           control={control}
