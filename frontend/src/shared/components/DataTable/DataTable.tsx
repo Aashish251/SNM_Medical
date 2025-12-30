@@ -189,7 +189,7 @@ export function DataTable<T extends Record<string, any>>({
 
               {/* Actions header */}
               {config.showActions && (
-                <TableHead className="px-4 py-3 text-center w-[140px] whitespace-nowrap">
+                <TableHead className="px-auto py-3 text-center w-[140px] whitespace-nowrap">
                   <span className="text-xs font-bold  text-gray-600  tracking-wide">
                     Actions
                   </span>
@@ -201,7 +201,7 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={String(col.key)}
                   onClick={() => handleHeaderClick(String(col.key), col.sortable)}
-                  className={`px-4 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""
+                  className={`px-auto py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""
                     }`}
                   aria-sort={
                     sortState.column === String(col.key)
@@ -222,7 +222,7 @@ export function DataTable<T extends Record<string, any>>({
 
               {/* Status header */}
               {config.statusColumn && (
-                <TableHead className="px-4 py-3 text-center whitespace-nowrap">
+                <TableHead className="px-auto py-2 text-center whitespace-nowrap">
                   <span className="text-xs font-bold text-gray-700 whitespace-nowrap">
                     Status
                   </span>
@@ -234,7 +234,7 @@ export function DataTable<T extends Record<string, any>>({
                 <TableHead
                   key={String(col.key)}
                   onClick={() => handleHeaderClick(String(col.key), col.sortable)}
-                  className={`px-8 py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""
+                  className={`px-auto py-3 text-left align-middle ${col.sortable ? "cursor-pointer select-none" : ""
                     }`}
                   aria-sort={
                     sortState.column === String(col.key)
@@ -288,7 +288,7 @@ export function DataTable<T extends Record<string, any>>({
                     tabIndex={-1}
                   >
                     {config.showCheckbox && (
-                      <TableCell className="px-4 py-3 text-center align-middle">
+                      <TableCell className="px-2 py-2 text-center align-middle">
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -300,7 +300,7 @@ export function DataTable<T extends Record<string, any>>({
                     )}
 
                     {config.showActions && (
-                      <TableCell className="px-4 py-3 text-center align-middle">
+                      <TableCell className="px-2 py-2 text-center align-middle">
                         <div className="flex items-center justify-center gap-2">
                           {/* Pass helpers to the action renderer so it can call changeUserStatue */}
                           {config.actions?.render
@@ -314,7 +314,7 @@ export function DataTable<T extends Record<string, any>>({
                     {preStatusColumns.map((col) => (
                       <TableCell
                         key={String(col.key)}
-                        className="px-4 py-3 align-middle text-gray-700 whitespace-nowrap"
+                        className="px-2 py-2 align-middle text-gray-700 whitespace-nowrap"
                       >
                         <div className="text-sm whitespace-nowrap">
                           {col.render ? col.render(row) : (row[col.key] as any)}
@@ -324,7 +324,7 @@ export function DataTable<T extends Record<string, any>>({
 
                     {/* status */}
                     {config.statusColumn && (
-                      <TableCell className="px-4 py-3 text-center align-middle">
+                      <TableCell className="px-2 py-2 text-center align-middle">
                         {config.statusColumn.render?.(row)}
                       </TableCell>
                     )}
@@ -333,7 +333,7 @@ export function DataTable<T extends Record<string, any>>({
                     {postStatusColumns.map((col) => (
                       <TableCell
                         key={`post-${String(col.key)}`}
-                        className="px-4 py-3 align-middle text-gray-700 whitespace-nowrap"
+                        className="px-2 py-2 align-middle text-gray-700 whitespace-nowrap"
                       >
                         <div className="text-sm">
                           {col.render ? col.render(row) : (row[col.key] as any)}
