@@ -134,7 +134,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
       </div>
 
       {/* Buttons */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mt-8 sm:mt-10 w-full">
+      <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4 w-full">
         <Button
           size="lg"
           onClick={prevStep}
@@ -142,7 +142,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
         >
           Previous
         </Button>
-        <div className="flex gap-4 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <Button
             size="lg"
             onClick={reset}

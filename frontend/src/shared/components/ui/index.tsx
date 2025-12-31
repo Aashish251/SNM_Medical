@@ -19,4 +19,5 @@ export * from "./textarea";
 export * from "./table";
 export * from "./pagination";
 export * from "./calendar";
+export * from "./tooltip";
 

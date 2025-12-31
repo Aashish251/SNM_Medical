@@ -51,7 +51,7 @@ export const services: Service[] = [
     icon: LuStethoscope,
   },
   {
-    title: "Mega Blood Donation",
+    title: "Blood Donation",
     description: "Regular blood drives supporting local hospitals.",
     icon: MdOutlineWaterDrop,
   },

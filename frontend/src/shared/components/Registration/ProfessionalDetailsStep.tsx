@@ -146,6 +146,7 @@ export const ProfessionalDetailsStep = ({
           existingUrl={existingCertificate}
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
           required
+          selectedFile={watch("certificate")}
           register={register("certificate", {
             validate: {
               fileType: (fileList) => {
@@ -174,11 +175,11 @@ export const ProfessionalDetailsStep = ({
               fileSize: (fileList) => {
                 if (!fileList || fileList.length === 0) return true;
                 const file = fileList[0];
-                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+                const MAX_SIZE = 2 * 1024 * 1024; // 5MB
 
                 return (
                   file.size <= MAX_SIZE ||
-                  `File size must be under 5MB (current size: ${(
+                  `File size must be under 2MB (current size: ${(
                     file.size /
                     1024 /
                     1024
@@ -191,19 +192,19 @@ export const ProfessionalDetailsStep = ({
         />
       </div>
 
-      <div className="mt-8 flex justify-between">
+      <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
         <Button
           size="lg"
-          className="bg-primary rounded-2xl font-bold text-white"
+          className="bg-primary rounded-2xl font-bold text-white w-full sm:w-auto"
           onClick={prevStep}
         >
           Previous
         </Button>
-        <div className="flex gap-4 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <Button
             size="lg"
             type="button"
-            className="bg-red-600 rounded-2xl font-bold text-white"
+            className="bg-red-600 rounded-2xl font-bold text-white w-full sm:w-auto"
             onClick={reset}
           >
             Reset
@@ -211,7 +212,7 @@ export const ProfessionalDetailsStep = ({
           <Button
             size="lg"
             onClick={nextStep}
-            className="bg-primary rounded-2xl font-bold text-white"
+            className="bg-primary rounded-2xl font-bold text-white w-full sm:w-auto"
           >
             Next
           </Button>
