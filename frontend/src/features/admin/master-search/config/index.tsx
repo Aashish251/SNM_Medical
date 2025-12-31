@@ -36,7 +36,8 @@ export const userTableConfig: TableConfig<User> = {
       afterStatus: true,
       render: (user: User) => (
         <Link
-          to={`/${user?.userType}/update-profile/${user.regId}`}
+          to={`/${user?.userType}/update-profile`}
+          state={{ userId: user?.regId }}
           className="text-blue-600 font-medium underline underline-offset-2"
         >
           {user.title} {user.fullName}

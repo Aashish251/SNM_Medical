@@ -40,7 +40,7 @@ export const ProtectedRoutes = [
     }
   />,
   <Route
-    path={`${SNM_NAV_MS_UPDATE_PROFILE_LINK}/:id`}
+    path={SNM_NAV_MS_UPDATE_PROFILE_LINK}
     element={
       <ProtectedRoute allowedRoles={["ms", "admin"]}>
         <UpdateProfile />
@@ -58,7 +58,7 @@ export const ProtectedRoutes = [
     }
   />,
 
-  
+
 
   <Route
     path={SNM_NAV_ADMIN_DUTY_CHART_LINK}
@@ -69,7 +69,7 @@ export const ProtectedRoutes = [
     }
   />,
   <Route
-    path={`${SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}/:id`}
+    path={SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <UpdateProfile />

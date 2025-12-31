@@ -5,6 +5,7 @@ import { DUMMY } from "@shared/config/common";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues, CityItem } from "@shared/types/CommonType";
 import {
+  DatePickerField,
   FileUploadField,
   NumberField,
   SelectField,
@@ -145,6 +146,16 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             error={errors.age}
           />
         </div>
+
+        {/* <DatePickerField
+          label="Birthdate"
+          name="dateOfBirth"
+          control={control}
+          required
+          placeholder="DD/MM/YYYY"
+          toYear={new Date().getFullYear()}
+          disabledDates={{ after: new Date() }}
+        /> */}
 
         {/* State */}
         <SearchableSelect

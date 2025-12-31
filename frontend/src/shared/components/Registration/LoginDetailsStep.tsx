@@ -4,7 +4,7 @@ import { TextareaField, TextField } from "@shared/components/FormInputs";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import { RootState } from "@app/store";
 import { useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { handleAlphabeticInput } from "@shared/lib/utils";
 
 export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled }: any) => {
@@ -15,12 +15,12 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
   } = form;
 
   const userType = useSelector((state: RootState) => state.auth.userType);
-  const { id: regId } = useParams();
+  const { state: regId } = useLocation();
   return (
     <>
       {/* Responsive grid for inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full">
-        {!regId && <><PasswordField
+        {!regId?.userId && <><PasswordField
           label="Password"
           autoComplete="new-password"
           required
