@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const searchService = require('../services/searchService');
 const { sendResponse } = require('../utils/response');
 
 exports.addUserRole = async (req, res) => {
@@ -19,11 +20,34 @@ exports.addUserRole = async (req, res) => {
       return sendResponse(res, 400, false, 'Registration ID is required.');
     }
 
-    // Convert regId to string if it's an array
-    const regIdString = Array.isArray(regId) ? regId.join(',') : regId.toString();
+    // Split regId by comma to handle multiple user IDs
+    const regIds = regId.toString().split(',').map(id => id.trim()).filter(id => id);
 
+    if (regIds.length === 0) {
+      return sendResponse(res, 400, false, 'No valid Registration IDs provided.');
+    }
+
+    // For multiple users, use updateSelectedUsers which properly handles null values
+    if (regIds.length > 1) {
+      const userUpdates = regIds.map(id => ({
+        reg_id: parseInt(id, 10),
+        is_present: isPresent !== null && isPresent !== undefined ? isPresent : undefined,
+        pass_entry: passEntry !== null && passEntry !== undefined ? passEntry : undefined,
+        is_deleted: isDeleted !== null && isDeleted !== undefined ? isDeleted : undefined,
+        is_admin: isAdmin !== null && isAdmin !== undefined ? isAdmin : undefined,
+        remark: remark || undefined,
+        sewa_location_id: sewaLocation || undefined,
+        samagam_held_in: samagamHeldIn || undefined,
+        onduty: onDuty || undefined
+      }));
+
+      await searchService.updateSelectedUsers(userUpdates);
+      return sendResponse(res, 200, true, `User roles updated successfully for ${regIds.length} record(s)`);
+    }
+
+    // For single user, use the original stored procedure
     const data = await userService.addUserRole({
-      regId: regIdString,
+      regId: regIds[0],
       isPresent,
       passEntry,
       isDeleted,
@@ -67,11 +91,21 @@ exports.getUserProfile = async (req, res) => {
 exports.updateUserProfile = async (req, res) => {
   try {
     const { regId } = req.params;
+    
+    // Important: Only include file data if files were actually uploaded
+    // This prevents overwriting existing paths with undefined/null values
     const profileData = {
       ...req.body,
-      profileImage: req.files?.profilePic?.[0],  // Get profilePic from files array
-      certificate: req.files?.certificate?.[0]   // Get certificate from files array
     };
+    
+    // Only add file objects if they exist
+    if (req.files?.profilePic?.[0]) {
+      profileData.profileImage = req.files.profilePic[0];
+    }
+    
+    if (req.files?.certificate?.[0]) {
+      profileData.certificate = req.files.certificate[0];
+    }
 
     const result = await userService.updateUserProfile(regId, profileData);
     sendResponse(res, 200, true, 'Profile updated successfully', result);
