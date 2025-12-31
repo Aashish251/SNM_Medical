@@ -1,5 +1,6 @@
 const e = require('express');
 const { promisePool } = require('../config/database');
+const { getRelativeFilePath, normalizeFilePath } = require('../utils/filePathHelper');
 
 exports.addUserRole = async ({
   regId,
@@ -252,23 +253,31 @@ exports.updateUserProfile = async (regId, data) => {
     }
 
     // Handle profile image path if file was uploaded
+    // IMPORTANT: Only update if a new file was provided; otherwise preserve existing
     let profileImagePath = null;
     if (profileImage && profileImage.filename) {
       // File goes to uploads/profile/ directory via multer
-      profileImagePath = `/uploads/profile/${profileImage.filename}`;
+      profileImagePath = getRelativeFilePath(profileImage, 'profile');
     } else if (typeof profileImage === 'string' && profileImage && profileImage.trim() !== '') {
-      // If already a string path, use it (for no-upload scenarios)
-      profileImagePath = profileImage;
+      // If already a string path, normalize it to ensure it's relative
+      profileImagePath = normalizeFilePath(profileImage);
+    } else {
+      // If no new file and no string path provided, use the existing value (already normalized)
+      profileImagePath = existingUser.profile_img_path || null;
     }
 
     // Handle certificate document path if file was uploaded
+    // IMPORTANT: Only update if a new file was provided; otherwise preserve existing
     let certificatePath = null;
     if (certificate && certificate.filename) {
       // File goes to uploads/certificates/ directory via multer
-      certificatePath = `/uploads/certificates/${certificate.filename}`;
+      certificatePath = getRelativeFilePath(certificate, 'certificates');
     } else if (typeof certificate === 'string' && certificate && certificate.trim() !== '') {
-      // If certificate is already a string path, use it as-is
-      certificatePath = certificate;
+      // If certificate is already a string path, normalize it to ensure it's relative
+      certificatePath = normalizeFilePath(certificate);
+    } else {
+      // If no new file and no string path provided, use the existing value (already normalized)
+      certificatePath = existingUser.certificate_doc_path || null;
     }
 
     // Helper function to normalize empty values to null
@@ -305,8 +314,8 @@ exports.updateUserProfile = async (regId, data) => {
         departmentId ? parseInt(departmentId) : null,
         availableDayId ? parseInt(availableDayId) : existingUser.available_day_id,
         shiftTimeId ? parseInt(shiftTimeId) : existingUser.shifttime_id,
-        profileImagePath || existingUser.profile_img_path || null,
-        certificatePath || existingUser.certificate_doc_path || null,
+        profileImagePath,  // Now always has a value (new file, existing file, or null)
+        certificatePath,   // Now always has a value (new file, existing file, or null)
         existingUser.is_present,          // p_is_present (no change)
         existingUser.pass_entry,          // p_pass_entry (no change)
         existingUser.sewa_location_id,    // p_sewa_location_id (no change)

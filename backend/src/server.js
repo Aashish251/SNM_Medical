@@ -30,7 +30,19 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const __dirnameResolved = __dirname;
 
 // ✅ Serve static files from /uploads folder FIRST (before middleware)
-app.use("/uploads", express.static(path.join(__dirnameResolved, "../uploads")));
+// Add cache control headers and CORS for static files
+app.use("/uploads", (req, res, next) => {
+  // Allow cross-origin requests for files
+  res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "http://localhost:5173");
+  res.header("Access-Control-Allow-Credentials", "true");
+  
+  // Set appropriate cache headers (30 days for versioned files)
+  res.header("Cache-Control", "public, max-age=2592000, immutable");
+  res.header("Pragma", "public");
+  res.header("Expires", new Date(Date.now() + 2592000000).toUTCString());
+  
+  next();
+}, express.static(path.join(__dirnameResolved, "../uploads")));
 
 // Security middleware
 app.use(
@@ -40,7 +52,11 @@ app.use(
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "https:"],
+        imgSrc: ["'self'", "data:", "https:", "http://localhost:5000"],
+        // Allow loading documents/PDFs from uploads
+        objectSrc: ["'self'", "http://localhost:5000"],
+        mediaSrc: ["'self'", "http://localhost:5000"],
+        fontSrc: ["'self'", "data:"],
       },
     },
   })
@@ -104,6 +120,34 @@ app.get("/api/health/db", async (req, res) => {
       ? "SNM Dispensary Database connected"
       : "Database connection failed",
     database: "snm_dispensary",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Health check for file uploads
+app.get("/api/health/uploads", (req, res) => {
+  const fs = require('fs');
+  const uploadsPath = path.join(__dirname, '../uploads');
+  
+  const checkDir = (dirPath) => {
+    try {
+      return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+    } catch {
+      return false;
+    }
+  };
+
+  const profileExists = checkDir(path.join(uploadsPath, 'profile'));
+  const certificatesExists = checkDir(path.join(uploadsPath, 'certificates'));
+  
+  res.status(200).json({
+    message: "Upload directories status",
+    uploadsPath: uploadsPath,
+    directories: {
+      profile: profileExists,
+      certificates: certificatesExists,
+      root: checkDir(uploadsPath)
+    },
     timestamp: new Date().toISOString(),
   });
 });
