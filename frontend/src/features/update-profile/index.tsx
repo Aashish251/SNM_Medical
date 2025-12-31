@@ -13,7 +13,7 @@ import {
   useGetUserDetailsQueryQuery,        //  use this
 } from "./services";
 import toast from "react-hot-toast";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FormValues } from "@shared/types/CommonType";
 import { useSelector } from "react-redux";
 import { RootState } from "@app/store";
@@ -24,7 +24,7 @@ const UpdateProfile = () => {
   const navigate = useNavigate();
   const [disabled, setDisabled] = useState(false);
   const userType = useSelector((state: RootState) => state.auth.userType);
-  const { id: regId } = useParams();
+  const { state: regId } = useLocation();
 
   const {
     currentStep,
@@ -46,8 +46,8 @@ const UpdateProfile = () => {
     isLoading,
     isError,
     error,
-  } = useGetUserDetailsQueryQuery(regId ? Number(regId) : 0, {
-    skip: !regId, // don't call if id is missing
+  } = useGetUserDetailsQueryQuery(regId?.userId ? Number(regId?.userId) : 0, {
+    skip: !regId?.userId, // don't call if id is missing
   });
 
   const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
@@ -146,7 +146,7 @@ const UpdateProfile = () => {
       const formData = new FormData();
 
       // Required fields
-      formData.append("id", regId as string);
+      formData.append("id", regId?.userId as string);
       formData.append("fullName", data.fullName);
       formData.append("email", data.email);
       formData.append("mobileNo", data.mobileNo); // mapped from contact
@@ -190,7 +190,7 @@ const UpdateProfile = () => {
       }
 
       await toast.promise(
-        triggerRegisterUser({ id: regId as string, formData }).unwrap(),
+        triggerRegisterUser({ id: regId?.userId as string, formData }).unwrap(),
         {
           loading: "Updating Profile...",
           success: "Profile Updated successfully!",

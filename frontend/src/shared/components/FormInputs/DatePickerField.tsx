@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { format, parse, isValid } from "date-fns";
-import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Control, Controller, FieldValues, Path, useWatch } from "react-hook-form";
 import { cn } from "@shared/lib/utils";
 import {
@@ -136,21 +136,14 @@ export const DatePickerField = <T extends FieldValues>({
                   />
 
                   {/* Calendar Icon */}
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-hover/datepicker:text-primary transition-colors pointer-events-none">
-                    <CalendarIcon size={18} />
-                  </div>
-
-                  {/* Dropdown Toggle */}
+                  {/* Calendar Icon - Trigger */}
                   <PopoverTrigger asChild>
                     <button
                       type="button"
                       disabled={disabled}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-hover/datepicker:text-primary transition-colors focus:outline-none"
                     >
-                      <ChevronDown
-                        size={18}
-                        className={cn("transition-transform duration-300", open && "rotate-180")}
-                      />
+                      <CalendarIcon size={18} />
                     </button>
                   </PopoverTrigger>
                 </div>

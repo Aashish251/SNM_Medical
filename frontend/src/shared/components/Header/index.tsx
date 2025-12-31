@@ -37,6 +37,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { handleNavigate } from "@shared/config/common";
+import { link } from "fs";
 
 //  Mobile Drawer remains unchanged
 const MobileDrawer = ({
@@ -227,12 +228,11 @@ const Header = () => {
               alt={SNM_SITE_LOGO_TITLE}
               className="w-10 h-10 rounded-full border-2 border-white shadow-lg"
             />
-            <Link
-              to={SNM_NAV_HOME_LINK}
+            <span
               className="text-xl colors-pro\im font-serif font-bold text-white"
             >
               {SNM_SITE_LOGO_TITLE}
-            </Link>
+            </span>
           </Link>
 
           {/*  Desktop Menu */}
@@ -278,6 +278,7 @@ const Header = () => {
                   <DropdownMenuContent className="w-48 mt-2 bg-to-bottom-theme-gradient text-white shadow-lg rounded-md font-semibold transition">
                     {filteredDashboardNav.map((link) => {
                       if (link.children && link.children.length > 0) {
+                        // console.log("if",link)
                         return (
                           <DropdownMenuSub key={link.text}>
                             <DropdownMenuSubTrigger
@@ -288,19 +289,23 @@ const Header = () => {
                             </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                               <DropdownMenuSubContent className="w-48 mt-2 bg-to-bottom-theme-gradient text-white shadow-lg rounded-md font-semibold transition">
-                                {link.children.map((child) => (
-                                  <DropdownMenuItem
-                                    key={child.href}
-                                    onClick={() => navigate(child.href)}
-                                  >
-                                    {child.text}
-                                  </DropdownMenuItem>
-                                ))}
+                                {link.children.map((child) => {
+                                  // console.log(child)  
+                                  return (
+                                    <DropdownMenuItem
+                                      key={child.href}
+                                      onClick={() => navigate(child.href)}
+                                    >
+                                      {child.text}
+                                    </DropdownMenuItem>
+                                  )
+                                })}
                               </DropdownMenuSubContent>
                             </DropdownMenuPortal>
                           </DropdownMenuSub>
                         );
                       } else {
+                        // console.log("else",link)  
                         return (
                           <DropdownMenuItem
                             key={link.href}
@@ -312,7 +317,9 @@ const Header = () => {
                                   loggedInUserDetails?.id
                                     ? String(loggedInUserDetails.id)
                                     : ""
-                                )
+                                ), {
+                                state: { userId: loggedInUserDetails?.id },
+                              }
                               )
                             }
                           >

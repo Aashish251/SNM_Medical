@@ -27,12 +27,12 @@ export const handleNavigate = (
     href == SNM_NAV_ADMIN_UPDATE_PROFILE_LINK &&
     SNM_ADMIN_USERTYPE === authUserType
   ) {
-    return `${SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}/${loggedInUserId}`;
+    return `${SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}`;
   } else if (
     href === SNM_NAV_MS_UPDATE_PROFILE_LINK &&
     SNM_MS_USERTYPE === authUserType
   ) {
-    return `${SNM_NAV_MS_UPDATE_PROFILE_LINK}/${loggedInUserId}`;
+    return `${SNM_NAV_MS_UPDATE_PROFILE_LINK}`;
   } else {
     return href;
   }

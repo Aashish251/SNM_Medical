@@ -46,6 +46,8 @@ export const FileUploadField = ({
       : `${BASE_URL}${existingUrl}`
     : null;
 
+
+
   // Determine effective file and preview URL
   let file: File | null = null;
   if (selectedFile) {
@@ -69,6 +71,8 @@ export const FileUploadField = ({
   }, [file]);
 
   const displayUrl = previewUrl || fullUrl;
+
+  console.log("displayUrl", displayUrl)
 
   const isImage = (url: string, fileObj?: File | null) => {
     if (fileObj) {
@@ -132,7 +136,7 @@ export const FileUploadField = ({
                 rel="noopener noreferrer"
                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
               >
-                {previewUrl && "Preview"}
+                Preview
               </Link>
             )}
           </>
