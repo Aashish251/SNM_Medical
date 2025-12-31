@@ -51,7 +51,7 @@ export const services: Service[] = [
     icon: LuStethoscope,
   },
   {
-    title: "Mega Blood Donation",
+    title: "Blood Donation",
     description: "Regular blood drives supporting local hospitals.",
     icon: MdOutlineWaterDrop,
   },
@@ -125,6 +125,12 @@ export const DUMMY = {
     { id: 2, label: "Mrs.", value: "Mrs" },
     { id: 3, label: "Ms.", value: "Ms" },
     { id: 4, label: "Dr.", value: "Dr" },
+    { id: 5, label: "CA.", value: "CA" },
+    { id: 6, label: "Sir.", value: "Sir" },
+    { id: 7, label: "Eng.", value: "Eng" },
+    { id: 8, label: "Adv.", value: "Adv" },
+    { id: 9, label: "Miss.", value: "Miss" },
+    { id: 10, label: "Prof.", value: "Prof" },
   ],
   genders: [
     { id: 1, label: "Male", value: "Male" },

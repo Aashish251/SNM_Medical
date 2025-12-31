@@ -158,6 +158,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           placeholder="Select state"
         />
 
+
         {/* City */}
         <SearchableSelect
           control={control}
@@ -175,6 +176,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           label="Profile Picture"
           existingUrl={existingProfilePic}
           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
+          selectedFile={watch("profilePic")}
           register={register("profilePic", {
             validate: {
               fileType: (fileInput) => {
@@ -215,11 +217,11 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                   return true;
                 }
 
-                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+                const MAX_SIZE = 2 * 1024 * 1024; // 5MB
 
                 return (
                   file.size <= MAX_SIZE ||
-                  `File size must be under 5MB (current size: ${(
+                  `File size must be under 2MB (current size: ${(
                     file.size /
                     1024 /
                     1024

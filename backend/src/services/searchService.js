@@ -210,9 +210,9 @@ exports.updateSelectedUsers = async (userUpdates) => {
         updateValues.push(u.samagam_held_in);
       }
 
-      if (u.on_duty !== undefined && u.on_duty !== null && u.on_duty !== '') {
-        updateFields.push('on_duty = ?');
-        updateValues.push(u.on_duty);
+      if (u.onduty !== undefined && u.onduty !== null && u.onduty !== '') {
+        updateFields.push('onduty = ?');
+        updateValues.push(u.onduty);
       }
 
       // Return early if no fields to update

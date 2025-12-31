@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const { promisePool } = require("../config/database");
 const { sanitizeInput } = require("../utils/sanitize");
 const { validators } = require("../utils/validators");
+const { normalizeFilePath } = require("../utils/filePathHelper");
 const BCRYPT_ROUNDS = 12;
 
 
@@ -147,8 +148,8 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       parseInt(departmentId) || 0,
       parseInt(availableDayId) || 0,
       parseInt(shiftTimeId) || 0,
-      filePaths.profileImagePath || "",
-      filePaths.certificatePath || "",
+      normalizeFilePath(filePaths.profileImagePath) || "",
+      normalizeFilePath(filePaths.certificatePath) || "",
       parseInt(isPresent) || 0,
       parseInt(passEntry) || 0,
       parseInt(sewaLocationId) || 0,

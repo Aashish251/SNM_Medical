@@ -33,6 +33,7 @@ export const userTableConfig: TableConfig<User> = {
       key: "fullName",
       header: "Full Name",
       sortable: true,
+      afterStatus: true,
       render: (user: User) => (
         <Link
           to={`/${user?.userType}/update-profile/${user.regId}`}
@@ -42,33 +43,12 @@ export const userTableConfig: TableConfig<User> = {
         </Link>
       ),
     },
-    { key: "mobileNo", header: "Contact" },
-    { key: "qualificationName", header: "Qualification" },
-    { key: "departmentName", header: "Department", sortable: true },
-    { key: "sewalocationName", header: "Sewa Location" },
-    {
-      key: "passEntry",
-      header: "Pass Entry",
-      render: (user: User) => (user?.passEntry == 1 ? "Yes" : "No"),
-    },
-    {
-      key: "onduty",
-      header: "On Duty",
-      render: (user: User) => (user?.onduty),
-    },
-    {
-      key: "isPresent",
-      header: "Is Present",
-      sortable: true,
-      render: (user: User) => (user?.isPresent === 1 ? "Yes" : "No"),
-    },
-    { key: "stateName", header: "State" },
-    { key: "cityName", header: "City" },
     {
       key: "certificateDocPath",
       header: "Certificate",
+      afterStatus: true,
       render: (user: User) =>
-        user.certificateDocPath ? (
+        <div className="text-center">{user.certificateDocPath ? (
           <Link
             to={`${import.meta.env?.VITE_API_BASE_URL}${user.certificateDocPath}`}
             target="_blank"
@@ -79,10 +59,36 @@ export const userTableConfig: TableConfig<User> = {
           </Link>
         ) : (
           <span className="text-gray-400">No File</span>
-        ),
+        )}</div>,
     },
-    { key: "shifttime", header: "Shift Time", afterStatus: true },
+    { key: "mobileNo", header: "Contact", afterStatus: true, render: (user: User) => <div className="text-center">{user.mobileNo}</div> },
+    { key: "departmentName", header: "Department", sortable: true, afterStatus: true, render: (user: User) => <div>{user.departmentName}</div> },
+    { key: "sewalocationName", header: "Sewa Location", afterStatus: true, render: (user: User) => <div className="text-center">{user.sewalocationName}</div> },
+    {
+      key: "isPresent",
+      header: "Is Present",
+      sortable: true,
+      afterStatus: true,
+      render: (user: User) => <div className="text-center">{user?.isPresent === 1 ? "Yes" : "No"}</div>,
+    },
+    {
+      key: "passEntry",
+      header: "Pass Entry",
+      afterStatus: true,
+      render: (user: User) => <div className="text-center">{user?.passEntry == 1 ? "Yes" : "No"}</div>,
+    },
+    { key: "shifttime", header: "Shift time", afterStatus: true, render: (user: User) => <div className="text-left">{user.shifttime}</div> },
+    {
+      key: "onduty",
+      header: "On Duty",
+      afterStatus: true,
+      render: (user: User) => <div className="text-center">{user?.onduty}</div>,
+    },
+    { key: "qualificationName", header: "Qualification", afterStatus: true, render: (user: User) => <div className="text-center">{user.qualificationName}</div> },
+
     { key: "email", header: "Email", afterStatus: true },
+    { key: "cityName", header: "City", afterStatus: true },
+    { key: "stateName", header: "State", afterStatus: true },
   ],
   statusColumn: {
     key: "approved",
