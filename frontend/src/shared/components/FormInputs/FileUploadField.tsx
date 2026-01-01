@@ -34,7 +34,7 @@ export const FileUploadField = ({
   register,
   required,
   disabled = false,
-  accept = ".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf",
+  accept = ".jpg,.jpeg,.png,.pdf",
   error,
   existingUrl,
   selectedFile,
