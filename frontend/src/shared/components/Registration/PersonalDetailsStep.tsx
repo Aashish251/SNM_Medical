@@ -184,7 +184,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <FileUploadField
           label="Profile Picture"
           existingUrl={existingProfilePic}
-          accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
+          accept=".jpg,.jpeg,.png,"
           selectedFile={watch("profilePic")}
           register={register("profilePic", {
             validate: {
@@ -205,7 +205,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
                   return "Please upload a profile picture";
                 }
 
-                const allowedExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"];
+                const allowedExtensions = ["jpg", "jpeg", "png"];
                 const ext = file.name.split(".").pop()?.toLowerCase();
 
                 return (

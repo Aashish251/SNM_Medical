@@ -144,7 +144,7 @@ export const ProfessionalDetailsStep = ({
         <FileUploadField
           label="Upload Certificate"
           existingUrl={existingCertificate}
-          accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
+          accept=".jpg,.jpeg,.png,.pdf"
           required
           selectedFile={watch("certificate")}
           register={register("certificate", {
@@ -159,9 +159,6 @@ export const ProfessionalDetailsStep = ({
                   "jpg",
                   "jpeg",
                   "png",
-                  "gif",
-                  "bmp",
-                  "webp",
                   "pdf",
                 ];
                 const file = fileList[0];
