@@ -32,6 +32,7 @@ import {
   SNM_NAV_ADMIN_DASHBOARD_LABEL,
   SNM_NAV_MS_DASHBOARD_LINK,
   SNM_NAV_MS_DASHBOARD_LABEL,
+  SNM_NAV_LOGIN_LABEL,
 } from "@shared/constants";
 
 // -------------------------
@@ -47,6 +48,11 @@ export const publicNav: NavLink[] = [
   {
     href: SNM_NAV_CONTACT_LINK,
     text: SNM_NAV_CONTACT_LABEL,
+    type: SNM_PUBLIC_USERTYPE,
+  },
+  {
+    href: SNM_NAV_LOGIN_LINK,
+    text: SNM_NAV_LOGIN_LABEL,
     type: SNM_PUBLIC_USERTYPE,
   },
 ];

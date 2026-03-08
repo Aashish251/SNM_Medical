@@ -113,9 +113,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         {/* Email */}
         <TextField
           label="Email"
-          required
           register={register("email", {
-            required: "Email address is required",
             pattern: {
               value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
               message: "Enter a valid email",
