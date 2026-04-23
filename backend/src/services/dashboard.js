@@ -1,5 +1,6 @@
 // src/services/dashboard.service.js
 const { promisePool } = require('../config/database');
+const logger = require('../utils/logger');
 
 /**
  * Fetch overall dashboard statistics.
@@ -23,6 +24,8 @@ exports.getDashboardStats = async (userId) => {
     color: getDepartmentColor(dept.title || `Department ${index + 1}`),
   }));
 
+  logger.debug('Dashboard stats fetched', { totalUsers, recentRegistrations, deptCount: transformedStats.length });
+
   // Step 4: Combine both SP results
   return {
     totalUsers,
@@ -41,12 +44,12 @@ function getDepartmentColor(departmentName) {
     '#EC4899', '#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#06B6D4',
     '#EF4444', '#84CC16', '#F97316', '#6366F1', '#EC4899', '#14B8A6'
   ];
-  
+
   const hash = departmentName.split('').reduce((a, b) => {
     a = ((a << 5) - a) + b.charCodeAt(0);
     return a & a;
   }, 0);
-  
+
   return colors[Math.abs(hash) % colors.length];
 }
 
@@ -67,7 +70,7 @@ exports.getUserProfile = async (userId) => {
 
   const age = birthDate
     ? new Date().getFullYear() - birthDate.getFullYear() -
-      (new Date() < new Date(birthDate.setFullYear(new Date().getFullYear())) ? 1 : 0)
+    (new Date() < new Date(birthDate.setFullYear(new Date().getFullYear())) ? 1 : 0)
     : null;
 
   const location = user.city_name && user.state_name
@@ -89,7 +92,7 @@ exports.getUserProfile = async (userId) => {
     address: user.address || 'Not provided',
     age,
     gender: user.gender === 1 ? 'Male' : user.gender === 2 ? 'Female' : 'Other',
-    dateOfBirth: birthDate ? birthDate.toISOString().split('T')[0] : null, 
+    dateOfBirth: birthDate ? birthDate.toISOString().split('T')[0] : null,
     experience: user.total_exp || 0,
     previousSewa: user.prev_sewa_perform || 'None',
     recommendedBy: user.recom_by || 'Not specified',
@@ -159,14 +162,14 @@ exports.updateUserProfile = async (userId, data) => {
 //     'CALL sp_get_user_profile(?)',
 //     [userId]
 //   );
-  
+
 //   const userData = userResult?.[0]?.[0];
 //   if (!userData) {
 //     throw new Error('User not found');
 //   }
-  
+
 //   const sewaLocationId = userData.sewa_location_id;
-  
+
 //   const [result] = await promisePool.execute(
 //     'CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)',
 //     [

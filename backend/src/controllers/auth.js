@@ -1,6 +1,7 @@
 // src/controllers/auth.controller.js
 const authService = require('../services/auth');
 const { sendResponse } = require('../utils/response');
+const logger = require('../utils/logger');
 
 exports.login = async (req, res) => {
   try {
@@ -9,11 +10,11 @@ exports.login = async (req, res) => {
   } catch (error) {
     // Determine status code based on error type/message
     let status = 500;
-    
+
     if (/invalid request/i.test(error.message)) {
       status = 400; // Bad Request - missing required fields
     } else if (
-      /permission/i.test(error.message) || 
+      /permission/i.test(error.message) ||
       /invalid/i.test(error.message) ||
       /not authorized/i.test(error.message) ||
       /deactivated/i.test(error.message) ||
@@ -21,14 +22,16 @@ exports.login = async (req, res) => {
     ) {
       status = 401; // Unauthorized - auth failed
     }
-    
+
     // Log the error for debugging
-    console.error('Login error:', {
+    logger.error('Login failed', {
       message: error.message,
       status,
-      timestamp: new Date().toISOString()
+      ip: req.ip,
+      email: req.body?.email || 'N/A',
+      role: req.body?.role || 'N/A',
     });
-    
+
     sendResponse(res, status, false, error.message || 'An error occurred during login');
   }
 };
@@ -42,6 +45,10 @@ exports.validateForgotPassword = async (req, res) => {
     const result = await authService.validateForgotPassword(req.body);
     sendResponse(res, 200, result.success, result.message, result.data);
   } catch (error) {
+    logger.warn('Forgot password validation failed', {
+      email: req.body?.email || 'N/A',
+      error: error.message,
+    });
     sendResponse(res, 400, false, error.message);
   }
 };
@@ -52,8 +59,13 @@ exports.validateForgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const result = await authService.resetPassword(req.body);
+    logger.info('Password reset successful', { regId: req.body?.regId });
     sendResponse(res, 200, result.success, result.message, result.data || null);
   } catch (error) {
+    logger.warn('Password reset failed', {
+      regId: req.body?.regId || 'N/A',
+      error: error.message,
+    });
     sendResponse(res, 400, false, error.message);
   }
 };

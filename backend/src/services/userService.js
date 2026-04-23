@@ -1,6 +1,6 @@
-const e = require('express');
 const { promisePool } = require('../config/database');
 const { getRelativeFilePath, normalizeFilePath } = require('../utils/filePathHelper');
+const logger = require('../utils/logger');
 
 exports.addUserRole = async ({
   regId,
@@ -17,9 +17,9 @@ exports.addUserRole = async ({
   try {
     connection = await promisePool.getConnection();
 
-    const boolToTinyInt = (val) => (val === null ? null : val ? 1 : 0); 
+    const boolToTinyInt = (val) => (val === null ? null : val ? 1 : 0);
     const normalize = (val) =>
-    val === undefined || val === null || val === "" ? null : val;
+      val === undefined || val === null || val === "" ? null : val;
 
 
     const [resultSets] = await connection.query(
@@ -31,7 +31,7 @@ exports.addUserRole = async ({
         boolToTinyInt(isDeleted),
         boolToTinyInt(isAdmin),
         normalize(remark),
-        normalize(sewaLocation),     
+        normalize(sewaLocation),
         normalize(samagamHeldIn),
         normalize(onduty)
       ]
@@ -48,7 +48,7 @@ exports.addUserRole = async ({
       affectedRows: affected
     };
   } catch (error) {
-    console.error(' approve Service Error:', error);
+    logger.error('addUserRole Service Error', { error: error.message, regId });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -181,7 +181,7 @@ exports.getUserProfile = async (userId) => {
     };
   } catch (err) {
     // rethrow — controller will handle status codes / messages
-    console.error('getUserProfile error:', err);
+    logger.error('getUserProfile error', { userId, error: err.message });
     throw err;
   }
 };
@@ -255,28 +255,28 @@ exports.updateUserProfile = async (regId, data) => {
     // Handle profile image path if file was uploaded
     // IMPORTANT: Only update if a new file was provided; otherwise preserve existing
     let profileImagePath = null;
-    if (profileImage && profileImage.filename) {
-      // File goes to uploads/profile/ directory via multer
+    if (profileImage && typeof profileImage === 'string') {
+      // File path already uploaded by controller, use directly
+      profileImagePath = profileImage;
+    } else if (profileImage && profileImage.filename) {
+      // Fallback for multer file object (backward compatibility)
       profileImagePath = getRelativeFilePath(profileImage, 'profile');
-    } else if (typeof profileImage === 'string' && profileImage && profileImage.trim() !== '') {
-      // If already a string path, normalize it to ensure it's relative
-      profileImagePath = normalizeFilePath(profileImage);
     } else {
-      // If no new file and no string path provided, use the existing value (already normalized)
+      // If no new file provided, preserve existing value
       profileImagePath = existingUser.profile_img_path || null;
     }
 
     // Handle certificate document path if file was uploaded
     // IMPORTANT: Only update if a new file was provided; otherwise preserve existing
     let certificatePath = null;
-    if (certificate && certificate.filename) {
-      // File goes to uploads/certificates/ directory via multer
+    if (certificate && typeof certificate === 'string') {
+      // File path already uploaded by controller, use directly
+      certificatePath = certificate;
+    } else if (certificate && certificate.filename) {
+      // Fallback for multer file object (backward compatibility)
       certificatePath = getRelativeFilePath(certificate, 'certificates');
-    } else if (typeof certificate === 'string' && certificate && certificate.trim() !== '') {
-      // If certificate is already a string path, normalize it to ensure it's relative
-      certificatePath = normalizeFilePath(certificate);
     } else {
-      // If no new file and no string path provided, use the existing value (already normalized)
+      // If no new file provided, preserve existing value
       certificatePath = existingUser.certificate_doc_path || null;
     }
 
@@ -336,9 +336,9 @@ exports.updateUserProfile = async (regId, data) => {
     const affected = result?.affectedRows || 0;
 
     // Debug log to see what SP returns
-    console.log('SP Update Result:', {
+    logger.debug('SP Update Result', {
+      regId,
       affectedRows: affected,
-      result: result
     });
 
     if (!affected) throw new Error('User not found or no changes made');
@@ -349,7 +349,7 @@ exports.updateUserProfile = async (regId, data) => {
       affectedRows: affected
     };
   } catch (error) {
-    console.error(' updateUserProfile Service Error:', error);
+    logger.error('updateUserProfile Service Error', { regId, error: error.message });
     throw error;
   } finally {
     if (connection) connection.release();

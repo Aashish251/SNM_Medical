@@ -1,5 +1,3 @@
-const swaggerUi = require('swagger-ui-express');
-// const swaggerDocument = require('./swagger.json');
 const swaggerAutogen = require('swagger-autogen')();
 
 const doc = {
@@ -14,9 +12,19 @@ const doc = {
   },
   host: 'localhost:5000',
   basePath: '/api',
-  schemes: ['http', 'https'],
+  schemes: ['http'],
   consumes: ['application/json', 'multipart/form-data'],
   produces: ['application/json'],
+  tags: [
+    { name: 'Authentication', description: 'User authentication operations' },
+    { name: 'Registration', description: 'User registration and related operations' },
+    { name: 'Dashboard', description: 'Dashboard related operations' },
+    { name: 'User Management', description: 'User profile and role management' },
+    { name: 'Search', description: 'Search and export functionality' },
+    { name: 'DutyChart', description: 'Medical staff duty chart operations' },
+    { name: 'Reports', description: 'Report generation and management' },
+    { name: 'Admin - Maintenance', description: 'Admin maintenance operations' }
+  ],
   securityDefinitions: {
     bearerAuth: {
       type: 'apiKey',
@@ -27,109 +35,84 @@ const doc = {
   },
   definitions: {
     User: {
-      type: 'object',
-      required: [
-        'firstName',
-        'lastName',
-        'email',
-        'password',
-        'mobileNumber',
-        'role'
-      ],
-      properties: {
-        firstName: { 
-          type: 'string', 
-          example: 'John',
-          minLength: 2,
-          maxLength: 50
-        },
-        lastName: { 
-          type: 'string', 
-          example: 'Doe',
-          minLength: 2,
-          maxLength: 50
-        },
-        email: { 
-          type: 'string', 
-          format: 'email',
-          example: 'john.doe@example.com' 
-        },
-        password: { 
-          type: 'string', 
-          format: 'password',
-          example: 'Password123!',
-          minLength: 8
-        },
-        mobileNumber: { 
-          type: 'string', 
-          example: '9876543210',
-          pattern: '^[0-9]{10}$'
-        },
-        gender: { 
-          type: 'string', 
-          enum: ['Male', 'Female', 'Other'] 
-        },
-        dateOfBirth: { 
-          type: 'string', 
-          format: 'date', 
-          example: '1990-01-01' 
-        },
-        stateId: { 
-          type: 'integer', 
-          example: 1,
-          minimum: 1
-        },
-        cityId: { 
-          type: 'integer', 
-          example: 1,
-          minimum: 1
-        },
-        address: { 
-          type: 'string', 
-          example: '123 Main St',
-          maxLength: 200
-        },
-        pincode: { 
-          type: 'string', 
-          example: '560001',
-          pattern: '^[0-9]{6}$'
-        },
-        role: { 
-          type: 'string', 
-          enum: ['user', 'admin', 'medical_staff'] 
-        },
-        specialization: { 
-          type: 'string', 
-          example: 'Cardiology' 
-        },
-        experience: { 
-          type: 'integer', 
-          example: 5,
-          minimum: 0
-        }
-      }
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      password: 'Password123!',
+      mobileNumber: '9876543210',
+      gender: 'Male',
+      dateOfBirth: '1990-01-01',
+      stateId: 1,
+      cityId: 1,
+      address: '123 Main St',
+      pincode: '560001',
+      role: 'medical_staff',
+      specialization: 'Cardiology',
+      experience: 5
     },
-    LoginCredentials: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', example: 'john.doe@example.com' },
-        password: { type: 'string', example: 'password123' }
-      }
+    LoginRequest: {
+      $email: 'john.doe@example.com',
+      $password: 'Password123!',
+      $role: 'admin'
     },
-    RegistrationResponse: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'User registered successfully!' },
-        data: { $ref: '#/definitions/User' }
-      }
+    ForgotPasswordRequest: {
+      $email: 'john.doe@example.com',
+      $mobileNumber: '9876543210',
+      $dateOfBirth: '1990-01-01'
+    },
+    ResetPasswordRequest: {
+      $regId: 1,
+      $newPassword: 'NewPassword123!'
+    },
+    RegistrationRequest: {
+      $firstName: 'John',
+      $lastName: 'Doe',
+      $email: 'john.doe@example.com',
+      $password: 'Password123!',
+      $mobileNumber: '9876543210',
+      $role: 'medical_staff',
+      gender: 'Male',
+      dateOfBirth: '1990-01-01',
+      stateId: 1,
+      cityId: 1,
+      address: '123 Main Street',
+      pincode: '560001',
+      specialization: 'Cardiology',
+      experience: 5
+    },
+    SuccessResponse: {
+      success: true,
+      message: 'Operation completed successfully',
+      data: {}
     },
     ErrorResponse: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: false },
-        message: { type: 'string', example: 'Error message here' }
-      }
+      success: false,
+      message: 'Error message here'
+    },
+    MasterSearchRequest: {
+      page: 1,
+      limit: 10,
+      search: '',
+      filters: {}
+    },
+    UpdateRoleRequest: {
+      $userId: 1,
+      isPresent: true,
+      passEntry: true,
+      isDeleted: false,
+      isAdmin: false,
+      remark: 'Approved',
+      sewaLocationId: 1,
+      samagamHeldIn: 'Location'
+    },
+    BulkUpdateRequest: {
+      $users: [
+        {
+          userId: 1,
+          isPresent: true,
+          passEntry: false
+        }
+      ]
     }
   }
 };
@@ -139,10 +122,11 @@ const outputFile = './swagger-output.json';
 const routes = [
   './src/routes/swagger.docs.js',  // Main API documentation
   './src/routes/registration.js',
-  './src/routes/auth.js', 
-  './src/routes/dashboard.js', 
-  './src/routes/search.js', 
-  './src/routes/dutychart.js', 
+  './src/routes/auth.js',
+  './src/routes/dashboard.js',
+  './src/routes/user.js',
+  './src/routes/search.js',
+  './src/routes/dutychart.js',
   './src/routes/reports.js'
 ];
 

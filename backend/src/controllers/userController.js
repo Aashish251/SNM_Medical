@@ -1,6 +1,8 @@
 const userService = require('../services/userService');
 const searchService = require('../services/searchService');
 const { sendResponse } = require('../utils/response');
+const logger = require('../utils/logger');
+const { uploadFileToS3 } = require('../utils/filePathHelper');
 
 exports.addUserRole = async (req, res) => {
   try {
@@ -60,7 +62,7 @@ exports.addUserRole = async (req, res) => {
 
     sendResponse(res, 200, true, data.message, data);
   } catch (error) {
-    console.error(' approve Controller Error:', error);
+    logger.error('Approve/update user role failed', { error: error.message, regId: req.body?.regId });
     sendResponse(res, 500, false, 'Failed to update user role');
   }
 };
@@ -71,15 +73,27 @@ exports.getUserProfile = async (req, res) => {
 
     const user = await userService.getUserProfile(regId);
 
-    // Return a consistent response shape
-    return res.status(200).json({ success: true, data: user });
+    // Return local file paths - frontend can access via /uploads endpoint
+    if (user?.profileImage) {
+      logger.debug('Profile image path', { regId, path: user.profileImage });
+    } else {
+      logger.debug('No profile image found', { regId });
+      user.profileImage = null;
+    }
+
+    if (user?.certificate) {
+      logger.debug('Certificate path', { regId, path: user.certificate });
+    } else {
+      user.certificate = null;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: user
+    });
 
   } catch (error) {
-    console.error(" Controller User Profile Error:", error);
-    // If the service throws a 'not found' error, return 404
-    if (error && error.message && error.message.toLowerCase().includes('not found')) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
+    logger.error('Fetch user profile failed', { regId: req.params?.regId, error: error.message });
 
     return res.status(500).json({
       success: false,
@@ -88,29 +102,37 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
+
 exports.updateUserProfile = async (req, res) => {
   try {
     const { regId } = req.params;
-    
+
     // Important: Only include file data if files were actually uploaded
     // This prevents overwriting existing paths with undefined/null values
     const profileData = {
       ...req.body,
     };
-    
-    // Only add file objects if they exist
-    if (req.files?.profilePic?.[0]) {
-      profileData.profileImage = req.files.profilePic[0];
-    }
-    
-    if (req.files?.certificate?.[0]) {
-      profileData.certificate = req.files.certificate[0];
+
+    // Upload files to local storage if they exist
+    try {
+      if (req.files?.profilePic?.[0]) {
+        profileData.profileImage = await uploadFileToS3(req.files.profilePic[0], 'profile', regId);
+        logger.info(`Profile image uploaded for user ${regId}`, { path: profileData.profileImage });
+      }
+
+      if (req.files?.certificate?.[0]) {
+        profileData.certificate = await uploadFileToS3(req.files.certificate[0], 'certificates', regId);
+        logger.info(`Certificate uploaded for user ${regId}`, { path: profileData.certificate });
+      }
+    } catch (uploadError) {
+      logger.error('File upload failed', { error: uploadError.message });
+      return sendResponse(res, 400, false, `File upload failed: ${uploadError.message}`);
     }
 
     const result = await userService.updateUserProfile(regId, profileData);
     sendResponse(res, 200, true, 'Profile updated successfully', result);
   } catch (error) {
-    console.error(' Update Profile Error:', error);
+    logger.error('Update profile failed', { regId: req.params?.regId, error: error.message });
     const status = /not found/i.test(error.message) ? 404 : 500;
     sendResponse(res, status, false, error.message || 'Failed to update profile');
   }

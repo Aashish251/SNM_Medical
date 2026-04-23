@@ -1,6 +1,7 @@
 const registrationService = require('../services/registration');
-const { sendResponse, sendSuccess, sendError } = require('../utils/response');
+const { sendResponse } = require('../utils/response');
 const logger = require("../utils/logger");
+const { uploadFileToS3 } = require('../utils/filePathHelper');
 
 exports.getDropdownData = async (req, res) => {
   try {
@@ -57,14 +58,31 @@ exports.registerUser = async (req, res, next) => {
       });
     }
 
-    // Convert file paths to relative URLs for storage in database
+    // Upload files to local storage if present
+    let profileImagePath = null;
+    let certificatePath = null;
+
+    try {
+      if (files?.profilePic?.[0]) {
+        profileImagePath = await uploadFileToS3(files.profilePic[0], 'profile');
+        logger.info("Profile image uploaded", { path: profileImagePath });
+      }
+
+      if (files?.certificate?.[0]) {
+        certificatePath = await uploadFileToS3(files.certificate[0], 'certificates');
+        logger.info("Certificate uploaded", { path: certificatePath });
+      }
+    } catch (uploadError) {
+      logger.error("File upload failed", { error: uploadError.message });
+      return res.status(400).json({
+        success: false,
+        message: `File upload failed: ${uploadError.message}`
+      });
+    }
+
     const filePaths = {
-      profileImagePath: files?.profilePic?.[0]?.filename 
-        ? `/uploads/profile/${files.profilePic[0].filename}` 
-        : null,
-      certificatePath: files?.certificate?.[0]?.filename 
-        ? `/uploads/certificates/${files.certificate[0].filename}` 
-        : null
+      profileImagePath,
+      certificatePath
     };
 
     const result = await registrationService.createUser(userData, filePaths);

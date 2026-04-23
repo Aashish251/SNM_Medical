@@ -2,11 +2,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { promisePool } = require('../config/database');
 const jwtConfig = require('../config/jwt');
+const logger = require('../utils/logger');
 
 exports.login = async ({ role, email, mobileNo, password }) => {
   const loginIdentifier = email || mobileNo;
 
   if (!loginIdentifier || !password) {
+    logger.warn('Login attempt with missing credentials');
     throw new Error('Please enter your email/mobile number and password.');
   }
 
@@ -24,6 +26,7 @@ exports.login = async ({ role, email, mobileNo, password }) => {
 
   // User not found
   if (!rows.length) {
+    logger.warn('Login failed - user not found', { loginId, isEmail });
     throw new Error(
       isEmail
         ? 'This email address is not registered.'
@@ -36,6 +39,7 @@ exports.login = async ({ role, email, mobileNo, password }) => {
   // Password check
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
+    logger.warn('Login failed - incorrect password', { loginId, userId: user.reg_id });
     throw new Error('Incorrect password. Please try again.');
   }
 
@@ -76,13 +80,19 @@ exports.login = async ({ role, email, mobileNo, password }) => {
   let profileImagePath = null;
   if (user.profile_img_path && user.profile_img_path.trim() !== '') {
     // If path doesn't start with /, add it
-    profileImagePath = user.profile_img_path.startsWith('/') 
-      ? user.profile_img_path 
+    profileImagePath = user.profile_img_path.startsWith('/')
+      ? user.profile_img_path
       : '/' + user.profile_img_path;
   } else {
     // If no profile image, return null to use frontend default
     profileImagePath = null;
   }
+
+  logger.logAuth('login_success', user.reg_id, {
+    email: user.email,
+    userType: user.user_type,
+    role: selectedRole,
+  });
 
   return {
     token,

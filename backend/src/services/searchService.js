@@ -1,5 +1,6 @@
 const { promisePool } = require('../config/database');
 const ExcelJS = require('exceljs');
+const logger = require('../utils/logger');
 
 const toCamelCase = (obj) => {
   const newObj = {};
@@ -23,7 +24,7 @@ exports.getSewaLocations = async () => {
     const results = resultSets[0] || resultSets;
     return results.map(toCamelCase);
   } catch (error) {
-    console.error(' getSewaLocations Error:', error);
+    logger.error('getSewaLocations Error', { error: error.message });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -119,7 +120,7 @@ exports.masterSearch = async ({
       pagination
     };
   } catch (error) {
-    console.error('Master Search Service Error:', error);
+    logger.error('Master Search Service Error', { error: error.message, stack: error.stack });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -148,7 +149,7 @@ exports.approveUser = async (regId) => {
       affectedRows: affected
     };
   } catch (error) {
-    console.error(' approveUser Service Error:', error);
+    logger.error('approveUser Service Error', { regId, error: error.message });
     throw error;
   }
 };
@@ -159,7 +160,7 @@ exports.updateSelectedUsers = async (userUpdates) => {
   let connection;
   try {
     connection = await promisePool.getConnection();
-    
+
     const queries = userUpdates.map((u) => {
       // Build dynamic UPDATE query based on provided fields
       const updateFields = [];
@@ -234,7 +235,7 @@ exports.updateSelectedUsers = async (userUpdates) => {
     await Promise.all(queries);
     return true;
   } catch (error) {
-    console.error(' updateSelectedUsers Service Error:', error);
+    logger.error('updateSelectedUsers Service Error', { error: error.message, count: userUpdates?.length });
     throw error;
   } finally {
     if (connection) connection.release();

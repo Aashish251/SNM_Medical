@@ -38,7 +38,7 @@ A comprehensive medical management system for Sant Nirankari Mission, featuring 
 
 - Staff registration with profile images
 - Qualification and department assignment
-- Profile management
+- Profile management with file uploads
 - Role and permission management
 
 ### 📊 Administrative Features
@@ -207,25 +207,33 @@ cp .env.local.example .env.local
 Create a `.env` file in the `backend` directory:
 
 ```env
-# Database Configuration
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+
+# Database Configuration (MySQL)
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=your_mysql_password
+DB_PASSWORD=your_actual_mysql_password
 DB_NAME=snm_dispensary
 DB_PORT=3306
 
 # JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here_minimum_32_characters
-JWT_EXPIRES_IN=7d
+JWT_SECRET=snm_dispensary_super_secret_jwt_key_2024_medical_management_system
+JWT_EXPIRES_IN=24h
 
-# Server Configuration
-PORT=5000
-NODE_ENV=development
+# Email Configuration (for password reset functionality)
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@gmail.com
+EMAIL_APP_PASSWORD=your_gmail_app_password
 
-# API Configuration
-API_BASE_URL=http://localhost:5000/api
+# File Upload Configuration
+UPLOAD_PATH=./public/uploads
+MAX_FILE_SIZE=5242880
+ALLOWED_FILE_TYPES=jpg,jpeg,png,pdf
 
-# Security
+# Security Configuration
 BCRYPT_ROUNDS=12
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
@@ -236,10 +244,13 @@ RATE_LIMIT_MAX_REQUESTS=100
 Create a `.env.local` file in the `frontend` directory:
 
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_ENV=development
-REACT_APP_APP_NAME=SNM Medical System
+VITE_API_BASE_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000/api
+VITE_APP_ENV=development
+VITE_APP_NAME=SNM Medical System
 ```
+
+---
 
 ## 🗄️ Database Setup
 

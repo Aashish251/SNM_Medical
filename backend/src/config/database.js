@@ -1,15 +1,27 @@
 const mysql = require('mysql2');
+require('dotenv').config();
+const logger = require('../utils/logger');
 
-// Create connection pool with correct MySQL2 options
+// Validate required database config
+if (!process.env.DB_HOST || !process.env.DB_PASSWORD) {
+  console.error('FATAL: DB_HOST and DB_PASSWORD must be set in .env');
+  process.exit(1);
+}
+
+// Create connection pool
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'snm-dispensary.c6n262qos6l8.us-east-1.rds.amazonaws.com',
-  user: process.env.DB_USER || 'admin',
-  password: process.env.DB_PASSWORD || '5FJPD564gQjOuVckTdrk',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || 'snm_dispensary',
-  port: process.env.DB_PORT || 3306,
+  port: parseInt(process.env.DB_PORT, 10) || 3306,
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  connectionLimit: parseInt(process.env.DB_POOL_SIZE, 10) || 10,
+  queueLimit: 0,
+  // Production hardening
+  connectTimeout: 10000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 30000,
 });
 
 const promisePool = pool.promise();
@@ -17,31 +29,33 @@ const promisePool = pool.promise();
 const testConnection = async () => {
   try {
     const connection = await promisePool.getConnection();
-    console.log('MySQL Database connected successfully to snm_dispensary');
-    
+    logger.info('MySQL Database connected successfully', {
+      database: process.env.DB_NAME || 'snm_dispensary',
+    });
+
     // Test a simple query
-    const [rows] = await connection.execute('SELECT 1 as test');
-    console.log('Database query test successful');
-    
+    await connection.execute('SELECT 1 as test');
+    logger.info('Database query test successful');
+
     connection.release();
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error.message);
+    logger.error('Database connection failed', { error: error.message });
     return false;
   }
 };
 
-// Handle pool events for better monitoring
-pool.on('connection', (connection) => {
-  console.log('New database connection established');
+// Handle pool events
+pool.on('connection', () => {
+  logger.debug('New database connection established');
 });
 
 pool.on('error', (err) => {
-  console.error('Database pool error:', err.message);
+  logger.error('Database pool error', { error: err.message, code: err.code });
 });
 
 module.exports = {
   pool,
   promisePool,
-  testConnection
+  testConnection,
 };

@@ -266,7 +266,10 @@ const Header = () => {
                               }`
                               : DEFAULT_PROFILE_IMAGE
                           }
-                          alt="User Avatar"
+                          alt={loggedInUserDetails?.name || "User Avatar"}
+                            onError={(e) => {
+                            e.currentTarget.src = DEFAULT_PROFILE_IMAGE;
+                          }}
                         />
                         <AvatarFallback>
                           {loggedInUserDetails?.name?.[0]?.toUpperCase() || "U"}

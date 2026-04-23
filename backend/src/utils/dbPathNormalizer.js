@@ -5,6 +5,7 @@
 
 const { promisePool } = require('../config/database');
 const { normalizeFilePath } = require('./filePathHelper');
+const logger = require('./logger');
 
 /**
  * Normalize all file paths in the registration_tbl
@@ -41,7 +42,7 @@ exports.normalizeAllFilePaths = async () => {
           [normalizedProfilePath || null, normalizedCertPath || null, record.reg_id]
         );
         updatedCount++;
-        console.log(`Normalized record ${record.reg_id}: profile=${profileChanged}, certificate=${certChanged}`);
+        logger.debug('Normalized record', { regId: record.reg_id, profileChanged, certChanged });
       }
     }
 
@@ -51,7 +52,7 @@ exports.normalizeAllFilePaths = async () => {
       totalRecords: records.length
     };
   } catch (error) {
-    console.error('Error normalizing file paths:', error);
+    logger.error('Error normalizing file paths', { error: error.message });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -92,7 +93,7 @@ exports.normalizeUserFilePaths = async (regIds) => {
 
     return { message: `Normalized ${updatedCount} record(s)`, updatedCount };
   } catch (error) {
-    console.error('Error normalizing user file paths:', error);
+    logger.error('Error normalizing user file paths', { error: error.message });
     throw error;
   } finally {
     if (connection) connection.release();
