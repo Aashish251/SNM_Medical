@@ -54,7 +54,7 @@ export default function MasterSearchPage() {
     stateId: null,
     isPresent: null,
     passEntry: null,
-    limit: 100000, // Fetch all for client-side pagination
+    limit: pageLimit,
     page: 1,
     sortBy: "regId",
     sortOrder: "ASC",
@@ -78,18 +78,26 @@ export default function MasterSearchPage() {
     }));
   }, [sortState.column, sortState.direction]);
 
-  // Client-side pagination logic
-  const allUsers = masterSearchData?.data || [];
-  const totalRecords = allUsers.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageLimit));
+  useEffect(() => {
+    if (!searchTriggered) return;
 
-  const pagedUsers = allUsers.slice(
-    (currentPage - 1) * pageLimit,
-    currentPage * pageLimit
+    setSearchPayload((prev) => ({
+      ...prev,
+      page: currentPage,
+      limit: pageLimit,
+    }));
+  }, [currentPage, pageLimit, searchTriggered]);
+
+  const allUsers = masterSearchData?.data || [];
+  const pagination = masterSearchData?.pagination;
+  const totalRecords = pagination?.totalRecords ?? allUsers.length;
+  const totalPages = Math.max(
+    1,
+    pagination?.total ?? Math.ceil(totalRecords / pageLimit)
   );
 
   // If data is not an array (e.g. error), default to empty
-  const safeUsers = Array.isArray(pagedUsers) ? pagedUsers : [];
+  const safeUsers = Array.isArray(allUsers) ? allUsers : [];
 
   // Filter Form
   const {
@@ -211,7 +219,7 @@ export default function MasterSearchPage() {
         stateId: data?.stateId || null,
         isPresent: data?.isPresent || null,
         passEntry: data?.passEntry || null,
-        limit: 100000,
+        limit: pageLimit,
         page: 1,
         sortBy: sortState.column,
         sortOrder: sortState.direction,

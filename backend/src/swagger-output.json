@@ -10,7 +10,7 @@
     }
   },
   "host": "localhost:5000",
-  "basePath": "/api",
+  "basePath": "/",
   "tags": [
     {
       "name": "Authentication",
@@ -31,6 +31,18 @@
     {
       "name": "Search",
       "description": "Search and export functionality"
+    },
+    {
+      "name": "Community",
+      "description": "Blood drive and health drive operations"
+    },
+    {
+      "name": "Patients",
+      "description": "Patient registration operations"
+    },
+    {
+      "name": "Masters",
+      "description": "Master data management operations"
     },
     {
       "name": "DutyChart",
@@ -64,7 +76,50 @@
     "application/json"
   ],
   "paths": {
-    "/dropdown-data": {
+    "/health": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/health/db": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/health/uploads": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/registration/dropdown-data": {
       "get": {
         "tags": [
           "Registration"
@@ -81,7 +136,7 @@
         }
       }
     },
-    "/cities/{stateId}": {
+    "/api/registration/cities/{stateId}": {
       "get": {
         "tags": [
           "Registration"
@@ -114,7 +169,7 @@
         }
       }
     },
-    "/check-email": {
+    "/api/registration/check-email": {
       "post": {
         "tags": [
           "Registration"
@@ -153,7 +208,7 @@
         }
       }
     },
-    "/register": {
+    "/api/registration/register": {
       "post": {
         "tags": [
           "Registration"
@@ -304,7 +359,7 @@
         }
       }
     },
-    "/upload-profile": {
+    "/api/registration/upload-profile": {
       "post": {
         "tags": [
           "Registration"
@@ -333,7 +388,7 @@
         }
       }
     },
-    "/upload-certificate": {
+    "/api/registration/upload-certificate": {
       "post": {
         "tags": [
           "Registration"
@@ -362,100 +417,7 @@
         }
       }
     },
-    "/login": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "summary": "Login user",
-        "description": "Authenticate user with email, password, and role. Returns a JWT token on success.",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/LoginRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Login successful"
-          },
-          "400": {
-            "description": "Invalid request - missing required fields"
-          },
-          "401": {
-            "description": "Unauthorized - invalid credentials"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/forgot-password-validate": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "summary": "Validate forgot password request",
-        "description": "Validate user identity before allowing password reset. Verifies email, mobile number, and date of birth.",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ForgotPasswordRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Validation successful - user identity confirmed"
-          },
-          "400": {
-            "description": "Validation failed - user not found or details mismatch"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/reset-password": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "summary": "Reset user password",
-        "description": "Reset the password for a verified user using their registration ID.",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ResetPasswordRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Password reset successful"
-          },
-          "400": {
-            "description": "Invalid request - missing regId or newPassword"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/stats": {
+    "/api/dashboard/stats": {
       "get": {
         "tags": [
           "Dashboard"
@@ -495,7 +457,7 @@
         ]
       }
     },
-    "/profile": {
+    "/api/dashboard/profile": {
       "get": {
         "tags": [
           "Dashboard"
@@ -599,7 +561,7 @@
         ]
       }
     },
-    "/summary": {
+    "/api/dashboard/summary": {
       "get": {
         "tags": [
           "Dashboard"
@@ -639,7 +601,109 @@
         ]
       }
     },
-    "/update-role": {
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login user",
+        "description": "Authenticate user with email, password, and role. Returns a JWT token on success.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "400": {
+            "description": "Invalid request - missing required fields"
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/auth/forgot-password-validate": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Validate forgot password request",
+        "description": "Validate user identity before allowing password reset. Verifies email, mobile number, and date of birth.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ForgotPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation successful - user identity confirmed"
+          },
+          "400": {
+            "description": "Validation failed - user not found or details mismatch"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Reset user password",
+        "description": "Reset the password for a verified user using their registration ID.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ResetPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset successful"
+          },
+          "400": {
+            "description": "Invalid request - missing regId or newPassword"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/user/update-role": {
       "put": {
         "tags": [
           "User Management"
@@ -679,6 +743,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Internal server error"
           }
@@ -690,7 +757,7 @@
         ]
       }
     },
-    "/update-profile/{regId}": {
+    "/api/user/update-profile/{regId}": {
       "get": {
         "tags": [
           "User Management"
@@ -729,6 +796,9 @@
           },
           "404": {
             "description": "User not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
           },
           "500": {
             "description": "Internal server error"
@@ -818,6 +888,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Internal server error"
           }
@@ -829,7 +902,7 @@
         ]
       }
     },
-    "/normalize-paths": {
+    "/api/user/normalize-paths": {
       "post": {
         "tags": [
           "Admin - Maintenance"
@@ -858,6 +931,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Failed to normalize paths"
           }
@@ -869,7 +945,7 @@
         ]
       }
     },
-    "/normalize-paths/{regIds}": {
+    "/api/user/normalize-paths/{regIds}": {
       "post": {
         "tags": [
           "Admin - Maintenance"
@@ -906,6 +982,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Failed to normalize paths"
           }
@@ -917,7 +996,7 @@
         ]
       }
     },
-    "/master": {
+    "/api/search/master": {
       "post": {
         "tags": [
           "Search"
@@ -954,6 +1033,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Internal server error"
           }
@@ -963,24 +1045,9 @@
             "bearerAuth": []
           }
         ]
-      },
-      "get": {
-        "tags": [
-          "Reports"
-        ],
-        "summary": "Get master reports",
-        "description": "Retrieve master reports data. (Implementation pending)",
-        "responses": {
-          "200": {
-            "description": "Master reports retrieved successfully"
-          },
-          "500": {
-            "description": "Master reports failed"
-          }
-        }
       }
     },
-    "/export": {
+    "/api/search/export": {
       "post": {
         "tags": [
           "Search"
@@ -1020,6 +1087,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Export failed"
           }
@@ -1031,7 +1101,7 @@
         ]
       }
     },
-    "/approve/{regId}": {
+    "/api/search/approve/{regId}": {
       "post": {
         "tags": [
           "Search"
@@ -1068,6 +1138,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Approval failed"
           }
@@ -1079,7 +1152,7 @@
         ]
       }
     },
-    "/update": {
+    "/api/search/update": {
       "put": {
         "tags": [
           "Search"
@@ -1119,6 +1192,9 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Update failed"
           }
@@ -1130,24 +1206,743 @@
         ]
       }
     },
-    "/filter": {
+    "/api/community/blood-drives": {
       "get": {
         "tags": [
-          "DutyChart"
+          "Community"
         ],
-        "summary": "Filter duty chart",
-        "description": "Filter the medical staff duty chart. (Implementation pending)",
+        "summary": "List blood drives",
+        "description": "Retrieve all blood donation drives sorted by newest drive date first.",
         "responses": {
           "200": {
-            "description": "Duty chart data retrieved successfully"
+            "description": "Blood drives fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
           },
           "500": {
-            "description": "Dutychart filter failed"
+            "description": "Failed to fetch blood drives"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create blood drive",
+        "description": "Create a new blood donation drive.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Blood drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid blood drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save blood drive"
           }
         }
       }
     },
-    "/daily": {
+    "/api/community/blood-drives/{id}": {
+      "get": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Get blood drive by ID",
+        "description": "Retrieve one blood donation drive by its numeric ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Blood drive ID",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Blood drive fetched successfully"
+          },
+          "404": {
+            "description": "Blood drive not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch blood drive"
+          }
+        }
+      }
+    },
+    "/api/community/blood-drives/{id}/eligibility-check": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Check blood donation eligibility for a drive",
+        "description": "Check whether a person is eligible to donate blood and attach the check to a drive ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Blood drive ID",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDonationEligibilityRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eligibility checked successfully"
+          },
+          "400": {
+            "description": "Invalid eligibility input"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to check eligibility"
+          }
+        }
+      }
+    },
+    "/api/community/eligibility-check": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Check blood donation eligibility",
+        "description": "Check whether a person is eligible to donate blood.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDonationEligibilityRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eligibility checked successfully"
+          },
+          "400": {
+            "description": "Invalid eligibility input"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to check eligibility"
+          }
+        }
+      }
+    },
+    "/api/community/health-drives": {
+      "get": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "List health drives",
+        "description": "Retrieve all health drives sorted by newest camp date first.",
+        "responses": {
+          "200": {
+            "description": "Health drives fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch health drives"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create health drive",
+        "description": "Create a new health drive or medical camp.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/HealthDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Health drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid health drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save health drive"
+          }
+        }
+      }
+    },
+    "/api/community/health-drives/{id}": {
+      "get": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Get health drive by ID",
+        "description": "Retrieve one health drive by its numeric ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Health drive ID",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Health drive fetched successfully"
+          },
+          "404": {
+            "description": "Health drive not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch health drive"
+          }
+        }
+      }
+    },
+    "/api/patients/": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "List patient registrations",
+        "description": "Retrieve all patient registrations sorted by newest registration date first.",
+        "responses": {
+          "200": {
+            "description": "Patient registrations fetched successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Patient registrations fetched successfully"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "example": 1
+                          },
+                          "regnNo": {
+                            "type": "string",
+                            "example": "OPD-2026-001"
+                          },
+                          "patientName": {
+                            "type": "string",
+                            "example": "Anita Sharma"
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch patient registrations"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Create patient registration",
+        "description": "Save a patient registration. The API accepts both UI field names (regn, name, mobile, sex, symptoms) and normalized API field names.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PatientRegistrationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Patient registration saved successfully"
+          },
+          "400": {
+            "description": "Invalid patient registration data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save patient registration"
+          }
+        }
+      }
+    },
+    "/api/patients/{id}": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get patient registration by ID",
+        "description": "Retrieve one patient registration record by its numeric ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Patient registration ID",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient registration fetched successfully"
+          },
+          "404": {
+            "description": "Patient registration not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch patient registration"
+          }
+        }
+      }
+    },
+    "/api/masters/modules": {
+      "get": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "List master data modules",
+        "description": "Retrieve supported master modules and active record counts.",
+        "responses": {
+          "200": {
+            "description": "Master modules fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch master modules"
+          }
+        }
+      }
+    },
+    "/api/masters/{module}": {
+      "get": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "List master records",
+        "description": "Retrieve active records for a supported master module. Supported modules: qualification, department, sewalocation, shifttime, availableday, state, city.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Optional case-insensitive search text",
+            "example": "cardio"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Master records fetched successfully"
+          },
+          "400": {
+            "description": "Unsupported master module"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch master records"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "Create master record",
+        "description": "Create a record in a supported master module. State requires countryId/extraId; city requires stateId/extraId.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MasterDataRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Master record created successfully"
+          },
+          "400": {
+            "description": "Invalid master record data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to create master record"
+          }
+        }
+      }
+    },
+    "/api/masters/{module}/{id}": {
+      "put": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "Update master record",
+        "description": "Update an active record in a supported master module.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Master record ID",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MasterDataRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Master record updated successfully"
+          },
+          "400": {
+            "description": "Invalid master record data"
+          },
+          "404": {
+            "description": "Master record not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to update master record"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "Delete master record",
+        "description": "Soft-delete an active record in a supported master module.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Master record ID",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updatedBy": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Master record deleted successfully"
+          },
+          "404": {
+            "description": "Master record not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to delete master record"
+          }
+        }
+      }
+    },
+    "/api/dutychart/filter": {
+      "get": {
+        "description": "",
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts": {
+      "get": {
+        "description": "",
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts/{chartId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts/{chartId}/export": {
+      "get": {
+        "description": "",
+        "produces": [
+          "text/csv; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/entries": {
+      "post": {
+        "description": "",
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts/{chartId}/entries/{entryId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "produces": [
+          "text/csv; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/reports/daily": {
       "get": {
         "tags": [
           "Reports"
@@ -1158,13 +1953,16 @@
           "200": {
             "description": "Daily reports retrieved successfully"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Daily reports failed"
           }
         }
       }
     },
-    "/registration": {
+    "/api/reports/registration": {
       "get": {
         "tags": [
           "Reports"
@@ -1175,8 +1973,130 @@
           "200": {
             "description": "Registration reports retrieved successfully"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
             "description": "Registration reports failed"
+          }
+        }
+      }
+    },
+    "/api/reports/master": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get master reports",
+        "description": "Retrieve master reports data. (Implementation pending)",
+        "responses": {
+          "200": {
+            "description": "Master reports retrieved successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Master reports failed"
+          }
+        }
+      }
+    },
+    "/save-drive": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create blood drive (legacy form endpoint)",
+        "description": "Compatibility endpoint for older forms. Prefer POST /api/community/blood-drives for new clients.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Blood drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid blood drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save blood drive"
+          }
+        }
+      }
+    },
+    "/save-health-drive": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create health drive (legacy form endpoint)",
+        "description": "Compatibility endpoint for older forms. Prefer POST /api/community/health-drives for new clients.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/HealthDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Health drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid health drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save health drive"
+          }
+        }
+      }
+    },
+    "/save-patient-registration": {
+      "post": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Create patient registration (legacy form endpoint)",
+        "description": "Compatibility endpoint for older forms. Prefer POST /api/patients for new clients.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PatientRegistrationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Patient registration saved successfully"
+          },
+          "400": {
+            "description": "Invalid patient registration data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save patient registration"
           }
         }
       }
@@ -1491,6 +2411,218 @@
       },
       "required": [
         "users"
+      ]
+    },
+    "PatientRegistrationRequest": {
+      "type": "object",
+      "properties": {
+        "regnNo": {
+          "type": "string",
+          "example": "OPD-2026-001"
+        },
+        "date": {
+          "type": "string",
+          "example": "2026-04-25"
+        },
+        "patientName": {
+          "type": "string",
+          "example": "Anita Sharma"
+        },
+        "mobileNumber": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "email": {
+          "type": "string",
+          "example": "anita.sharma@example.com"
+        },
+        "address": {
+          "type": "string",
+          "example": "12 Main Road, Delhi"
+        },
+        "guardianName": {
+          "type": "string",
+          "example": "Raj Sharma"
+        },
+        "age": {
+          "type": "number",
+          "example": 42
+        },
+        "gender": {
+          "type": "string",
+          "example": "Female"
+        },
+        "disease": {
+          "type": "string",
+          "example": "Fever and body ache"
+        }
+      },
+      "required": [
+        "regnNo",
+        "date",
+        "patientName",
+        "mobileNumber",
+        "address",
+        "gender",
+        "disease"
+      ]
+    },
+    "BloodDriveRequest": {
+      "type": "object",
+      "properties": {
+        "organizerName": {
+          "type": "string",
+          "example": "SNM Charitable Trust"
+        },
+        "address": {
+          "type": "string",
+          "example": "Community Hall, Sector 4"
+        },
+        "landmark": {
+          "type": "string",
+          "example": "Near central park"
+        },
+        "driveDate": {
+          "type": "string",
+          "example": "2026-04-25"
+        },
+        "startTime": {
+          "type": "string",
+          "example": "09:00"
+        },
+        "endTime": {
+          "type": "string",
+          "example": "14:00"
+        },
+        "phone": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "email": {
+          "type": "string",
+          "example": "drive@example.com"
+        },
+        "entryType": {
+          "type": "string",
+          "example": "public"
+        }
+      },
+      "required": [
+        "organizerName",
+        "address",
+        "driveDate",
+        "startTime",
+        "endTime",
+        "entryType"
+      ]
+    },
+    "HealthDriveRequest": {
+      "type": "object",
+      "properties": {
+        "organizerName": {
+          "type": "string",
+          "example": "SNM Medical Camp"
+        },
+        "address": {
+          "type": "string",
+          "example": "Dispensary Campus"
+        },
+        "landmark": {
+          "type": "string",
+          "example": "Gate 2"
+        },
+        "campDate": {
+          "type": "string",
+          "example": "2026-04-25"
+        },
+        "startTime": {
+          "type": "string",
+          "example": "10:00"
+        },
+        "endTime": {
+          "type": "string",
+          "example": "16:00"
+        },
+        "services": {
+          "type": "string",
+          "example": "General checkup, BP, sugar test"
+        },
+        "phone": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "email": {
+          "type": "string",
+          "example": "camp@example.com"
+        },
+        "registrationType": {
+          "type": "string",
+          "example": "walk-in"
+        },
+        "notes": {
+          "type": "string",
+          "example": "Bring previous medical records"
+        }
+      },
+      "required": [
+        "organizerName",
+        "address",
+        "campDate",
+        "startTime",
+        "endTime",
+        "registrationType"
+      ]
+    },
+    "BloodDonationEligibilityRequest": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "number",
+          "example": 30
+        },
+        "weight": {
+          "type": "number",
+          "example": 65
+        },
+        "hemoglobin": {
+          "type": "number",
+          "example": 13.2
+        },
+        "illness": {
+          "type": "string",
+          "example": "no"
+        },
+        "lastDonation": {
+          "type": "string",
+          "example": "2025-12-01"
+        },
+        "driveId": {
+          "type": "number",
+          "example": 1
+        }
+      },
+      "required": [
+        "age",
+        "weight",
+        "hemoglobin",
+        "illness"
+      ]
+    },
+    "MasterDataRequest": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "example": "Cardiology"
+        },
+        "extraId": {},
+        "updatedBy": {
+          "type": "number",
+          "example": 1
+        }
+      },
+      "required": [
+        "value"
       ]
     }
   }

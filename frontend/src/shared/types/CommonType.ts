@@ -71,9 +71,16 @@ export interface User {
 }
 
 export interface SearchResponse {
-  status: boolean;
+  success: boolean;
   message: string;
   data: User[];
+  pagination?: {
+    current: number;
+    total: number;
+    pageSize?: number;
+    count: number;
+    totalRecords: number;
+  };
   total?: number;
 }
 

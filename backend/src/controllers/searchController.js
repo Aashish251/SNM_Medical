@@ -9,6 +9,7 @@ exports.masterSearch = async (req, res) => {
     const pagination = result?.pagination || {
       current: req.body.page || 1,
       total: 1,
+      pageSize: req.body.limit || 10,
       count: data.length,
       totalRecords: data.length
     };

@@ -160,8 +160,12 @@ try {
   app.use("/api/auth", authRateLimiter, require("./routes/auth"));
   app.use("/api/user", require("./routes/user"));
   app.use("/api/search", require("./routes/search"));
+  app.use("/api/community", require("./routes/community"));
+  app.use("/api/patients", require("./routes/patients"));
+  app.use("/api/masters", require("./routes/masters"));
   app.use("/api/dutychart", require("./routes/dutychart"));
   app.use("/api/reports", require("./routes/reports"));
+  app.use("/", require("./routes/formCompat"));
 } catch (error) {
   logger.error("Error loading routes", { error: error.message });
   logger.error("Make sure all route files exist in the routes/ directory");
@@ -226,6 +230,9 @@ app.get("/api", (req, res) => {
       authentication: "/api/auth",
       registration: "/api/registration",
       dashboard: "/api/dashboard",
+      community: "/api/community",
+      patients: "/api/patients",
+      masters: "/api/masters",
       search: "/api/search",
       dutychart: "/api/dutychart",
       reports: "/api/reports",

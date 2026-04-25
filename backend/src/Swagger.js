@@ -11,7 +11,7 @@ const doc = {
     }
   },
   host: 'localhost:5000',
-  basePath: '/api',
+  basePath: '/',
   schemes: ['http'],
   consumes: ['application/json', 'multipart/form-data'],
   produces: ['application/json'],
@@ -21,6 +21,9 @@ const doc = {
     { name: 'Dashboard', description: 'Dashboard related operations' },
     { name: 'User Management', description: 'User profile and role management' },
     { name: 'Search', description: 'Search and export functionality' },
+    { name: 'Community', description: 'Blood drive and health drive operations' },
+    { name: 'Patients', description: 'Patient registration operations' },
+    { name: 'Masters', description: 'Master data management operations' },
     { name: 'DutyChart', description: 'Medical staff duty chart operations' },
     { name: 'Reports', description: 'Report generation and management' },
     { name: 'Admin - Maintenance', description: 'Admin maintenance operations' }
@@ -113,6 +116,55 @@ const doc = {
           passEntry: false
         }
       ]
+    },
+    PatientRegistrationRequest: {
+      $regnNo: 'OPD-2026-001',
+      $date: '2026-04-25',
+      $patientName: 'Anita Sharma',
+      $mobileNumber: '9876543210',
+      email: 'anita.sharma@example.com',
+      $address: '12 Main Road, Delhi',
+      guardianName: 'Raj Sharma',
+      age: 42,
+      $gender: 'Female',
+      $disease: 'Fever and body ache'
+    },
+    BloodDriveRequest: {
+      $organizerName: 'SNM Charitable Trust',
+      $address: 'Community Hall, Sector 4',
+      landmark: 'Near central park',
+      $driveDate: '2026-04-25',
+      $startTime: '09:00',
+      $endTime: '14:00',
+      phone: '9876543210',
+      email: 'drive@example.com',
+      $entryType: 'public'
+    },
+    HealthDriveRequest: {
+      $organizerName: 'SNM Medical Camp',
+      $address: 'Dispensary Campus',
+      landmark: 'Gate 2',
+      $campDate: '2026-04-25',
+      $startTime: '10:00',
+      $endTime: '16:00',
+      services: 'General checkup, BP, sugar test',
+      phone: '9876543210',
+      email: 'camp@example.com',
+      $registrationType: 'walk-in',
+      notes: 'Bring previous medical records'
+    },
+    BloodDonationEligibilityRequest: {
+      $age: 30,
+      $weight: 65,
+      $hemoglobin: 13.2,
+      $illness: 'no',
+      lastDonation: '2025-12-01',
+      driveId: 1
+    },
+    MasterDataRequest: {
+      $value: 'Cardiology',
+      extraId: null,
+      updatedBy: 1
     }
   }
 };
@@ -120,14 +172,7 @@ const doc = {
 const outputFile = './swagger-output.json';
 
 const routes = [
-  './src/routes/swagger.docs.js',  // Main API documentation
-  './src/routes/registration.js',
-  './src/routes/auth.js',
-  './src/routes/dashboard.js',
-  './src/routes/user.js',
-  './src/routes/search.js',
-  './src/routes/dutychart.js',
-  './src/routes/reports.js'
+  './src/server.js'
 ];
 
 /* NOTE: If you are using the express Router, you must pass in the 'routes' only the 
