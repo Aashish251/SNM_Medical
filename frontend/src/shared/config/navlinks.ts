@@ -32,6 +32,9 @@ import {
   SNM_NAV_ADMIN_DASHBOARD_LABEL,
   SNM_NAV_MS_DASHBOARD_LINK,
   SNM_NAV_MS_DASHBOARD_LABEL,
+  SNM_NAV_BLOOD_DONATION_LINK,
+  SNM_NAV_FREE_HEALTH_CHECKUPS_LINK,
+  SNM_NAV_FORGOT_PASSWORD_LINK,
 } from "@shared/constants";
 
 // -------------------------
@@ -124,7 +127,10 @@ export const navLinksByPage: Record<string, NavLink[]> = {
   [SNM_NAV_HOME_LINK]: buildNavLinks(),
   [SNM_NAV_ABOUT_LINK]: buildNavLinks(),
   [SNM_NAV_CONTACT_LINK]: buildNavLinks(),
+  [SNM_NAV_BLOOD_DONATION_LINK]: buildNavLinks(),
+  [SNM_NAV_FREE_HEALTH_CHECKUPS_LINK]: buildNavLinks(),
   [SNM_NAV_ADMIN_DUTY_CHART_LINK]: buildNavLinks(),
   [SNM_NAV_LOGIN_LINK]: buildNavLinks(),
   [SNM_NAV_REGISTER_LINK]: buildNavLinks(),
+  [SNM_NAV_FORGOT_PASSWORD_LINK]: buildNavLinks(),
 };

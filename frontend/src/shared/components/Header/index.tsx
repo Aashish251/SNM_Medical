@@ -37,7 +37,6 @@ import {
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { handleNavigate } from "@shared/config/common";
-import { link } from "fs";
 
 //  Mobile Drawer remains unchanged
 const MobileDrawer = ({

@@ -1,8 +1,11 @@
 import {
+  SNM_NAV_BLOOD_DONATION_LINK,
   SNM_NAV_CONTACT_LINK,
   SNM_NAV_FORGOT_PASSWORD_LINK,
+  SNM_NAV_FREE_HEALTH_CHECKUPS_LINK,
   SNM_NAV_HOME_LINK,
   SNM_NAV_LOGIN_LINK,
+  SNM_NAV_PATIENT_REGISTRATION_LINK,
   SNM_NAV_REGISTER_LINK,
 } from "@shared/constants";
 import React, { lazy } from "react";
@@ -14,10 +17,19 @@ const Contact = lazy(() => import("@features/contact"));
 const Login = lazy(() => import("@features/login"));
 const Register = lazy(() => import("@features/register"));
 const ForgetPassword = lazy(() => import("@features/forgot-password"));
+const BloodDonation = lazy(() => import("@features/blood-donation"));
+const FreeHealthCheckups = lazy(() => import("@features/free-health-checkups"));
+const PatientRegistration = lazy(() => import("@features/patient-registration"));
 const NotFound = lazy(() => import("@features/not-found"));
 
 export const PublicRoutes = [
   <Route path={SNM_NAV_HOME_LINK} element={<LandingPage />} />,
+  <Route path={SNM_NAV_BLOOD_DONATION_LINK} element={<BloodDonation />} />,
+  <Route
+    path={SNM_NAV_FREE_HEALTH_CHECKUPS_LINK}
+    element={<FreeHealthCheckups />}
+  />,
+  <Route path={SNM_NAV_PATIENT_REGISTRATION_LINK} element={<PatientRegistration />} />,
   <Route path={SNM_NAV_CONTACT_LINK} element={<Contact />} />,
   <Route
     path={SNM_NAV_LOGIN_LINK}

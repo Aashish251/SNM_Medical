@@ -53,6 +53,13 @@ export const SNM_NAV_LOGOUT_LABEL = "Logout"
 export const SNM_NAV_FORGOT_PASSWORD_LABEL = "Forget Password"
 export const SNM_NAV_FORGOT_PASSWORD_LINK = "/forgot-password"
 
+export const SNM_NAV_BLOOD_DONATION_LABEL = "Blood Donation"
+export const SNM_NAV_BLOOD_DONATION_LINK = "/blood-donation"
+export const SNM_NAV_FREE_HEALTH_CHECKUPS_LABEL = "Free Health Check-ups"
+export const SNM_NAV_FREE_HEALTH_CHECKUPS_LINK = "/free-health-checkups"
+export const SNM_NAV_PATIENT_REGISTRATION_LABEL = "Patient Registration"
+export const SNM_NAV_PATIENT_REGISTRATION_LINK = "/patient-registration"
+
 // Navigation Medical Staff UserType
 export const SNM_NAV_MS_DASHBOARD_LABEL = "Dashboard"
 export const SNM_NAV_MS_DASHBOARD_LINK = "/ms/dashboard"

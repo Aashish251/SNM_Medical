@@ -12,6 +12,9 @@ export default defineConfig({
   // 🔥 Make sure Vite builds into /dist directory
   build: {
     outDir: "dist",
+    // The app bundles can exceed Rollup's default warning threshold due to charts/UI libs.
+    // This does not affect runtime; it only silences noisy build warnings.
+    chunkSizeWarningLimit: 1000,
   },
 
   resolve: {

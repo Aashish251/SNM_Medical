@@ -7,15 +7,23 @@ import {
   SNM_ADMIN_USERTYPE,
   SNM_MS_USERTYPE,
   SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
+  SNM_NAV_BLOOD_DONATION_LINK,
+  SNM_NAV_FREE_HEALTH_CHECKUPS_LINK,
   SNM_NAV_MS_UPDATE_PROFILE_LINK,
+  SNM_NAV_PATIENT_REGISTRATION_LINK,
 } from "@shared/constants";
 import type { IconType } from "react-icons";
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube } from "react-icons/fa";
 import { LuStethoscope } from "react-icons/lu";
-import { MdOutlineWaterDrop } from "react-icons/md";
+import { MdAppRegistration, MdOutlineWaterDrop } from "react-icons/md";
 import { City, FormValues } from "@shared/types/CommonType";
 
-type Service = { title: string; description: string; icon?: IconType };
+export type FooterService = {
+  title: string;
+  description: string;
+  href: string;
+  icon?: IconType;
+};
 
 export const handleNavigate = (
   href: string,
@@ -44,16 +52,24 @@ export const imagesDashBoard = [
   DASHBOARD_BANNER3,
 ];
 
-export const services: Service[] = [
+export const services: FooterService[] = [
   {
     title: "Free Health Check-ups",
     description: "Community health camps & screenings for early detection.",
+    href: SNM_NAV_FREE_HEALTH_CHECKUPS_LINK,
     icon: LuStethoscope,
   },
   {
     title: "Blood Donation",
     description: "Regular blood drives supporting local hospitals.",
+    href: SNM_NAV_BLOOD_DONATION_LINK,
     icon: MdOutlineWaterDrop,
+  },
+  {
+    title: "Patient Registration",
+    description: "Easy patient registration process for seamless healthcare experience.",
+    href: SNM_NAV_PATIENT_REGISTRATION_LINK,
+    icon: MdAppRegistration,
   },
 ];
 

@@ -108,7 +108,7 @@ const Footer: React.FC = () => {
                   </div>
                   <div>
                     <Link
-                      to=""
+                      to={s.href}
                       className="text-sm font-medium block hover:text-yellow-200 transition"
                     >
                       {s.title}
