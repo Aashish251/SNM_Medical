@@ -8,10 +8,28 @@ const path = require("path");
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger-output.json');
 const errorMiddleware = require("./middlewares/error");
+const requestLogger = require("./middlewares/requestLogger");
+const logger = require("./utils/logger");
 
+// Initialize Sentry if available
+let Sentry = null;
+try {
+  Sentry = logger.getSentry();
+  if (Sentry) {
+    // Sentry initialization handled in logger.js
+  }
+} catch (error) {
+  logger.warn("Sentry not available", { error: error.message });
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Sentry request handler (must be first if using Sentry)
+if (Sentry) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 
 // CORS
 app.use(
@@ -21,7 +39,7 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   })
-); 
+);
 
 // Swagger UI setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -30,17 +48,24 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const __dirnameResolved = __dirname;
 
 // ✅ Serve static files from /uploads folder FIRST (before middleware)
+// Add rewrite for legacy profile_img category to profile
+app.use("/uploads/profile_img", (req, res, next) => {
+  const newPath = req.url.replace('/profile_img', '/profile');
+  req.url = newPath;
+  next();
+});
+
 // Add cache control headers and CORS for static files
 app.use("/uploads", (req, res, next) => {
   // Allow cross-origin requests for files
   res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "http://localhost:5173");
   res.header("Access-Control-Allow-Credentials", "true");
-  
+
   // Set appropriate cache headers (30 days for versioned files)
   res.header("Cache-Control", "public, max-age=2592000, immutable");
   res.header("Pragma", "public");
   res.header("Expires", new Date(Date.now() + 2592000000).toUTCString());
-  
+
   next();
 }, express.static(path.join(__dirnameResolved, "../uploads")));
 
@@ -70,6 +95,10 @@ app.use(
     },
   })
 );
+
+// Request logging middleware (tracks request ID and response time)
+app.use(requestLogger);
+
 if (process.env.NODE_ENV === "development") {
   app.use((req, res, next) => {
     console.log(` ${req.method} ${req.path} - ${new Date().toISOString()}`);
@@ -87,20 +116,59 @@ if (process.env.NODE_ENV === "development") {
 try {
   app.use("/api/registration", require("./routes/registration")); // includes file upload endpoints
   app.use("/api/dashboard", require("./routes/dashboard")); // includes profile update with file upload
-  
+
   // Add JSON/body-parsing middleware only after above:
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+  // Rate limiter for auth routes (brute-force protection)
+  const authRateLimitMap = new Map();
+  const AUTH_RATE_WINDOW = parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 900000; // 15 min
+  const AUTH_RATE_MAX = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 10;
+
+  const authRateLimiter = (req, res, next) => {
+    const key = req.ip;
+    const now = Date.now();
+    const entry = authRateLimitMap.get(key);
+
+    if (!entry || now - entry.start > AUTH_RATE_WINDOW) {
+      authRateLimitMap.set(key, { start: now, count: 1 });
+      return next();
+    }
+
+    entry.count++;
+    if (entry.count > AUTH_RATE_MAX) {
+      logger.warn('Auth rate limit exceeded', { ip: key, count: entry.count });
+      return res.status(429).json({
+        success: false,
+        message: 'Too many attempts. Please try again later.',
+      });
+    }
+
+    return next();
+  };
+
+  // Clean up rate limit map periodically (every 10 min)
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of authRateLimitMap) {
+      if (now - entry.start > AUTH_RATE_WINDOW) authRateLimitMap.delete(key);
+    }
+  }, 600000);
+
   // All other non-file routes
-  app.use("/api/auth", require("./routes/auth"));
+  app.use("/api/auth", authRateLimiter, require("./routes/auth"));
   app.use("/api/user", require("./routes/user"));
   app.use("/api/search", require("./routes/search"));
+  app.use("/api/community", require("./routes/community"));
+  app.use("/api/patients", require("./routes/patients"));
+  app.use("/api/masters", require("./routes/masters"));
   app.use("/api/dutychart", require("./routes/dutychart"));
   app.use("/api/reports", require("./routes/reports"));
+  app.use("/", require("./routes/formCompat"));
 } catch (error) {
-  console.error(" Error loading routes:", error.message);
-  console.error("Make sure all route files exist in the routes/ directory");
+  logger.error("Error loading routes", { error: error.message });
+  logger.error("Make sure all route files exist in the routes/ directory");
 }
 
 // Health check endpoints
@@ -128,7 +196,7 @@ app.get("/api/health/db", async (req, res) => {
 app.get("/api/health/uploads", (req, res) => {
   const fs = require('fs');
   const uploadsPath = path.join(__dirname, '../uploads');
-  
+
   const checkDir = (dirPath) => {
     try {
       return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
@@ -139,7 +207,7 @@ app.get("/api/health/uploads", (req, res) => {
 
   const profileExists = checkDir(path.join(uploadsPath, 'profile'));
   const certificatesExists = checkDir(path.join(uploadsPath, 'certificates'));
-  
+
   res.status(200).json({
     message: "Upload directories status",
     uploadsPath: uploadsPath,
@@ -162,6 +230,9 @@ app.get("/api", (req, res) => {
       authentication: "/api/auth",
       registration: "/api/registration",
       dashboard: "/api/dashboard",
+      community: "/api/community",
+      patients: "/api/patients",
+      masters: "/api/masters",
       search: "/api/search",
       dutychart: "/api/dutychart",
       reports: "/api/reports",
@@ -173,9 +244,33 @@ app.get("/api", (req, res) => {
   });
 });
 
-// Error handling middleware (AFTER all routes)
+// 404 handler (MUST be before error handlers)
+app.use("*", (req, res) => {
+  logger.warn("404 - Route not found", {
+    method: req.method,
+    path: req.originalUrl,
+  });
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.method} ${req.originalUrl} not found`,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Sentry error handler (must be before other error handlers)
+if (Sentry) {
+  app.use(Sentry.Handlers.errorHandler());
+}
+
+// Custom error handling middleware (AFTER all routes)
+app.use(errorMiddleware);
+
+// Fallback error handler for unhandled errors
 app.use((err, req, res, next) => {
-  console.error("🚨 Server Error:", err);
+  logger.error("Unhandled Server Error", {
+    message: err.message,
+    stack: err.stack,
+  });
   res.status(500).json({
     success: false,
     message: "Internal server error",
@@ -183,30 +278,6 @@ app.use((err, req, res, next) => {
       process.env.NODE_ENV === "development"
         ? err.message
         : "Something went wrong",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// 404 handler
-app.use("*", (req, res) => {
-  console.log(` 404 - Route not found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.method} ${req.originalUrl} not found`,
-    availableRoutes: [
-      "GET /api",
-      "GET /health",
-      "GET /api/health/db",
-      "POST /api/auth/login",
-      "POST /api/auth/forgot-password",
-      "POST /api/registration/register",
-      "GET /api/dashboard/stats",
-      "GET /api/search/master-search",
-      "GET /api/dutychart/filter",
-      "GET /api/reports/daily",
-      "GET /api/reports/registration",
-      "GET /api/reports/master",
-    ],
     timestamp: new Date().toISOString(),
   });
 });

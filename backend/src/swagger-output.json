@@ -10,10 +10,55 @@
     }
   },
   "host": "localhost:5000",
-  "basePath": "/api",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication operations"
+    },
+    {
+      "name": "Registration",
+      "description": "User registration and related operations"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard related operations"
+    },
+    {
+      "name": "User Management",
+      "description": "User profile and role management"
+    },
+    {
+      "name": "Search",
+      "description": "Search and export functionality"
+    },
+    {
+      "name": "Community",
+      "description": "Blood drive and health drive operations"
+    },
+    {
+      "name": "Patients",
+      "description": "Patient registration operations"
+    },
+    {
+      "name": "Masters",
+      "description": "Master data management operations"
+    },
+    {
+      "name": "DutyChart",
+      "description": "Medical staff duty chart operations"
+    },
+    {
+      "name": "Reports",
+      "description": "Report generation and management"
+    },
+    {
+      "name": "Admin - Maintenance",
+      "description": "Admin maintenance operations"
+    }
+  ],
   "schemes": [
-    "http",
-    "https"
+    "http"
   ],
   "securityDefinitions": {
     "bearerAuth": {
@@ -31,137 +76,354 @@
     "application/json"
   ],
   "paths": {
-    "/dropdown-data": {
+    "/health": {
       "get": {
         "description": "",
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "OK"
           }
         }
       }
     },
-    "/cities/{stateId}": {
+    "/api/health/db": {
       "get": {
         "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/health/uploads": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/registration/dropdown-data": {
+      "get": {
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Get dropdown master data",
+        "description": "Retrieve all dropdown master data (states, departments, qualifications) used in registration forms.",
+        "responses": {
+          "200": {
+            "description": "Successfully fetched dropdown data"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/registration/cities/{stateId}": {
+      "get": {
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Get cities by state",
+        "description": "Get list of cities for a given state ID.",
         "parameters": [
           {
             "name": "stateId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer",
+            "description": "ID of the state to get cities for",
+            "example": 1
           }
         ],
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "Cities retrieved successfully"
+          },
+          "400": {
+            "description": "Invalid state ID"
+          },
+          "404": {
+            "description": "State not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
     },
-    "/check-email": {
+    "/api/registration/check-email": {
       "post": {
-        "description": "",
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Check email availability",
+        "description": "Check if an email address is already registered in the system.",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "email": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "john.doe@example.com"
                 }
-              }
+              },
+              "required": [
+                "email"
+              ]
             }
           }
         ],
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "Email check completed"
+          },
+          "400": {
+            "description": "Invalid email format"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
     },
-    "/register": {
+    "/api/registration/register": {
       "post": {
-        "description": "",
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Register new user",
+        "description": "Create a new user account with profile details. Supports file uploads for profile picture and certificate.",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "content-type",
             "in": "header",
             "type": "string"
+          },
+          {
+            "name": "firstName",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "First name",
+            "example": "John"
+          },
+          {
+            "name": "lastName",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Last name",
+            "example": "Doe"
+          },
+          {
+            "name": "email",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Email address",
+            "example": "john.doe@example.com"
+          },
+          {
+            "name": "password",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Password (min 8 chars)",
+            "example": "Password123!"
+          },
+          {
+            "name": "mobileNumber",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "10-digit mobile number",
+            "example": "9876543210"
+          },
+          {
+            "name": "role",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "enum": [
+              "user",
+              "admin",
+              "medical_staff"
+            ],
+            "description": "User role",
+            "example": "medical_staff"
+          },
+          {
+            "name": "gender",
+            "in": "formData",
+            "type": "string",
+            "enum": [
+              "Male",
+              "Female",
+              "Other"
+            ],
+            "description": "Gender"
+          },
+          {
+            "name": "dateOfBirth",
+            "in": "formData",
+            "type": "string",
+            "description": "Date of birth (YYYY-MM-DD)"
+          },
+          {
+            "name": "stateId",
+            "in": "formData",
+            "type": "integer",
+            "description": "State ID"
+          },
+          {
+            "name": "cityId",
+            "in": "formData",
+            "type": "integer",
+            "description": "City ID"
+          },
+          {
+            "name": "address",
+            "in": "formData",
+            "type": "string",
+            "description": "Address (max 200 chars)"
+          },
+          {
+            "name": "pincode",
+            "in": "formData",
+            "type": "string",
+            "description": "6-digit pincode"
+          },
+          {
+            "name": "specialization",
+            "in": "formData",
+            "type": "string",
+            "description": "Medical specialization"
+          },
+          {
+            "name": "experience",
+            "in": "formData",
+            "type": "integer",
+            "description": "Years of experience"
+          },
+          {
+            "name": "profilePic",
+            "in": "formData",
+            "type": "file",
+            "description": "Profile picture"
+          },
+          {
+            "name": "certificate",
+            "in": "formData",
+            "type": "file",
+            "description": "Certificate document"
           }
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "User registered successfully"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Invalid input data"
+          },
+          "409": {
+            "description": "Email already exists"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
     },
-    "/upload-profile": {
+    "/api/registration/upload-profile": {
       "post": {
-        "description": "",
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Upload profile image",
+        "description": "Upload a profile image separately. Returns the file path.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "profileImage",
+            "in": "formData",
+            "type": "file",
+            "required": true,
+            "description": "Profile image file"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Profile image uploaded successfully"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "No profile image uploaded"
           }
         }
       }
     },
-    "/upload-certificate": {
+    "/api/registration/upload-certificate": {
       "post": {
-        "description": "",
+        "tags": [
+          "Registration"
+        ],
+        "summary": "Upload certificate document",
+        "description": "Upload a certificate document separately. Returns the file path.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "certificate",
+            "in": "formData",
+            "type": "file",
+            "required": true,
+            "description": "Certificate file"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Certificate uploaded successfully"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "No certificate uploaded"
           }
         }
       }
     },
-    "/login": {
-      "post": {
-        "description": "",
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/forgot-password-validate": {
-      "post": {
-        "description": "",
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/reset-password": {
-      "post": {
-        "description": "",
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/stats": {
+    "/api/dashboard/stats": {
       "get": {
-        "description": "",
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get dashboard statistics",
+        "description": "Retrieve dashboard statistics for the authenticated user.",
         "parameters": [
           {
             "name": "authorization",
@@ -175,21 +437,33 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully"
+          },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized - no token or invalid token"
           },
           "403": {
             "description": "Forbidden"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/profile": {
+    "/api/dashboard/profile": {
       "get": {
-        "description": "",
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get user profile",
+        "description": "Retrieve the profile of the currently authenticated user.",
         "parameters": [
           {
             "name": "authorization",
@@ -203,6 +477,9 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Profile retrieved successfully"
+          },
           "401": {
             "description": "Unauthorized"
           },
@@ -210,68 +487,21 @@
             "description": "Forbidden"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "type": "string"
-          }
+        "tags": [
+          "Dashboard"
         ],
-        "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/summary": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/master": {
-      "post": {
-        "description": "",
+        "summary": "Update user profile",
+        "description": "Update the profile of the currently authenticated user.",
         "parameters": [
           {
             "name": "authorization",
@@ -286,11 +516,25 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
-                "page": {
-                  "example": "any"
+                "firstName": {
+                  "type": "string",
+                  "example": "John"
+                },
+                "lastName": {
+                  "type": "string",
+                  "example": "Doe"
+                },
+                "mobileNumber": {
+                  "type": "string",
+                  "example": "9876543210"
+                },
+                "address": {
+                  "type": "string",
+                  "example": "123 Main Street"
                 }
               }
             }
@@ -298,7 +542,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Profile updated successfully"
           },
           "401": {
             "description": "Unauthorized"
@@ -307,25 +551,509 @@
             "description": "Forbidden"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
           }
-        }
-      },
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/dashboard/summary": {
       "get": {
-        "description": "",
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get admin summary (Admin only)",
+        "description": "Retrieve admin dashboard summary with aggregated stats. Requires admin role.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Admin summary retrieved successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - admin role required"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login user",
+        "description": "Authenticate user with email, password, and role. Returns a JWT token on success.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "400": {
+            "description": "Invalid request - missing required fields"
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
     },
-    "/export": {
+    "/api/auth/forgot-password-validate": {
       "post": {
-        "description": "",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Validate forgot password request",
+        "description": "Validate user identity before allowing password reset. Verifies email, mobile number, and date of birth.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ForgotPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation successful - user identity confirmed"
+          },
+          "400": {
+            "description": "Validation failed - user not found or details mismatch"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Reset user password",
+        "description": "Reset the password for a verified user using their registration ID.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ResetPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset successful"
+          },
+          "400": {
+            "description": "Invalid request - missing regId or newPassword"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/user/update-role": {
+      "put": {
+        "tags": [
+          "User Management"
+        ],
+        "summary": "Update user role (Admin only)",
+        "description": "Update a user\\'s role and permissions. Admin access required.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateRoleRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role updated successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/update-profile/{regId}": {
+      "get": {
+        "tags": [
+          "User Management"
+        ],
+        "summary": "Get user profile by registration ID",
+        "description": "Retrieve a user\\'s full profile by their registration ID.",
+        "parameters": [
+          {
+            "name": "regId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Registration ID of the user",
+            "example": 1
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "User Management"
+        ],
+        "summary": "Update user profile by registration ID",
+        "description": "Update a user\\'s profile with optional file uploads (profile picture and certificate).",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "regId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Registration ID of the user",
+            "example": 1
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "firstName",
+            "in": "formData",
+            "type": "string",
+            "description": "First name"
+          },
+          {
+            "name": "lastName",
+            "in": "formData",
+            "type": "string",
+            "description": "Last name"
+          },
+          {
+            "name": "mobileNumber",
+            "in": "formData",
+            "type": "string",
+            "description": "10-digit mobile number"
+          },
+          {
+            "name": "address",
+            "in": "formData",
+            "type": "string",
+            "description": "Address"
+          },
+          {
+            "name": "profilePic",
+            "in": "formData",
+            "type": "file",
+            "description": "Profile picture"
+          },
+          {
+            "name": "certificate",
+            "in": "formData",
+            "type": "file",
+            "description": "Certificate document"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully"
+          },
+          "400": {
+            "description": "Invalid input data"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/normalize-paths": {
+      "post": {
+        "tags": [
+          "Admin - Maintenance"
+        ],
+        "summary": "Normalize all file paths in database (Admin only)",
+        "description": "Convert all absolute file paths in the database to relative paths.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paths normalized successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to normalize paths"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/normalize-paths/{regIds}": {
+      "post": {
+        "tags": [
+          "Admin - Maintenance"
+        ],
+        "summary": "Normalize file paths for specific users (Admin only)",
+        "description": "Convert absolute file paths to relative for specific users by comma-separated registration IDs.",
+        "parameters": [
+          {
+            "name": "regIds",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Comma-separated registration IDs (e.g. 1,2,3)",
+            "example": "1,2,3"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paths normalized successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to normalize paths"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/search/master": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Master search",
+        "description": "Perform a master search with filters and pagination. Returns paginated user data.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MasterSearchRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search completed successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/search/export": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Export search results to Excel",
+        "description": "Export master search results as an Excel (.xlsx) file download.",
         "produces": [
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ],
@@ -343,19 +1071,15 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "limit": {
-                  "example": "any"
-                }
-              }
+              "$ref": "#/definitions/MasterSearchRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Excel file downloaded or empty JSON if no data"
           },
           "401": {
             "description": "Unauthorized"
@@ -363,21 +1087,35 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Export failed"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/approve/{regId}": {
+    "/api/search/approve/{regId}": {
       "post": {
-        "description": "",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Approve a user",
+        "description": "Approve a user registration by their registration ID.",
         "parameters": [
           {
             "name": "regId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer",
+            "description": "Registration ID of the user to approve",
+            "example": 1
           },
           {
             "name": "authorization",
@@ -392,7 +1130,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "User approved successfully"
           },
           "401": {
             "description": "Unauthorized"
@@ -400,15 +1138,27 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Approval failed"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/update": {
+    "/api/search/update": {
       "put": {
-        "description": "",
+        "tags": [
+          "Search"
+        ],
+        "summary": "Bulk update selected users",
+        "description": "Update multiple users at once. Provide an array of user objects.",
         "parameters": [
           {
             "name": "authorization",
@@ -423,22 +1173,18 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "users": {
-                  "example": "any"
-                }
-              }
+              "$ref": "#/definitions/BulkUpdateRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Users updated successfully"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "No users provided or invalid data"
           },
           "401": {
             "description": "Unauthorized"
@@ -446,47 +1192,911 @@
           "403": {
             "description": "Forbidden"
           },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Update failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/community/blood-drives": {
+      "get": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "List blood drives",
+        "description": "Retrieve all blood donation drives sorted by newest drive date first.",
+        "responses": {
+          "200": {
+            "description": "Blood drives fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch blood drives"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create blood drive",
+        "description": "Create a new blood donation drive.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Blood drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid blood drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save blood drive"
           }
         }
       }
     },
-    "/filter": {
+    "/api/community/blood-drives/{id}": {
       "get": {
-        "description": "",
+        "tags": [
+          "Community"
+        ],
+        "summary": "Get blood drive by ID",
+        "description": "Retrieve one blood donation drive by its numeric ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Blood drive ID",
+            "example": 1
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Blood drive fetched successfully"
+          },
+          "404": {
+            "description": "Blood drive not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Failed to fetch blood drive"
           }
         }
       }
     },
-    "/daily": {
-      "get": {
-        "description": "",
+    "/api/community/blood-drives/{id}/eligibility-check": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Check blood donation eligibility for a drive",
+        "description": "Check whether a person is eligible to donate blood and attach the check to a drive ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Blood drive ID",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDonationEligibilityRequest"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Eligibility checked successfully"
+          },
+          "400": {
+            "description": "Invalid eligibility input"
+          },
+          "429": {
+            "description": "Too Many Requests"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Failed to check eligibility"
           }
         }
       }
     },
-    "/registration": {
+    "/api/community/eligibility-check": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Check blood donation eligibility",
+        "description": "Check whether a person is eligible to donate blood.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDonationEligibilityRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eligibility checked successfully"
+          },
+          "400": {
+            "description": "Invalid eligibility input"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to check eligibility"
+          }
+        }
+      }
+    },
+    "/api/community/health-drives": {
+      "get": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "List health drives",
+        "description": "Retrieve all health drives sorted by newest camp date first.",
+        "responses": {
+          "200": {
+            "description": "Health drives fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch health drives"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create health drive",
+        "description": "Create a new health drive or medical camp.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/HealthDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Health drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid health drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save health drive"
+          }
+        }
+      }
+    },
+    "/api/community/health-drives/{id}": {
+      "get": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Get health drive by ID",
+        "description": "Retrieve one health drive by its numeric ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Health drive ID",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Health drive fetched successfully"
+          },
+          "404": {
+            "description": "Health drive not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch health drive"
+          }
+        }
+      }
+    },
+    "/api/patients/": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "List patient registrations",
+        "description": "Retrieve all patient registrations sorted by newest registration date first.",
+        "responses": {
+          "200": {
+            "description": "Patient registrations fetched successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Patient registrations fetched successfully"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "example": 1
+                          },
+                          "regnNo": {
+                            "type": "string",
+                            "example": "OPD-2026-001"
+                          },
+                          "patientName": {
+                            "type": "string",
+                            "example": "Anita Sharma"
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "type": "number",
+                      "example": 1
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch patient registrations"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Create patient registration",
+        "description": "Save a patient registration. The API accepts both UI field names (regn, name, mobile, sex, symptoms) and normalized API field names.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PatientRegistrationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Patient registration saved successfully"
+          },
+          "400": {
+            "description": "Invalid patient registration data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save patient registration"
+          }
+        }
+      }
+    },
+    "/api/patients/{id}": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get patient registration by ID",
+        "description": "Retrieve one patient registration record by its numeric ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Patient registration ID",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient registration fetched successfully"
+          },
+          "404": {
+            "description": "Patient registration not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch patient registration"
+          }
+        }
+      }
+    },
+    "/api/masters/modules": {
+      "get": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "List master data modules",
+        "description": "Retrieve supported master modules and active record counts.",
+        "responses": {
+          "200": {
+            "description": "Master modules fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch master modules"
+          }
+        }
+      }
+    },
+    "/api/masters/{module}": {
+      "get": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "List master records",
+        "description": "Retrieve active records for a supported master module. Supported modules: qualification, department, sewalocation, shifttime, availableday, state, city.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Optional case-insensitive search text",
+            "example": "cardio"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Master records fetched successfully"
+          },
+          "400": {
+            "description": "Unsupported master module"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch master records"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "Create master record",
+        "description": "Create a record in a supported master module. State requires countryId/extraId; city requires stateId/extraId.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MasterDataRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Master record created successfully"
+          },
+          "400": {
+            "description": "Invalid master record data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to create master record"
+          }
+        }
+      }
+    },
+    "/api/masters/{module}/{id}": {
+      "put": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "Update master record",
+        "description": "Update an active record in a supported master module.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Master record ID",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MasterDataRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Master record updated successfully"
+          },
+          "400": {
+            "description": "Invalid master record data"
+          },
+          "404": {
+            "description": "Master record not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to update master record"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Masters"
+        ],
+        "summary": "Delete master record",
+        "description": "Soft-delete an active record in a supported master module.",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Master module name",
+            "enum": [
+              "qualification",
+              "department",
+              "sewalocation",
+              "shifttime",
+              "availableday",
+              "state",
+              "city"
+            ],
+            "example": "department"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Master record ID",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updatedBy": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Master record deleted successfully"
+          },
+          "404": {
+            "description": "Master record not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to delete master record"
+          }
+        }
+      }
+    },
+    "/api/dutychart/filter": {
       "get": {
         "description": "",
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts": {
+      "get": {
+        "description": "",
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts/{chartId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts/{chartId}/export": {
+      "get": {
+        "description": "",
+        "produces": [
+          "text/csv; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           },
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/entries": {
+      "post": {
+        "description": "",
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts/{chartId}/entries/{entryId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "produces": [
+          "text/csv; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/reports/daily": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get daily reports",
+        "description": "Retrieve daily reports data. (Implementation pending)",
+        "responses": {
+          "200": {
+            "description": "Daily reports retrieved successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Daily reports failed"
+          }
+        }
+      }
+    },
+    "/api/reports/registration": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get registration reports",
+        "description": "Retrieve registration reports data. (Implementation pending)",
+        "responses": {
+          "200": {
+            "description": "Registration reports retrieved successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Registration reports failed"
+          }
+        }
+      }
+    },
+    "/api/reports/master": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get master reports",
+        "description": "Retrieve master reports data. (Implementation pending)",
+        "responses": {
+          "200": {
+            "description": "Master reports retrieved successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Master reports failed"
+          }
+        }
+      }
+    },
+    "/save-drive": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create blood drive (legacy form endpoint)",
+        "description": "Compatibility endpoint for older forms. Prefer POST /api/community/blood-drives for new clients.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BloodDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Blood drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid blood drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save blood drive"
+          }
+        }
+      }
+    },
+    "/save-health-drive": {
+      "post": {
+        "tags": [
+          "Community"
+        ],
+        "summary": "Create health drive (legacy form endpoint)",
+        "description": "Compatibility endpoint for older forms. Prefer POST /api/community/health-drives for new clients.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/HealthDriveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Health drive saved successfully"
+          },
+          "400": {
+            "description": "Invalid health drive data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save health drive"
+          }
+        }
+      }
+    },
+    "/save-patient-registration": {
+      "post": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Create patient registration (legacy form endpoint)",
+        "description": "Compatibility endpoint for older forms. Prefer POST /api/patients for new clients.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PatientRegistrationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Patient registration saved successfully"
+          },
+          "400": {
+            "description": "Invalid patient registration data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save patient registration"
           }
         }
       }
@@ -496,405 +2106,524 @@
     "User": {
       "type": "object",
       "properties": {
-        "type": {
+        "firstName": {
           "type": "string",
-          "example": "object"
+          "example": "John"
         },
-        "required": {
-          "type": "array",
-          "example": [
-            "firstName",
-            "lastName",
-            "email",
-            "password",
-            "mobileNumber",
-            "role"
-          ],
-          "items": {
-            "type": "string"
-          }
+        "lastName": {
+          "type": "string",
+          "example": "Doe"
         },
-        "properties": {
-          "type": "object",
-          "properties": {
-            "firstName": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "John"
-                },
-                "minLength": {
-                  "type": "number",
-                  "example": 2
-                },
-                "maxLength": {
-                  "type": "number",
-                  "example": 50
-                }
-              }
-            },
-            "lastName": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "Doe"
-                },
-                "minLength": {
-                  "type": "number",
-                  "example": 2
-                },
-                "maxLength": {
-                  "type": "number",
-                  "example": 50
-                }
-              }
-            },
-            "email": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "format": {
-                  "type": "string",
-                  "example": "email"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "john.doe@example.com"
-                }
-              }
-            },
-            "password": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "format": {
-                  "type": "string",
-                  "example": "password"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "Password123!"
-                },
-                "minLength": {
-                  "type": "number",
-                  "example": 8
-                }
-              }
-            },
-            "mobileNumber": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "9876543210"
-                },
-                "pattern": {
-                  "type": "string",
-                  "example": "^[0-9]{10}$"
-                }
-              }
-            },
-            "gender": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "enum": {
-                  "type": "array",
-                  "example": [
-                    "Male",
-                    "Female",
-                    "Other"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "dateOfBirth": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "format": {
-                  "type": "string",
-                  "example": "date"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "1990-01-01"
-                }
-              }
-            },
-            "stateId": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "example": {
-                  "type": "number",
-                  "example": 1
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 1
-                }
-              }
-            },
-            "cityId": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "example": {
-                  "type": "number",
-                  "example": 1
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 1
-                }
-              }
-            },
-            "address": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "123 Main St"
-                },
-                "maxLength": {
-                  "type": "number",
-                  "example": 200
-                }
-              }
-            },
-            "pincode": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "560001"
-                },
-                "pattern": {
-                  "type": "string",
-                  "example": "^[0-9]{6}$"
-                }
-              }
-            },
-            "role": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "enum": {
-                  "type": "array",
-                  "example": [
-                    "user",
-                    "admin",
-                    "medical_staff"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "specialization": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "Cardiology"
-                }
-              }
-            },
-            "experience": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "example": {
-                  "type": "number",
-                  "example": 5
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 0
-                }
-              }
-            }
-          }
+        "email": {
+          "type": "string",
+          "example": "john.doe@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "Password123!"
+        },
+        "mobileNumber": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "gender": {
+          "type": "string",
+          "example": "Male"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "example": "1990-01-01"
+        },
+        "stateId": {
+          "type": "number",
+          "example": 1
+        },
+        "cityId": {
+          "type": "number",
+          "example": 1
+        },
+        "address": {
+          "type": "string",
+          "example": "123 Main St"
+        },
+        "pincode": {
+          "type": "string",
+          "example": "560001"
+        },
+        "role": {
+          "type": "string",
+          "example": "medical_staff"
+        },
+        "specialization": {
+          "type": "string",
+          "example": "Cardiology"
+        },
+        "experience": {
+          "type": "number",
+          "example": 5
         }
       }
     },
-    "LoginCredentials": {
+    "LoginRequest": {
       "type": "object",
       "properties": {
-        "type": {
+        "email": {
           "type": "string",
-          "example": "object"
+          "example": "john.doe@example.com"
         },
-        "properties": {
-          "type": "object",
-          "properties": {
-            "email": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "john.doe@example.com"
-                }
-              }
-            },
-            "password": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "password123"
-                }
-              }
-            }
-          }
+        "password": {
+          "type": "string",
+          "example": "Password123!"
+        },
+        "role": {
+          "type": "string",
+          "example": "admin"
         }
-      }
+      },
+      "required": [
+        "email",
+        "password",
+        "role"
+      ]
     },
-    "RegistrationResponse": {
+    "ForgotPasswordRequest": {
       "type": "object",
       "properties": {
-        "type": {
+        "email": {
           "type": "string",
-          "example": "object"
+          "example": "john.doe@example.com"
         },
-        "properties": {
+        "mobileNumber": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "example": "1990-01-01"
+        }
+      },
+      "required": [
+        "email",
+        "mobileNumber",
+        "dateOfBirth"
+      ]
+    },
+    "ResetPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "regId": {
+          "type": "number",
+          "example": 1
+        },
+        "newPassword": {
+          "type": "string",
+          "example": "NewPassword123!"
+        }
+      },
+      "required": [
+        "regId",
+        "newPassword"
+      ]
+    },
+    "RegistrationRequest": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "email": {
+          "type": "string",
+          "example": "john.doe@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "Password123!"
+        },
+        "mobileNumber": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "role": {
+          "type": "string",
+          "example": "medical_staff"
+        },
+        "gender": {
+          "type": "string",
+          "example": "Male"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "example": "1990-01-01"
+        },
+        "stateId": {
+          "type": "number",
+          "example": 1
+        },
+        "cityId": {
+          "type": "number",
+          "example": 1
+        },
+        "address": {
+          "type": "string",
+          "example": "123 Main Street"
+        },
+        "pincode": {
+          "type": "string",
+          "example": "560001"
+        },
+        "specialization": {
+          "type": "string",
+          "example": "Cardiology"
+        },
+        "experience": {
+          "type": "number",
+          "example": 5
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName",
+        "email",
+        "password",
+        "mobileNumber",
+        "role"
+      ]
+    },
+    "SuccessResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "Operation completed successfully"
+        },
+        "data": {
           "type": "object",
-          "properties": {
-            "success": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "boolean"
-                },
-                "example": {
-                  "type": "boolean",
-                  "example": true
-                }
-              }
-            },
-            "message": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "User registered successfully!"
-                }
-              }
-            },
-            "data": {
-              "$ref": "#/definitions/User"
-            }
-          }
+          "properties": {}
         }
       }
     },
     "ErrorResponse": {
       "type": "object",
       "properties": {
-        "type": {
-          "type": "string",
-          "example": "object"
+        "success": {
+          "type": "boolean",
+          "example": false
         },
-        "properties": {
+        "message": {
+          "type": "string",
+          "example": "Error message here"
+        }
+      }
+    },
+    "MasterSearchRequest": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "number",
+          "example": 1
+        },
+        "limit": {
+          "type": "number",
+          "example": 10
+        },
+        "search": {
+          "type": "string",
+          "example": ""
+        },
+        "filters": {
           "type": "object",
-          "properties": {
-            "success": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "boolean"
-                },
-                "example": {
-                  "type": "boolean",
-                  "example": false
-                }
-              }
-            },
-            "message": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "string"
-                },
-                "example": {
-                  "type": "string",
-                  "example": "Error message here"
-                }
+          "properties": {}
+        }
+      }
+    },
+    "UpdateRoleRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number",
+          "example": 1
+        },
+        "isPresent": {
+          "type": "boolean",
+          "example": true
+        },
+        "passEntry": {
+          "type": "boolean",
+          "example": true
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "example": false
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "example": false
+        },
+        "remark": {
+          "type": "string",
+          "example": "Approved"
+        },
+        "sewaLocationId": {
+          "type": "number",
+          "example": 1
+        },
+        "samagamHeldIn": {
+          "type": "string",
+          "example": "Location"
+        }
+      },
+      "required": [
+        "userId"
+      ]
+    },
+    "BulkUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "number",
+                "example": 1
+              },
+              "isPresent": {
+                "type": "boolean",
+                "example": true
+              },
+              "passEntry": {
+                "type": "boolean",
+                "example": false
               }
             }
           }
         }
-      }
+      },
+      "required": [
+        "users"
+      ]
+    },
+    "PatientRegistrationRequest": {
+      "type": "object",
+      "properties": {
+        "regnNo": {
+          "type": "string",
+          "example": "OPD-2026-001"
+        },
+        "date": {
+          "type": "string",
+          "example": "2026-04-25"
+        },
+        "patientName": {
+          "type": "string",
+          "example": "Anita Sharma"
+        },
+        "mobileNumber": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "email": {
+          "type": "string",
+          "example": "anita.sharma@example.com"
+        },
+        "address": {
+          "type": "string",
+          "example": "12 Main Road, Delhi"
+        },
+        "guardianName": {
+          "type": "string",
+          "example": "Raj Sharma"
+        },
+        "age": {
+          "type": "number",
+          "example": 42
+        },
+        "gender": {
+          "type": "string",
+          "example": "Female"
+        },
+        "disease": {
+          "type": "string",
+          "example": "Fever and body ache"
+        }
+      },
+      "required": [
+        "regnNo",
+        "date",
+        "patientName",
+        "mobileNumber",
+        "address",
+        "gender",
+        "disease"
+      ]
+    },
+    "BloodDriveRequest": {
+      "type": "object",
+      "properties": {
+        "organizerName": {
+          "type": "string",
+          "example": "SNM Charitable Trust"
+        },
+        "address": {
+          "type": "string",
+          "example": "Community Hall, Sector 4"
+        },
+        "landmark": {
+          "type": "string",
+          "example": "Near central park"
+        },
+        "driveDate": {
+          "type": "string",
+          "example": "2026-04-25"
+        },
+        "startTime": {
+          "type": "string",
+          "example": "09:00"
+        },
+        "endTime": {
+          "type": "string",
+          "example": "14:00"
+        },
+        "phone": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "email": {
+          "type": "string",
+          "example": "drive@example.com"
+        },
+        "entryType": {
+          "type": "string",
+          "example": "public"
+        }
+      },
+      "required": [
+        "organizerName",
+        "address",
+        "driveDate",
+        "startTime",
+        "endTime",
+        "entryType"
+      ]
+    },
+    "HealthDriveRequest": {
+      "type": "object",
+      "properties": {
+        "organizerName": {
+          "type": "string",
+          "example": "SNM Medical Camp"
+        },
+        "address": {
+          "type": "string",
+          "example": "Dispensary Campus"
+        },
+        "landmark": {
+          "type": "string",
+          "example": "Gate 2"
+        },
+        "campDate": {
+          "type": "string",
+          "example": "2026-04-25"
+        },
+        "startTime": {
+          "type": "string",
+          "example": "10:00"
+        },
+        "endTime": {
+          "type": "string",
+          "example": "16:00"
+        },
+        "services": {
+          "type": "string",
+          "example": "General checkup, BP, sugar test"
+        },
+        "phone": {
+          "type": "string",
+          "example": "9876543210"
+        },
+        "email": {
+          "type": "string",
+          "example": "camp@example.com"
+        },
+        "registrationType": {
+          "type": "string",
+          "example": "walk-in"
+        },
+        "notes": {
+          "type": "string",
+          "example": "Bring previous medical records"
+        }
+      },
+      "required": [
+        "organizerName",
+        "address",
+        "campDate",
+        "startTime",
+        "endTime",
+        "registrationType"
+      ]
+    },
+    "BloodDonationEligibilityRequest": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "number",
+          "example": 30
+        },
+        "weight": {
+          "type": "number",
+          "example": 65
+        },
+        "hemoglobin": {
+          "type": "number",
+          "example": 13.2
+        },
+        "illness": {
+          "type": "string",
+          "example": "no"
+        },
+        "lastDonation": {
+          "type": "string",
+          "example": "2025-12-01"
+        },
+        "driveId": {
+          "type": "number",
+          "example": 1
+        }
+      },
+      "required": [
+        "age",
+        "weight",
+        "hemoglobin",
+        "illness"
+      ]
+    },
+    "MasterDataRequest": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "example": "Cardiology"
+        },
+        "extraId": {},
+        "updatedBy": {
+          "type": "number",
+          "example": 1
+        }
+      },
+      "required": [
+        "value"
+      ]
     }
   }
 }

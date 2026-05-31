@@ -1,24 +1,14 @@
-const express = require('express');
+const express = require("express");
+const dutyChartController = require("../controllers/dutyChartController");
+
 const router = express.Router();
 
-// Dutychart filter endpoint
-router.get('/filter', (req, res) => {
-  try {
-    // TODO: Implement dutychart filter functionality
-    res.json({
-      success: true,
-      message: 'Dutychart filter endpoint - implementation pending',
-      data: [],
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Dutychart error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Dutychart filter failed',
-      error: error.message
-    });
-  }
-});
+router.get("/filter", dutyChartController.listCharts);
+router.get("/charts", dutyChartController.listCharts);
+router.get("/charts/:chartId", dutyChartController.getChartById);
+router.get("/charts/:chartId/export", dutyChartController.exportChart);
+router.post("/entries", dutyChartController.createEntry);
+router.put("/charts/:chartId/entries/:entryId", dutyChartController.updateEntry);
+router.delete("/charts/:chartId/entries/:entryId", dutyChartController.deleteEntry);
 
 module.exports = router;

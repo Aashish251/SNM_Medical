@@ -1,5 +1,6 @@
 const { promisePool } = require('../config/database');
 const ExcelJS = require('exceljs');
+const logger = require('../utils/logger');
 
 const toCamelCase = (obj) => {
   const newObj = {};
@@ -23,7 +24,7 @@ exports.getSewaLocations = async () => {
     const results = resultSets[0] || resultSets;
     return results.map(toCamelCase);
   } catch (error) {
-    console.error(' getSewaLocations Error:', error);
+    logger.error('getSewaLocations Error', { error: error.message });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -45,6 +46,8 @@ exports.masterSearch = async ({
   sortOrder = 'ASC'
 }) => {
   let connection;
+  const normalizedPage = Math.max(Number.parseInt(page, 10) || 1, 1);
+  const normalizedLimit = Math.max(Number.parseInt(limit, 10) || 10, 1);
 
   try {
     connection = await promisePool.getConnection();
@@ -61,8 +64,8 @@ exports.masterSearch = async ({
         stateId,
         isPresent,
         passEntry,
-        page,
-        limit
+        normalizedPage,
+        normalizedLimit
       ]
     );
 
@@ -72,7 +75,14 @@ exports.masterSearch = async ({
      *  - resultSets[1] → total count (from SELECT FOUND_ROWS())
      */
     const results = resultSets[0] || [];
-    const totalRecords = resultSets[1]?.[0]?.TOTAL_RECORDS || 0;
+    const totalCountRow = resultSets[1]?.[0] || {};
+    const totalRecords = Number(
+      totalCountRow.TOTAL_RECORDS ??
+      totalCountRow.totalRecords ??
+      totalCountRow.total_records ??
+      totalCountRow.count ??
+      results.length
+    ) || 0;
 
     //  Convert column names to camelCase
     const formattedResults = results.map((row) => {
@@ -92,12 +102,13 @@ exports.masterSearch = async ({
     });
 
     //  Build pagination object
-    const totalPages = Math.ceil(totalRecords / limit);
+    const totalPages = Math.ceil(totalRecords / normalizedLimit);
     const currentCount = formattedResults.length;
 
     const pagination = {
-      current: page,
+      current: normalizedPage,
       total: totalPages,
+      pageSize: normalizedLimit,
       count: currentCount,
       totalRecords
     };
@@ -119,7 +130,7 @@ exports.masterSearch = async ({
       pagination
     };
   } catch (error) {
-    console.error('Master Search Service Error:', error);
+    logger.error('Master Search Service Error', { error: error.message, stack: error.stack });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -148,7 +159,7 @@ exports.approveUser = async (regId) => {
       affectedRows: affected
     };
   } catch (error) {
-    console.error(' approveUser Service Error:', error);
+    logger.error('approveUser Service Error', { regId, error: error.message });
     throw error;
   }
 };
@@ -159,7 +170,7 @@ exports.updateSelectedUsers = async (userUpdates) => {
   let connection;
   try {
     connection = await promisePool.getConnection();
-    
+
     const queries = userUpdates.map((u) => {
       // Build dynamic UPDATE query based on provided fields
       const updateFields = [];
@@ -234,7 +245,7 @@ exports.updateSelectedUsers = async (userUpdates) => {
     await Promise.all(queries);
     return true;
   } catch (error) {
-    console.error(' updateSelectedUsers Service Error:', error);
+    logger.error('updateSelectedUsers Service Error', { error: error.message, count: userUpdates?.length });
     throw error;
   } finally {
     if (connection) connection.release();

@@ -1,65 +1,111 @@
 /**
- * File Path Helper Utilities
- * Ensures consistent relative path storage in database
+ * File Path Helper Utilities with Local Storage
+ * Stores files in the local /uploads directory
  */
 
+const fs = require('fs');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+const logger = require('./logger');
+
+exports.uploadFileToS3 = async (
+  file,
+  category = 'others',
+  userId = null,
+  userName = null
+) => {
+  if (!file || !file.path) {
+    return null;
+  }
+
+  try {
+    const validCategories = ['profile', 'certificates', 'others'];
+    if (!validCategories.includes(category)) {
+      throw new Error(`Invalid category: ${category}`);
+    }
+
+    const extension = path.extname(file.originalname).toLowerCase();
+
+    let fileName;
+    if (userId && userName) {
+      fileName = `${userId}_${userName.replace(/\s+/g, '_')}_${uuidv4()}${extension}`;
+    } else {
+      fileName = `${uuidv4()}${extension}`;
+    }
+
+    // Create local uploads directory structure
+    const uploadsDir = path.join(__dirname, '../../uploads', category);
+
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const filePath = path.join(uploadsDir, fileName);
+
+    // Move file from temp location to uploads directory
+    fs.renameSync(file.path, filePath);
+
+    logger.info('File uploaded to local storage', { category, fileName });
+
+    //  DB will store: /uploads/profile/filename.jpg
+    return `/uploads/${category}/${fileName}`;
+  } catch (error) {
+    logger.error('File upload failed', { category, error: error.message });
+
+    if (file?.path) {
+      try {
+        fs.unlinkSync(file.path);
+      } catch (_) { }
+    }
+
+    throw new Error(`File upload failed: ${error.message}`);
+  }
+};
 
 /**
- * Convert file path to relative URL path for database storage
- * Handles both Windows and Unix paths
- * @param {Object} file - Multer file object
- * @param {string} category - 'profile' or 'certificates'
- * @returns {string} - Relative URL path like /uploads/profile/filename.jpg
+ * Returns a relative file path for storage in DB
+ * @param {object} file - Multer file object
+ * @param {string} category - folder category
+ * @returns {string} Relative path /uploads/...
  */
 exports.getRelativeFilePath = (file, category = 'others') => {
-  if (!file || !file.filename) {
-    return null;
-  }
+  if (!file || !file.filename) return null;
 
-  const filename = file.filename;
-  return `/uploads/${category}/${filename}`;
+  // Standardize category mapping
+  const mappedCategory = category === 'profile_img' ? 'profile' : category;
+
+  return `/uploads/${mappedCategory}/${file.filename}`;
 };
 
 /**
- * Normalize any file path to relative URL format
- * Removes absolute server paths and ensures /uploads/* format
- * @param {string} filePath - Any file path (absolute or relative)
- * @returns {string|null} - Normalized relative path or null
+ * Normalizes a file path to be relative and standard
+ * Handles absolute paths and incorrect category names
+ * @param {string} filePath - Path to normalize
+ * @returns {string} Normalized path
  */
 exports.normalizeFilePath = (filePath) => {
-  if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') {
-    return null;
+  if (!filePath || typeof filePath !== 'string') return filePath;
+
+  // 1. Remove absolute prefixes (e.g., from Render/Server paths)
+  let normalized = filePath.replace(/.*\/uploads\//, '/uploads/');
+
+  // 2. Ensure it starts with /uploads/
+  if (!normalized.startsWith('/uploads/') && !normalized.startsWith('uploads/')) {
+    // If it's just a filename, assume it belongs to others or guess based on context IF possible
+    // but better to just return as is if unsure, or prefix with /uploads/
+    if (normalized.includes('/')) {
+      // already has path but not uploads
+    } else {
+      // just a filename?
+    }
   }
 
-  // Remove any backslashes and normalize to forward slashes
-  filePath = filePath.replace(/\\/g, '/');
-
-  // If already a relative /uploads/* path, return as-is
-  if (filePath.startsWith('/uploads/')) {
-    return filePath;
+  if (!normalized.startsWith('/')) {
+    normalized = '/' + normalized;
   }
 
-  // Extract uploads path if it's an absolute path
-  const uploadsMatch = filePath.match(/uploads\/([^/]+)\/(.+)$/i);
-  if (uploadsMatch) {
-    const category = uploadsMatch[1];
-    const filename = uploadsMatch[2];
-    return `/uploads/${category}/${filename}`;
-  }
+  // 3. Map legacy profile_img to profile
+  normalized = normalized.replace(/\/uploads\/profile_img\//, '/uploads/profile/');
 
-  // If path contains uploads/ anywhere, extract the relative part
-  if (filePath.includes('uploads/')) {
-    const idx = filePath.indexOf('uploads/');
-    return '/' + filePath.substring(idx);
-  }
-
-  // Return as-is if it's already a valid relative path
-  if (filePath.startsWith('/')) {
-    return filePath;
-  }
-
-  return null;
+  return normalized;
 };
-
-module.exports = exports;

@@ -7,3 +7,24 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
+# environment variables
+.env
+.env.local
+.env.*.local
+
+# logs
+logs/
+*.log
+
+# uploads & temp files
+uploads/
+temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
