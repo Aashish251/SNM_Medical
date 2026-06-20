@@ -18,7 +18,9 @@ export const userTableConfig: TableConfig<User> = {
           /* 🔵 If user is NOT approved → show Approve button */
           !user.isApproved && (
             <Button
-              onClick={() => helpers?.changeUserStatue?.(user.regId)}
+              onClick={() => {
+                void helpers?.changeUserStatue?.(user.regId);
+              }}
               className="text-white bg-blue-500 hover:bg-blue-600"
             >
               Approve

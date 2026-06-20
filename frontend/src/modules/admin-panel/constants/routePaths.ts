@@ -1,0 +1,22 @@
+export const ADMIN_PANEL_BASE = "/admin-panel";
+
+export const ADMIN_PANEL_DASHBOARD = `${ADMIN_PANEL_BASE}/dashboard`;
+export const ADMIN_PANEL_USERS = `${ADMIN_PANEL_BASE}/users`;
+export const ADMIN_PANEL_REGISTRATION_REPORT = `${ADMIN_PANEL_BASE}/registration-report`;
+export const ADMIN_PANEL_DAILY_REPORT = `${ADMIN_PANEL_BASE}/daily-report`;
+export const ADMIN_PANEL_DUTY_CHART = `${ADMIN_PANEL_BASE}/duty-chart`;
+export const ADMIN_PANEL_MASTER_SEARCH = `${ADMIN_PANEL_BASE}/master-search`;
+export const ADMIN_PANEL_MASTER_REPORT = `${ADMIN_PANEL_BASE}/master-report`;
+export const ADMIN_PANEL_FREE_HEALTH_CHECKUP = `${ADMIN_PANEL_BASE}/free-health-checkup`;
+export const ADMIN_PANEL_BLOOD_DONATION = `${ADMIN_PANEL_BASE}/blood-donation`;
+export const ADMIN_PANEL_PROFILE = `${ADMIN_PANEL_BASE}/profile`;
+
+export {
+  ADMIN_PANEL_MASTER_BASE,
+  ADMIN_PANEL_MASTER_CITY,
+  ADMIN_PANEL_MASTER_STATE,
+  ADMIN_PANEL_MASTER_QUALIFICATION,
+  ADMIN_PANEL_MASTER_DEPARTMENT,
+  ADMIN_PANEL_MASTER_AVAILABILITY,
+  ADMIN_PANEL_MASTER_SHIFT_TIME,
+} from "./masterRoutePaths";

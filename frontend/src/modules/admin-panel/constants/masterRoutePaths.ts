@@ -1,0 +1,7 @@
+export const ADMIN_PANEL_MASTER_BASE = "/admin-panel/master";
+export const ADMIN_PANEL_MASTER_CITY = `${ADMIN_PANEL_MASTER_BASE}/city`;
+export const ADMIN_PANEL_MASTER_STATE = `${ADMIN_PANEL_MASTER_BASE}/state`;
+export const ADMIN_PANEL_MASTER_QUALIFICATION = `${ADMIN_PANEL_MASTER_BASE}/qualification`;
+export const ADMIN_PANEL_MASTER_DEPARTMENT = `${ADMIN_PANEL_MASTER_BASE}/department`;
+export const ADMIN_PANEL_MASTER_AVAILABILITY = `${ADMIN_PANEL_MASTER_BASE}/availability`;
+export const ADMIN_PANEL_MASTER_SHIFT_TIME = `${ADMIN_PANEL_MASTER_BASE}/shift-time`;

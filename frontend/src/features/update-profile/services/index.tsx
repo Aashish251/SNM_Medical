@@ -1,13 +1,15 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
+import { baseApi } from "@shared/api/baseApi";
 import { GetUserProfileResponse } from "../type";
 
-export const UpdateProfileApi = createApi({
-  reducerPath: "UpdateProfileApi",
-  baseQuery: customBaseQueryWithAuth,
-  tagTypes: [],
+type UpdateProfileResponse = {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+};
+
+export const UpdateProfileApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    registerUser: builder.mutation<any, { id: string | number; formData: FormData }>({
+    updateUserProfile: builder.mutation<UpdateProfileResponse, { id: string | number; formData: FormData }>({
       query: ({ id, formData }) => ({
         url: `/api/user/update-profile/${id}`,
         method: "PUT",
@@ -18,14 +20,18 @@ export const UpdateProfileApi = createApi({
       }),
     }),
     getUserDetailsQuery: builder.query<GetUserProfileResponse, number>({
-      keepUnusedDataFor: 0, // Disable caching, always fetch
+      keepUnusedDataFor: 0,
       query: (id) => ({
         url: `/api/user/update-profile/${id}`,
         method: "GET",
       }),
+      providesTags: ["UserDetails"],
     }),
   }),
+  overrideExisting: false,
 });
 
-export const { useRegisterUserMutation, useGetUserDetailsQueryQuery } =
+export const { useUpdateUserProfileMutation, useGetUserDetailsQueryQuery } =
   UpdateProfileApi;
+
+export const useRegisterUserMutation = useUpdateUserProfileMutation;

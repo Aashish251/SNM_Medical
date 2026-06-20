@@ -1,35 +1,41 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { RootState } from "@app/store";
+import React, { useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAppSelector } from "@app/store/hooks";
+import type { RouteMeta } from "@app/router/routeMeta";
 import {
   SNM_NAV_LOGIN_LINK,
   SNM_NAV_HOME_LINK,
-  SNM_NAV_MS_DASHBOARD_LINK,
 } from "@shared/constants";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ("admin" | "ms")[];
+  allowedRoles?: RouteMeta["requiredRoles"];
+  routeMeta?: RouteMeta;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedRoles,
+  routeMeta,
 }) => {
-  const { isSignedIn, userType } = useSelector((state: RootState) => state.auth);
+  const { isSignedIn, userType } = useAppSelector((state) => state.auth);
+  const location = useLocation();
+  const roles = allowedRoles ?? routeMeta?.requiredRoles;
 
-  // Not signed in → redirect to login
+  useEffect(() => {
+    if (routeMeta?.title) {
+      document.title = `${routeMeta.title} | SNM Medical`;
+    }
+  }, [routeMeta?.title]);
+
   if (!isSignedIn) {
-    return <Navigate to={SNM_NAV_LOGIN_LINK} replace />;
+    return <Navigate to={SNM_NAV_LOGIN_LINK} replace state={{ from: location }} />;
   }
 
-  // Wrong role → redirect to homepage (or unauthorized page)
-  if (allowedRoles && !allowedRoles.includes(userType as "admin" | "ms")) {
+  if (roles && !roles.includes(userType as "admin" | "ms")) {
     return <Navigate to={SNM_NAV_HOME_LINK} replace />;
   }
 
-  // Authorized → render the protected component
   return <>{children}</>;
 };
 

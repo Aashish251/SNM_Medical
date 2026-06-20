@@ -4,36 +4,22 @@ import {
   ProfileSection,
   StatsGrid,
   ChartsSection,
-} from "@shared/components/Dashboard";
+} from "@widgets/dashboard-shell";
 
-import { useSelector } from "react-redux";
-import { RootState } from "@app/store";
 import {
   useGetDashboardStatsQuery,
   useGetUserDetailsQuery,
 } from "./services/adminApi";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
+import { WidgetErrorBoundary } from "@shared/error";
 import { imageMap } from "@shared/config/imageMap";
 import { StatItem } from "./type";
 import { DEFAULT_PROFILE_IMAGE } from "@assets/index";
 
 const AdminDashboard: React.FC = () => {
-  const token = useSelector((state: RootState) => state.auth.token);
-
-  // Queries (token added automatically via customBaseQuery)
   const { data: dashboardStats, isLoading: statsLoading } =
     useGetDashboardStatsQuery();
-  const { data: adminDetails, isLoading: userLoading } =
-    useGetUserDetailsQuery();
-
-  const user = useMemo(
-    () => ({
-      name: adminDetails?.data?.name ?? "Admin User",
-      qualification: adminDetails?.data?.qualification ?? "MBA, MD",
-      profileImage: adminDetails?.data?.profileImage ?? null,
-    }),
-    [adminDetails]
-  );
+  const { isLoading: userLoading } = useGetUserDetailsQuery();
 
   const stats: StatItem[] = useMemo(() => {
     const apiStats = dashboardStats?.data?.stats ?? [];
@@ -75,11 +61,15 @@ const AdminDashboard: React.FC = () => {
   return (
     <>
       <div className="pt-18 md:pt-18 lg:pt-18">
-        <ProfileSection />
+        <WidgetErrorBoundary name="dashboard-profile">
+          <ProfileSection />
+        </WidgetErrorBoundary>
       </div>
 
       <DashboardLayout>
-        <StatsGrid stats={stats} />
+        <WidgetErrorBoundary name="dashboard-stats">
+          <StatsGrid stats={stats} />
+        </WidgetErrorBoundary>
         <ChartsSection
           barData={chartData.barData}
           doughnutData={chartData.doughnutData}

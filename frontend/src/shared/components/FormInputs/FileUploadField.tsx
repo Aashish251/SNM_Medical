@@ -72,8 +72,6 @@ export const FileUploadField = ({
 
   const displayUrl = previewUrl || fullUrl;
 
-  console.log("displayUrl", displayUrl)
-
   const isImage = (url: string, fileObj?: File | null) => {
     if (fileObj) {
       return fileObj.type.startsWith("image/");

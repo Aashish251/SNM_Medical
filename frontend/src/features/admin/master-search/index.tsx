@@ -1,593 +1,127 @@
-import React, { useEffect, useState } from "react";
-import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@shared/components/ui";
+import { useEffect, useState } from "react";
 import { DataTable } from "@shared/components/DataTable/DataTable";
-import { DUMMY, userTableConfig } from "./config";
-import { useForm, Controller } from "react-hook-form";
-import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
-import {
-  useGetRegistrationDropdownDataQuery,
-  useLazyGetCitiesByStateQuery,
-} from "@shared/services/commonApi";
-import {
-  SelectField,
-  CheckboxField,
-  TextField,
-  TextareaField,
-} from "@shared/components/FormInputs";
+import { WidgetErrorBoundary } from "@shared/error";
+import { userTableConfig } from "./config";
 import DataTablePagination from "@shared/components/DataTable/DataTablePagination";
+import { MasterSearchFilters } from "./components/MasterSearchFilters";
+import { MasterSearchRolePanel } from "./components/MasterSearchRolePanel";
 import {
-  useGetChangeStatusMutation,
-  useGetChangeUsersRoleMutation,
-  useMasterSearchQuery,
-  useExportSearchMutation,
-} from "./services/masterSearchApi";
-import { toast } from "@shared/lib/toast";
-import { User } from "@shared/types/CommonType";
+  useMasterSearchFilters,
+  useMasterSearchPagination,
+} from "./hooks/useMasterSearchFilters";
+import { useMasterSearchActions } from "./hooks/useMasterSearchActions";
 
 export default function MasterSearchPage() {
   const [showFilter, setShowFilter] = useState(true);
-  const [cities, setCities] = useState([]);
   const [showUserRole, setShowUserRole] = useState(false);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
-  const [sortState, setSortState] = useState({
-    column: "fullName" as string | null,
-    direction: "ASC" as "ASC" | "DESC",
+
+  const {
+    sortState,
+    setSortState,
+    currentPage,
+    setCurrentPage,
+    pageLimit,
+    setPageLimit,
+  } = useMasterSearchPagination();
+
+  const {
+    cities,
+    departments,
+    qualifications,
+    sewaLocations,
+    states,
+    searchTriggered,
+    searchPayload,
+    setSearchPayload,
+    filterControl,
+    handleFilterSubmit,
+    onSearch,
+  } = useMasterSearchFilters(pageLimit, sortState);
+
+  const {
+    safeUsers,
+    masterSearchData,
+    isFetching,
+    isUpdatingRole,
+    isExporting,
+    changeUserStatue,
+    onExport,
+    roleControl,
+    handleRoleSubmit,
+    resetRoleForm,
+    roleWatch,
+    registerRole,
+    roleErrors,
+    onRoleSubmit,
+  } = useMasterSearchActions({
+    searchPayload,
+    searchTriggered,
+    selectedIds,
+    onClearSelection: () => setSelectedIds([]),
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit, setPageLimit] = useState(10);
-  const [searchTriggered, setSearchTriggered] = useState(false);
-  const { data: dropdownOption } = useGetRegistrationDropdownDataQuery();
-  const [triggerGetCitiesByState] = useLazyGetCitiesByStateQuery();
-  const [triggerGetChangeStatus] = useGetChangeStatusMutation();
-  const [triggerChangeUsersRole, { isLoading: isUpdatingRole }] = useGetChangeUsersRoleMutation();
-  const [searchPayload, setSearchPayload] = useState({
-    searchKey: "",
-    departmentId: null,
-    qualificationId: null,
-    sewaLocationId: null,
-    cityId: null,
-    stateId: null,
-    isPresent: null,
-    passEntry: null,
-    limit: 100000, // Fetch all for client-side pagination
-    page: 1,
-    sortBy: "regId",
-    sortOrder: "ASC",
-  });
 
-  const { data: masterSearchData, refetch: triggerMasterSearch, isFetching } =
-    useMasterSearchQuery(searchPayload, { skip: !searchTriggered });
-
-  const [triggerExportSearch, { isLoading: isExporting }] = useExportSearchMutation();
-
-  console.log("isFetching", isFetching)
-
-  // Removed users state
-
-  // Update searchPayload when sortState changes
   useEffect(() => {
-    setSearchPayload(prev => ({
+    setSearchPayload((prev) => ({
       ...prev,
       sortBy: sortState.column || "regId",
       sortOrder: sortState.direction,
+      page: 1,
     }));
-  }, [sortState.column, sortState.direction]);
-
-  // Client-side pagination logic
-  const allUsers = masterSearchData?.data || [];
-  const totalRecords = allUsers.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageLimit));
-
-  const pagedUsers = allUsers.slice(
-    (currentPage - 1) * pageLimit,
-    currentPage * pageLimit
-  );
-
-  // If data is not an array (e.g. error), default to empty
-  const safeUsers = Array.isArray(pagedUsers) ? pagedUsers : [];
-
-  // Filter Form
-  const {
-    control: filterControl,
-    handleSubmit: handleFilterSubmit,
-    reset: resetFilter,
-    setValue: setValueFilter,
-    watch: watchFilter,
-  } = useForm({
-    defaultValues: {
-      searchTerm: "",
-      departmentId: "",
-      qualificationId: "",
-      sewaLocation: "",
-      stateId: "",
-      cityId: "",
-      passEntry: "",
-      onDuty: "",
-      isPresent: "",
-    },
-  });
-
-  const stateId = watchFilter("stateId");
-
-  // User-role Form
-  const {
-    control: roleControl,
-    handleSubmit: handleRoleSubmit,
-    reset: resetRoleForm,
-    watch: roleWatch,
-    register: registerRole,
-    formState: { errors: roleErrors },
-  } = useForm({
-    mode: "onBlur",
-    defaultValues: {
-      isPresent: null,
-      passEntry: null,
-      isAdmin: null,
-      isDeleted: null,
-      onDuty: "",
-      sewaLocation: "",
-      samagamHeldIn: "",
-      remark: "",
-    },
-  });
-
-  const idDeleted = roleWatch("isDeleted");
-  const isDeleteSelected =
-    String(idDeleted) === "1" || idDeleted === 1 || idDeleted === true;
-
-  const states = Array.isArray(dropdownOption?.data?.states)
-    ? dropdownOption?.data?.states
-    : [];
-  const qualifications = Array.isArray(dropdownOption?.data?.qualifications)
-    ? dropdownOption?.data?.qualifications
-    : [];
-  const departments = Array.isArray(dropdownOption?.data?.departments)
-    ? dropdownOption?.data?.departments
-    : [];
-
-  const sewaLocations = Array.isArray(dropdownOption?.data?.sewaLocations)
-    ? dropdownOption?.data?.sewaLocations
-    : [];
-
-  const handleFilterCity = async (id: number) => {
-    try {
-      const result = await triggerGetCitiesByState({ stateId: id }).unwrap();
-      setCities(result?.data?.cities || []);
-    } catch (error) {
-      console.error("Failed to fetch cities", error);
-      setCities([]);
-    }
-  };
+    setCurrentPage(1);
+  }, [setCurrentPage, setSearchPayload, sortState.column, sortState.direction]);
 
   useEffect(() => {
-    const id = Number(stateId);
-    if (id) handleFilterCity(id);
-    else {
-      setCities([]);
-      setValueFilter("cityId", "");
-    }
-  }, [stateId]);
+    setSearchPayload((prev) => ({
+      ...prev,
+      page: currentPage,
+      limit: pageLimit,
+    }));
+  }, [currentPage, pageLimit, setSearchPayload]);
 
-  const changeUserStatue = async (regId: number) => {
-    try {
-      await toast.promise(triggerGetChangeStatus({ regId }).unwrap(), {
-        loading: "Updating status...",
-        success: "User approved successfully",
-        error: "Failed to update status",
-      });
-      // Force a refetch with current search payload
-      await triggerMasterSearch();
-    } catch (err: any) {
-      console.error(err);
-      if (err?.status === "FETCH_ERROR") {
-        toast.error("Network error — please check your connection.");
-      } else if (err?.data?.message) {
-        toast.error(err.data.message);
-      } else {
-        toast.error("Something went wrong while updating status.");
-      }
-    }
-  };
-
-  const onSearch = async (data: any) => {
-    try {
-      // Mark search as triggered to allow data fetching
-      setSearchTriggered(true);
-
-      // Reset to page 1 for new search
-      setCurrentPage(1);
-
-      const newPayload = {
-        searchKey: data?.searchTerm?.trim() || "",
-        departmentId: data?.departmentId || null,
-        qualificationId: data?.qualificationId || null,
-        sewaLocationId: data?.sewaLocation || null,
-        cityId: data?.cityId || null,
-        stateId: data?.stateId || null,
-        isPresent: data?.isPresent || null,
-        passEntry: data?.passEntry || null,
-        limit: 100000,
-        page: 1,
-        sortBy: sortState.column,
-        sortOrder: sortState.direction,
-      };
-
-      // console.log("🔍 Search Payload:", newPayload);
-
-      // Update the search payload which will trigger a new search
-      setSearchPayload(newPayload);
-
-      // No need for manual toast here, RQ handles loading state via isFetching if desired
-    } catch (error: any) {
-      console.error("Search error:", error);
-      toast.error("Something went wrong while searching.");
-    }
-  };
-
-  const onExport = async () => {
-    try {
-      // Use the current search payload to export filtered results
-      const exportPayload = {
-        ...searchPayload,
-        limit: 1000000, // Get all matching records for export
-      };
-
-      // console.log("📤 Exporting with payload:", exportPayload);
-
-      const blob = await toast.promise(
-        triggerExportSearch(exportPayload).unwrap(),
-        {
-          loading: "Preparing export...",
-          success: "Export completed successfully!",
-          error: "Failed to export data. Please try again.",
-        }
-      );
-
-      // Create a download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `master_search_export_${Date.now()}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error: any) {
-      console.error("Export error:", error);
-      if (error?.status === "FETCH_ERROR") {
-        toast.error("Network error — please check your connection.");
-      } else if (error?.data?.message) {
-        toast.error(error.data.message);
-      } else {
-        toast.error("Something went wrong while exporting.");
-      }
-    }
-  };
-
-  const onRoleSubmit = async (data: any) => {
-    try {
-      if (!selectedIds.length) {
-        toast.error("Please select at least one user to update roles.");
-        return;
-      }
-      const numericFields = ["isPresent", "passEntry", "isAdmin", "isDeleted"];
-
-      const normalized = { ...data };
-
-      numericFields.forEach((key) => {
-        const val = normalized[key];
-
-        // treat empty string or undefined as null
-        if (val === "" || val === undefined || val === null) {
-          normalized[key] = null;
-          return;
-        }
-
-        // if already a number, keep it
-        if (typeof val === "number" && !isNaN(val)) {
-          return;
-        }
-
-        // try to coerce numeric strings to numbers
-        const num = Number(val);
-        normalized[key] = Number.isNaN(num) ? val : num;
-      });
-
-      // ---- Build payload ----
-      const payload = {
-        ...normalized,
-        regId: selectedIds.join(","),
-      };
-      // console.log(payload);
-
-      await toast.promise(triggerChangeUsersRole(payload).unwrap(), {
-        loading: "Updating users' roles...",
-        success: "User roles updated successfully!",
-        error: "Failed to update user roles. Please try again.",
-      });
-
-      // Force a refetch with current search payload
-      await triggerMasterSearch();
-
-      // Reset selections and form
-      setSelectedIds([]);
-      resetRoleForm();
-    } catch (error: any) {
-      if (error?.status === "FETCH_ERROR") {
-        toast.error("Network error — please check your connection.");
-      } else if (error?.data?.message) {
-        toast.error(error.data.message);
-      } else {
-        toast.error("Something went wrong while updating user roles.");
-      }
-    }
-  };
+  const totalRecords = masterSearchData?.total ?? safeUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageLimit));
 
   return (
     <main className="container mx-auto px-2 sm:px-4 pt-[120px] md:pt-[90px] lg:pt-[100px]">
-      {/* Filter Section */}
-      <section className="bg-white rounded-lg shadow-md mb-5 overflow-hidden">
-        <Collapsible open={showFilter} onOpenChange={setShowFilter}>
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="w-full bg-to-two-right-theme-gradient text-white p-3 flex justify-between items-center cursor-pointer select-none"
-            >
-              <h2 className="font-bold">Filter User</h2>
-              {showFilter ? (
-                <IoIosArrowUp className="w-6 h-6" />
-              ) : (
-                <IoIosArrowDown className="w-6 h-6" />
-              )}
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 border-t">
-            <form
-              onSubmit={handleFilterSubmit(onSearch)}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center"
-            >
-              <Controller
-                name="searchTerm"
-                control={filterControl}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    placeholder="Reg_id, Name, Contact, Email"
-                    className="px-3 py-2 border rounded w-full"
-                  />
-                )}
-              />
+      <MasterSearchFilters
+        open={showFilter}
+        onOpenChange={setShowFilter}
+        filterControl={filterControl}
+        onSubmit={(event) => {
+          void handleFilterSubmit(onSearch)(event);
+        }}
+        onExport={() => {
+          void onExport();
+        }}
+        isFetching={isFetching}
+        isExporting={isExporting}
+        departments={departments}
+        qualifications={qualifications}
+        sewaLocations={sewaLocations}
+        states={states}
+        cities={cities}
+      />
 
-              <SearchableSelect
-                control={filterControl}
-                name="departmentId"
-                label=""
-                options={departments ?? []}
-                labelKey="department_name"
-                valueKey="id"
-                placeholder="Select department"
-              />
+      <MasterSearchRolePanel
+        open={showUserRole}
+        onOpenChange={setShowUserRole}
+        roleControl={roleControl}
+        registerRole={registerRole}
+        roleErrors={roleErrors}
+        roleWatch={roleWatch}
+        onSubmit={(event) => {
+          void handleRoleSubmit(onRoleSubmit)(event);
+        }}
+        onReset={() => resetRoleForm()}
+        isUpdatingRole={isUpdatingRole}
+        sewaLocations={sewaLocations}
+      />
 
-              <SearchableSelect
-                control={filterControl}
-                name="qualificationId"
-                label=""
-                options={qualifications ?? []}
-                labelKey="qualification_name"
-                valueKey="id"
-                placeholder="Select qualification"
-              />
-
-              <SearchableSelect
-                control={filterControl}
-                name="sewaLocation"
-                label=""
-                options={sewaLocations ?? []}
-                labelKey="sewalocation_name"
-                valueKey="id"
-                placeholder="Select sewa location"
-              />
-
-              <SearchableSelect
-                control={filterControl}
-                name="stateId"
-                label=""
-                options={states ?? []}
-                labelKey="state_name"
-                valueKey="id"
-                placeholder="Select state"
-              />
-
-              <SearchableSelect
-                control={filterControl}
-                name="cityId"
-                label=""
-                options={cities ?? []}
-                labelKey="city_name"
-                valueKey="id"
-                placeholder="Select city"
-              />
-
-              <SelectField
-                control={filterControl}
-                name="passEntry"
-                label=""
-                options={DUMMY.PassEntry}
-                labelKey="label"
-                valueKey="value"
-                placeholder="Select pass entry"
-              />
-
-              <SelectField
-                control={filterControl}
-                name="isPresent"
-                label=""
-                options={DUMMY.IsPresent}
-                labelKey="label"
-                valueKey="value"
-                placeholder="Select is present"
-              />
-              <button
-                type="submit"
-                disabled={isFetching}
-                className="px-4 py-2 bg-primary text-white rounded-2xl font-bold hover:bg-blue-700 w-full col-span-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isFetching ? "Searching..." : "Search"}
-              </button>
-              <button
-                type="button"
-                onClick={onExport}
-                disabled={isExporting}
-                className="px-4 py-2 bg-gray-600 text-white rounded-2xl font-bold hover:bg-gray-700 w-full col-span-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isExporting ? "Exporting..." : "Export"}
-              </button>
-            </form>
-          </CollapsibleContent>
-        </Collapsible>
-      </section>
-
-      {/* User Role Section */}
-      <section className="bg-white rounded-lg shadow-md mb-5 overflow-hidden">
-        <Collapsible open={showUserRole} onOpenChange={setShowUserRole}>
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="w-full bg-to-two-right-theme-gradient text-white p-3 flex justify-between items-center cursor-pointer select-none"
-            >
-              <h2 className="font-bold">Add User Role</h2>
-              {showUserRole ? (
-                <IoIosArrowUp className="w-6 h-6" />
-              ) : (
-                <IoIosArrowDown className="w-6 h-6" />
-              )}
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 border-t">
-            <form
-              onSubmit={handleRoleSubmit(onRoleSubmit)}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end"
-            >
-              <SelectField
-                control={roleControl}
-                name="isPresent"
-                label=""
-                options={DUMMY.IsPresent}
-                labelKey="label"
-                valueKey="value"
-                defaultValue={null}
-                placeholder="Select isPresent"
-              />
-
-              <SelectField
-                control={roleControl}
-                name="passEntry"
-                label=""
-                options={DUMMY.PassEntry}
-                labelKey="label"
-                valueKey="value"
-                defaultValue={null}
-                placeholder="Select pass entry"
-              />
-
-              <SelectField
-                control={roleControl}
-                name="isAdmin"
-                label=""
-                options={DUMMY.isAdmin}
-                labelKey="label"
-                valueKey="value"
-                defaultValue={null}
-                placeholder="Select isAdmin"
-              />
-
-              <SelectField
-                control={roleControl}
-                name="isDeleted"
-                label=""
-                options={DUMMY.isDelete}
-                labelKey="label"
-                valueKey="value"
-                defaultValue={null}
-                placeholder="Select isDelete"
-              />
-
-              <SelectField
-                control={roleControl}
-                name="onDuty"
-                label=""
-                options={DUMMY.onDuty}
-                labelKey="label"
-                valueKey="value"
-                defaultValue={null}
-                placeholder="Select onDuty"
-              />
-
-              <SearchableSelect
-                control={roleControl} // use roleControl
-                name="sewaLocation"
-                label=""
-                options={sewaLocations ?? []}
-                labelKey="sewalocation_name"
-                valueKey="id"
-                placeholder="Select sewa location"
-              />
-
-              <TextField
-                label=""
-                register={registerRole("samagamHeldIn")}
-                placeholder="Enter samagam location"
-              />
-
-              <div className="lg:col-span-2 xl:col-span-1">
-                <TextField
-                  label=""
-                  placeholder="Enter remark message"
-                  register={registerRole("remark", {
-                    validate: (value) => {
-                      if (isDeleteSelected) {
-                        if (!value || String(value).trim().length === 0) {
-                          return "Please enter the remark.";
-                        }
-                      }
-                      return true;
-                    },
-                  })}
-                  error={roleErrors.remark}
-                />
-              </div>
-
-              <div className="flex gap-2 lg:col-span-2 xl:col-span-2">
-                <button
-                  type="button"
-                  onClick={() => resetRoleForm()}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-colors h-[38px] flex items-center justify-center"
-                >
-                  Reset
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUpdatingRole}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition-colors h-[38px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUpdatingRole ? "Submitting..." : "Submit"}
-                </button>
-              </div>
-            </form>
-          </CollapsibleContent>
-        </Collapsible>
-      </section>
-
-      {/* Users Table */}
       <section className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
-        <div className="overflow-x-auto">
-          <DataTable
+        <WidgetErrorBoundary name="master-search-table">
+          <div className="overflow-x-auto">
+            <DataTable
             data={safeUsers}
             config={userTableConfig}
             changeUserStatue={changeUserStatue}
@@ -597,12 +131,12 @@ export default function MasterSearchPage() {
             onSortChange={(col, dir) =>
               setSortState({ column: col, direction: dir })
             }
-            rowKey="regId" // optional - default is "regId"
+            rowKey="regId"
           />
-        </div>
+          </div>
+        </WidgetErrorBoundary>
       </section>
 
-      {/* Pagination */}
       <div className="py-2">
         <DataTablePagination
           currentPage={currentPage}
@@ -610,7 +144,7 @@ export default function MasterSearchPage() {
           pageLimit={pageLimit}
           onLimitChange={(limit) => {
             setPageLimit(limit);
-            setCurrentPage(1); // Reset to page 1 on limit change
+            setCurrentPage(1);
           }}
           onPageChange={setCurrentPage}
         />

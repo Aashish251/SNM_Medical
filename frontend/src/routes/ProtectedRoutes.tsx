@@ -1,6 +1,3 @@
-import React, { lazy } from "react";
-import { Route } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoute";
 import {
   SNM_NAV_ADMIN_DAILY_REPORT_LINK,
   SNM_NAV_ADMIN_DASHBOARD_LINK,
@@ -12,103 +9,52 @@ import {
   SNM_NAV_MS_DASHBOARD_LINK,
   SNM_NAV_MS_UPDATE_PROFILE_LINK,
 } from "@shared/constants";
+import { createProtectedRoutes } from "@app/router/createProtectedRoute";
 
-// common pages
-const UpdateProfile = lazy(() => import("@features/update-profile"));
-
-// Medical Staff
-const MSDashboard = lazy(() => import("@features/medical-staff/msdashboard"));
-
-// Admin
-const AdminDashboard = lazy(() => import("@features/admin/dashboard"));
-const AdminDutyChart = lazy(() => import("@features/admin/duty-chart"));
-const AdminMasterSearch = lazy(() => import("@features/admin/master-search"));
-const AdminMasterReport = lazy(() => import("@features/admin/master-report"));
-const AdminDailyReport = lazy(() => import("@features/admin/daily-report"));
-const AdminRegistrationReport = lazy(
-  () => import("@features/admin/registration-report")
-);
-
-export const ProtectedRoutes = [
-  // Medical Staff routes
-  <Route
-    path={SNM_NAV_MS_DASHBOARD_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["ms"]}>
-        <MSDashboard />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    path={SNM_NAV_MS_UPDATE_PROFILE_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["ms", "admin"]}>
-        <UpdateProfile />
-      </ProtectedRoute>
-    }
-  />,
-
-  // Admin routes
-  <Route
-    path={SNM_NAV_ADMIN_DASHBOARD_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <AdminDashboard />
-      </ProtectedRoute>
-    }
-  />,
-
-
-
-  <Route
-    path={SNM_NAV_ADMIN_DUTY_CHART_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <AdminDutyChart />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    path={SNM_NAV_ADMIN_UPDATE_PROFILE_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <UpdateProfile />
-      </ProtectedRoute>
-    }
-  />,
-
-
-
-  <Route
-    path={SNM_NAV_ADMIN_MASTER_SEARCH_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <AdminMasterSearch />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    path={SNM_NAV_ADMIN_DAILY_REPORT_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <AdminDailyReport />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    path={SNM_NAV_ADMIN_REGISTRATION_REPORT_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <AdminRegistrationReport />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    path={SNM_NAV_ADMIN_MASTER_REPORT_LINK}
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <AdminMasterReport />
-      </ProtectedRoute>
-    }
-  />,
-];
+export const ProtectedRoutes = createProtectedRoutes([
+  {
+    path: SNM_NAV_MS_DASHBOARD_LINK,
+    name: "ms-dashboard",
+    loader: () => import("@pages/protected/ms/dashboard"),
+  },
+  {
+    path: SNM_NAV_MS_UPDATE_PROFILE_LINK,
+    name: "ms-update-profile",
+    loader: () => import("@pages/protected/update-profile"),
+  },
+  {
+    path: SNM_NAV_ADMIN_DASHBOARD_LINK,
+    name: "admin-dashboard",
+    loader: () => import("@pages/protected/admin/dashboard"),
+  },
+  {
+    path: SNM_NAV_ADMIN_DUTY_CHART_LINK,
+    name: "admin-duty-chart",
+    loader: () => import("@pages/protected/admin/duty-chart"),
+  },
+  {
+    path: SNM_NAV_ADMIN_UPDATE_PROFILE_LINK,
+    name: "admin-update-profile",
+    loader: () => import("@pages/protected/update-profile"),
+  },
+  {
+    path: SNM_NAV_ADMIN_MASTER_SEARCH_LINK,
+    name: "admin-master-search",
+    loader: () => import("@pages/protected/admin/master-search"),
+  },
+  {
+    path: SNM_NAV_ADMIN_DAILY_REPORT_LINK,
+    name: "admin-daily-report",
+    loader: () => import("@pages/protected/admin/daily-report"),
+  },
+  {
+    path: SNM_NAV_ADMIN_REGISTRATION_REPORT_LINK,
+    name: "admin-registration-report",
+    loader: () => import("@pages/protected/admin/registration-report"),
+  },
+  {
+    path: SNM_NAV_ADMIN_MASTER_REPORT_LINK,
+    name: "admin-master-report",
+    loader: () => import("@pages/protected/admin/master-report"),
+  },
+]);

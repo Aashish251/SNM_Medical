@@ -1,16 +1,11 @@
-// src/services/adminApi.ts
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
-import { StatItem, UserDetails } from "../type"; // <- adjust path
+import { baseApi } from "@shared/api/baseApi";
+import { StatItem, UserDetails } from "../type";
 
 // shape your API actually returns
 type DashboardStatsResponse = { data: { stats: StatItem[] } };
 type UserDetailsResponse = { data: UserDetails };
 
-export const AdminApi = createApi({
-  reducerPath: "AdminApi",
-  baseQuery: customBaseQueryWithAuth,
-  tagTypes: ["AdminStats", "UserDetails"],
+export const AdminApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getDashboardStats: builder.query<DashboardStatsResponse, void>({
       query: () => ({ url: "/api/dashboard/stats", method: "GET" }),
@@ -21,6 +16,7 @@ export const AdminApi = createApi({
       providesTags: ["UserDetails"],
     }),
   }),
+  overrideExisting: false,
 });
 
 export const { useGetDashboardStatsQuery, useGetUserDetailsQuery } = AdminApi;

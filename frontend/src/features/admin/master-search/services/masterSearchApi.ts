@@ -1,35 +1,41 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
+import { baseApi } from "@shared/api/baseApi";
 import { SearchResponse } from "@shared/types/CommonType";
 
-export const MasterSearchApi = createApi({
-  reducerPath: "MasterSearchApi",
-  baseQuery: customBaseQueryWithAuth,
-  tagTypes: ["MasterSearch"],
+export type MasterSearchPayload = {
+  searchKey?: string;
+  departmentId?: string | number | null;
+  qualificationId?: string | number | null;
+  sewaLocationId?: string | number | null;
+  cityId?: string | number | null;
+  stateId?: string | number | null;
+  isPresent?: string | number | boolean | null;
+  passEntry?: string | number | boolean | null;
+  limit: number;
+  page: number;
+  sortBy?: string | null;
+  sortOrder?: "ASC" | "DESC";
+};
+
+type ChangeStatusPayload = {
+  regId: number;
+};
+
+type ChangeUsersRolePayload = Record<string, unknown> & {
+  regId: string;
+};
+
+export const MasterSearchApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // 🔍 POST /search/master
-    masterSearch: builder.query<SearchResponse, any>({
+    masterSearch: builder.query<SearchResponse, MasterSearchPayload>({
       query: (payload) => ({
         url: "/api/search/master",
         method: "POST",
         body: payload,
       }),
-      providesTags: (result) =>
-        result
-          ? [
-            { type: "MasterSearch" as const, id: "LIST" },
-            ...(Array.isArray(result)
-              ? result.map(({ id }) => ({
-                type: "MasterSearch" as const,
-                id: id.toString(),
-              }))
-              : []),
-          ]
-          : [{ type: "MasterSearch" as const, id: "LIST" }],
+      providesTags: [{ type: "MasterSearch", id: "LIST" }],
     }),
 
-    //  POST /approve/:regId
-    getChangeStatus: builder.mutation({
+    getChangeStatus: builder.mutation<unknown, ChangeStatusPayload>({
       query: ({ regId }) => ({
         url: `/api/search/approve/${regId}`,
         method: "POST",
@@ -37,21 +43,17 @@ export const MasterSearchApi = createApi({
       invalidatesTags: [{ type: "MasterSearch", id: "LIST" }],
     }),
 
-    // 📤 Export search results
-    exportSearch: builder.mutation<Blob, any>({
+    exportSearch: builder.mutation<Blob, MasterSearchPayload>({
       query: (payload) => ({
         url: "/api/search/export",
         method: "POST",
         body: payload,
-        responseHandler: async (response) => {
-          return await response.blob();
-        },
+        responseHandler: async (response) => response.blob(),
         cache: "no-cache",
       }),
     }),
 
-    // 🧩 Update user role endpoint
-    getChangeUsersRole: builder.mutation({
+    getChangeUsersRole: builder.mutation<unknown, ChangeUsersRolePayload>({
       query: (body) => ({
         url: "/api/user/update-role",
         method: "PUT",
@@ -60,9 +62,9 @@ export const MasterSearchApi = createApi({
       invalidatesTags: [{ type: "MasterSearch", id: "LIST" }],
     }),
   }),
+  overrideExisting: false,
 });
 
-//  Export hooks
 export const {
   useMasterSearchQuery,
   useExportSearchMutation,
