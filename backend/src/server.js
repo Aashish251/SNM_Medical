@@ -48,12 +48,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const __dirnameResolved = __dirname;
 
 // ✅ Serve static files from /uploads folder FIRST (before middleware)
-// Add rewrite for legacy profile_img category to profile
-app.use("/uploads/profile_img", (req, res, next) => {
-  const newPath = req.url.replace('/profile_img', '/profile');
-  req.url = newPath;
-  next();
-});
+// Legacy profile_img URLs should read from the current profile folder.
+app.use("/uploads/profile_img", express.static(path.join(__dirnameResolved, "../uploads/profile")));
 
 // Add cache control headers and CORS for static files
 app.use("/uploads", (req, res, next) => {
@@ -107,19 +103,17 @@ if (process.env.NODE_ENV === "development") {
 }
 
 /*
-  ---- DO NOT USE express.json() or express.urlencoded() BEFORE FILE ROUTES ----
-  Multer (used in registration route) will handle file/form-data parsing.
-  JSON body parsing is added after file upload routes!
+  Body parsers must be registered before route modules that accept JSON.
+  Multer still handles multipart/form-data on upload routes.
 */
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Main routes (file/form-data routes first, e.g. registration)
 try {
   app.use("/api/registration", require("./routes/registration")); // includes file upload endpoints
   app.use("/api/dashboard", require("./routes/dashboard")); // includes profile update with file upload
-
-  // Add JSON/body-parsing middleware only after above:
-  app.use(express.json({ limit: "10mb" }));
-  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
   // Rate limiter for auth routes (brute-force protection)
   const authRateLimitMap = new Map();

@@ -96,6 +96,36 @@ module.exports = (err, req, res, next) => {
     });
   }
 
+  // Plain service errors used by local-data modules.
+  // Keep validation/not-found/conflict responses from becoming 500s.
+  const message = err.message || "";
+  if (/not found/i.test(message)) {
+    logger.warn(`Not Found Error: ${message}`, errorMeta);
+    return res.status(404).json({
+      success: false,
+      message,
+      errorId,
+    });
+  }
+
+  if (/already exists|duplicate/i.test(message)) {
+    logger.warn(`Conflict Error: ${message}`, errorMeta);
+    return res.status(409).json({
+      success: false,
+      message,
+      errorId,
+    });
+  }
+
+  if (/required|invalid|valid|unsupported|file upload failed|must be|too low|minimum|maximum/i.test(message)) {
+    logger.warn(`Bad Request Error: ${message}`, errorMeta);
+    return res.status(400).json({
+      success: false,
+      message,
+      errorId,
+    });
+  }
+
   // Generic/unexpected errors
   logger.error(`Unhandled Error: ${err.message}`, errorMeta);
 

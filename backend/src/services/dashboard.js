@@ -68,10 +68,16 @@ exports.getUserProfile = async (userId) => {
     ? new Date(user.dob || user.date_of_birth)
     : null;
 
-  const age = birthDate
-    ? new Date().getFullYear() - birthDate.getFullYear() -
-    (new Date() < new Date(birthDate.setFullYear(new Date().getFullYear())) ? 1 : 0)
-    : null;
+  let age = null;
+  if (birthDate) {
+    const today = new Date();
+    const birthdayThisYear = new Date(
+      today.getFullYear(),
+      birthDate.getMonth(),
+      birthDate.getDate()
+    );
+    age = today.getFullYear() - birthDate.getFullYear() - (today < birthdayThisYear ? 1 : 0);
+  }
 
   const location = user.city_name && user.state_name
     ? `${user.city_name}, ${user.state_name}`
@@ -114,38 +120,38 @@ exports.updateUserProfile = async (userId, data) => {
     qualificationId,
   } = data;
 
+  const params = [
+    'update',                 // p_action
+    userId,                   // p_id
+    null,                     // p_user_type (no change)
+    null,                     // p_login_id
+    null,                     // p_title
+    fullName || null,
+    email || null,
+    null,                     // p_password (do NOT update here)
+    mobileNo || null,
+    null,                     // p_dob
+    null,                     // p_gender
+    address || null,
+    stateId || null,
+    cityId || null,
+    qualificationId || null,
+    departmentId || null,
+    null, null, null, null,
+    null, null, null,
+    null,                     // p_remark
+    null,                     // p_total_exp
+    null,                     // p_prev_sewa_perform
+    null,                     // p_recom_by
+    null,                     // p_samagam_held_in
+    0,                        // p_is_deleted
+    null, null, null, null,
+    null                      // p_is_approved (don't change here)
+  ];
+
   const [result] = await promisePool.execute(
-    `CALL sp_save_user_profile(
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-    )`,
-    [
-      'update',                 // p_action
-      userId,                   // p_id
-      null,                     // p_user_type (no change)
-      null,                     // p_login_id
-      null,                     // p_title
-      fullName || null,
-      email || null,
-      null,                     // p_password (do NOT update here)
-      mobileNo || null,
-      null,                     // p_dob
-      null,                     // p_gender
-      address || null,
-      stateId || null,
-      cityId || null,
-      qualificationId || null,
-      departmentId || null,
-      null, null, null, null,
-      null, null, null,
-      null,                     // p_remark
-      null,                     // p_total_exp
-      null,                     // p_prev_sewa_perform
-      null,                     // p_recom_by
-      null,                     // p_samagam_held_in
-      0,                        // p_is_deleted
-      null, null, null, null,
-      null                      // p_is_approved (don’t change here)
-    ]
+    `CALL sp_save_user_profile(${params.map(() => '?').join(',')})`,
+    params
   );
 
   const affected = result?.[0]?.affected_rows || 0;

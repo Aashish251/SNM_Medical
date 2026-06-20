@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
 const registrationController = require('../controllers/registration');
+const { uploadFileToS3 } = require('../utils/filePathHelper');
 
 router.get('/dropdown-data',
   /* #swagger.tags = ['Registration']
@@ -92,7 +93,7 @@ router.post('/upload-profile',
      #swagger.responses[200] = { description: 'Profile image uploaded successfully' }
      #swagger.responses[400] = { description: 'No profile image uploaded' }
   */
-  upload.single('profileImage'), (req, res) => {
+  upload.single('profileImage'), async (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -100,12 +101,16 @@ router.post('/upload-profile',
       });
     }
 
-    const filePath = `/uploads/profile/${req.file.filename}`;
-    res.json({
-      success: true,
-      message: 'Profile image uploaded successfully',
-      filePath,
-    });
+    try {
+      const filePath = await uploadFileToS3(req.file, 'profile');
+      res.json({
+        success: true,
+        message: 'Profile image uploaded successfully',
+        filePath,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
@@ -118,7 +123,7 @@ router.post('/upload-certificate',
      #swagger.responses[200] = { description: 'Certificate uploaded successfully' }
      #swagger.responses[400] = { description: 'No certificate uploaded' }
   */
-  upload.single('certificate'), (req, res) => {
+  upload.single('certificate'), async (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -126,12 +131,16 @@ router.post('/upload-certificate',
       });
     }
 
-    const filePath = `/uploads/certificates/${req.file.filename}`;
-    res.json({
-      success: true,
-      message: 'Certificate uploaded successfully',
-      filePath,
-    });
+    try {
+      const filePath = await uploadFileToS3(req.file, 'certificates');
+      res.json({
+        success: true,
+        message: 'Certificate uploaded successfully',
+        filePath,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 

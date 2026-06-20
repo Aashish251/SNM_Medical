@@ -17,7 +17,15 @@ exports.addUserRole = async ({
   try {
     connection = await promisePool.getConnection();
 
-    const boolToTinyInt = (val) => (val === null ? null : val ? 1 : 0);
+    const boolToTinyInt = (val) => {
+      if (val === undefined || val === null || val === "") return null;
+      if (typeof val === "string") {
+        const normalized = val.trim().toLowerCase();
+        if (["0", "false", "no"].includes(normalized)) return 0;
+        if (["1", "true", "yes"].includes(normalized)) return 1;
+      }
+      return val ? 1 : 0;
+    };
     const normalize = (val) =>
       val === undefined || val === null || val === "" ? null : val;
 

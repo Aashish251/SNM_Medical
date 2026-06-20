@@ -1968,10 +1968,57 @@
           "Reports"
         ],
         "summary": "Get registration reports",
-        "description": "Retrieve registration reports data. (Implementation pending)",
+        "description": "Retrieve department-wise registration counts for up to three report dates.",
+        "parameters": [
+          {
+            "name": "dates",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Comma-separated report dates in YYYY-MM-DD format. Example: 2026-06-01,2026-06-02,2026-06-03"
+          },
+          {
+            "name": "date1",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "First report date in YYYY-MM-DD format"
+          },
+          {
+            "name": "date2",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Second report date in YYYY-MM-DD format"
+          },
+          {
+            "name": "date3",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Third report date in YYYY-MM-DD format"
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Report title"
+          },
+          {
+            "name": "includeEmpty",
+            "in": "query",
+            "type": "boolean",
+            "required": false,
+            "description": "Set true to include departments with zero registrations"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Registration reports retrieved successfully"
+          },
+          "400": {
+            "description": "Invalid report query"
           },
           "429": {
             "description": "Too Many Requests"
@@ -1988,10 +2035,64 @@
           "Reports"
         ],
         "summary": "Get master reports",
-        "description": "Retrieve master reports data. (Implementation pending)",
+        "description": "Retrieve date-wise and location-wise OPD/IPD report data.",
+        "parameters": [
+          {
+            "name": "dates",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Comma-separated report dates in YYYY-MM-DD format. If omitted, dates are derived from patient registrations."
+          },
+          {
+            "name": "date1",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "First report date in YYYY-MM-DD format"
+          },
+          {
+            "name": "date2",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Second report date in YYYY-MM-DD format"
+          },
+          {
+            "name": "date3",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Third report date in YYYY-MM-DD format"
+          },
+          {
+            "name": "locations",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Comma-separated location names. Example: Dispensary 1,Langar 1"
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Report title"
+          },
+          {
+            "name": "includeEmpty",
+            "in": "query",
+            "type": "boolean",
+            "required": false,
+            "description": "Set true to include zero-value rows/cards"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Master reports retrieved successfully"
+          },
+          "400": {
+            "description": "Invalid report query"
           },
           "429": {
             "description": "Too Many Requests"

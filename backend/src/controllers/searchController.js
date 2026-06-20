@@ -114,10 +114,11 @@ exports.approveUser = async (req, res) => {
   try {
     const { regId } = req.params;
     const approved = await searchService.approveUser(regId);
-    logger.info('User approval processed', { regId, approved: !!approved });
+    logger.info('User approval processed', { regId, approved: !!approved?.success });
     res.json({
-      success: approved,
-      message: approved ? 'User approved successfully' : 'User not found'
+      success: approved.success,
+      message: approved.message,
+      affectedRows: approved.affectedRows
     });
   } catch (error) {
     logger.error('User approval failed', { regId: req.params?.regId, error: error.message });

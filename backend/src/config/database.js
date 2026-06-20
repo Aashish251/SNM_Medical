@@ -40,7 +40,15 @@ const testConnection = async () => {
     connection.release();
     return true;
   } catch (error) {
-    logger.error('Database connection failed', { error: error.message });
+    logger.error('Database connection failed', {
+      error: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState,
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10) || 3306,
+      database: process.env.DB_NAME || 'snm_dispensary',
+    });
     return false;
   }
 };
