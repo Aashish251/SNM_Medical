@@ -20,7 +20,7 @@ export default defineConfig({
       "@entities": fileURLToPath(new URL("./src/entities", import.meta.url)),
       "@widgets": fileURLToPath(new URL("./src/widgets", import.meta.url)),
       "@pages": fileURLToPath(new URL("./src/pages", import.meta.url)),
-      "@admin-panel": fileURLToPath(new URL("./src/modules/admin-panel", import.meta.url)),
+      "@admin": fileURLToPath(new URL("./src/features/admin/admin", import.meta.url)),
     },
   },
 });

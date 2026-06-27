@@ -21,6 +21,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "@app/store";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
 import { createUpdateProfileFormData } from "@entities/registration";
+import {
+  ROUTE_ADMIN_MASTER_SEARCH,
+  ROUTE_MS_ADMIN_DASHBOARD,
+} from "@app/router/routePaths";
 
 const UpdateProfile = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
@@ -156,9 +160,9 @@ const UpdateProfile = () => {
       );
       setDisabled(false);
       if (userType == "admin") {
-        navigate("/admin/master-search");
+        navigate(ROUTE_ADMIN_MASTER_SEARCH);
       } else {
-        navigate("/ms/dashboard");
+        navigate(ROUTE_MS_ADMIN_DASHBOARD);
       }
     } catch (error) {
       setDisabled(false);

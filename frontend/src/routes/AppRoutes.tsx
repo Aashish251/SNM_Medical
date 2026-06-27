@@ -2,7 +2,8 @@ import React, { Suspense } from "react";
 import { Routes } from "react-router-dom";
 import { PublicRoutes } from "./PublicRoutes";
 import { ProtectedRoutes } from "./ProtectedRoutes";
-import { AdminPanelRoutes } from "@admin-panel/routes/AdminPanelRoutes";
+import { AdminRoutes } from "@app/router/createAdminRoutes";
+import { LegacyRedirectRoutes } from "@app/router/legacyRedirectRoutes";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
 
 const AppRoutes = () => {
@@ -10,8 +11,9 @@ const AppRoutes = () => {
         <Suspense fallback={<LoadingSpinner />}>
             <Routes>
                 {PublicRoutes}
+                {LegacyRedirectRoutes}
                 {ProtectedRoutes}
-                {AdminPanelRoutes}
+                {AdminRoutes}
             </Routes>
         </Suspense>
     );

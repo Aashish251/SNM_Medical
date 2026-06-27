@@ -42,8 +42,8 @@ export default defineConfig({
             if (id.includes("lodash") || id.includes("date-fns")) {
               return "vendor-utils";
             }
-            if (id.includes("modules/admin-panel")) {
-              return "admin-panel";
+            if (id.includes("features/admin/admin")) {
+              return "admin-portal";
             }
             if (id.includes("@tanstack/react-table")) {
               return "vendor-tanstack-table";
@@ -69,7 +69,7 @@ export default defineConfig({
       "@entities": fileURLToPath(new URL("./src/entities", import.meta.url)),
       "@widgets": fileURLToPath(new URL("./src/widgets", import.meta.url)),
       "@pages": fileURLToPath(new URL("./src/pages", import.meta.url)),
-      "@admin-panel": fileURLToPath(new URL("./src/modules/admin-panel", import.meta.url)),
+      "@admin": fileURLToPath(new URL("./src/features/admin/admin", import.meta.url)),
     }
   }
 });

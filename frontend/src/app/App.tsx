@@ -5,20 +5,24 @@ import AppRoutes from "@routes/AppRoutes";
 import CustomToaster from "@shared/components/CustomToaster";
 import { TooltipProvider } from "@shared/components/ui";
 import { WidgetErrorBoundary } from "@shared/error";
-import { AdminPanelProviders } from "@admin-panel/providers/AdminPanelProviders";
-import { ADMIN_PANEL_BASE } from "@admin-panel/constants/routePaths";
+import { AdminProviders } from "@admin/providers/AdminProviders";
+import { ROUTE_ADMIN_BASE } from "@app/router/routePaths";
+
+function isAdministratorPortal(pathname: string): boolean {
+  return pathname === ROUTE_ADMIN_BASE || pathname.startsWith(`${ROUTE_ADMIN_BASE}/`);
+}
 
 function App() {
   const { pathname } = useLocation();
-  const isAdminPanel = pathname.startsWith(ADMIN_PANEL_BASE);
+  const isAdminPortal = isAdministratorPortal(pathname);
 
-  if (isAdminPanel) {
+  if (isAdminPortal) {
     return (
-      <AdminPanelProviders>
+      <AdminProviders>
         <TooltipProvider>
           <AppRoutes />
         </TooltipProvider>
-      </AdminPanelProviders>
+      </AdminProviders>
     );
   }
 

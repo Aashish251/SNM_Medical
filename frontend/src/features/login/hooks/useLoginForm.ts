@@ -9,11 +9,10 @@ import { useAppDispatch } from "@app/store/hooks";
 import { signIn } from "@entities/session";
 import { normalizeApiError } from "@shared/api/errors";
 import { reportError } from "@shared/lib/monitoring";
+import { getDefaultRouteForUserType } from "@app/router/authRedirects";
 import {
   SNM_ADMIN_USERTYPE,
   SNM_MS_USERTYPE,
-  SNM_NAV_ADMIN_DASHBOARD_LINK,
-  SNM_NAV_MS_DASHBOARD_LINK,
 } from "@shared/constants";
 
 export type Role = "admin" | "ms";
@@ -72,11 +71,7 @@ export const useLoginForm = () => {
         })
       );
 
-      if (user.userType === SNM_ADMIN_USERTYPE) {
-        navigate(SNM_NAV_ADMIN_DASHBOARD_LINK, { replace: true });
-      } else {
-        navigate(SNM_NAV_MS_DASHBOARD_LINK, { replace: true });
-      }
+      navigate(getDefaultRouteForUserType(user.userType), { replace: true });
     } catch (error) {
       toast.dismiss();
       const { message } = normalizeApiError(error);

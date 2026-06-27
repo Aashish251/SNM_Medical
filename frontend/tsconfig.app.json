@@ -26,7 +26,7 @@
       "@entities/*": ["src/entities/*"],
       "@widgets/*": ["src/widgets/*"],
       "@pages/*": ["src/pages/*"],
-      "@admin-panel/*": ["src/modules/admin-panel/*"]
+      "@admin/*": ["src/features/admin/admin/*"]
     },
 
     /* Linting */
