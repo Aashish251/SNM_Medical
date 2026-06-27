@@ -7,21 +7,44 @@ const reportService = require('../services/reportService');
 router.get('/daily',
   /* #swagger.tags = ['Reports']
      #swagger.summary = 'Get daily reports'
-     #swagger.description = 'Retrieve daily reports data. (Implementation pending)'
+     #swagger.description = 'Retrieve a single-date department-by-location daily report.'
+     #swagger.parameters['date'] = {
+       in: 'query',
+       type: 'string',
+       required: true,
+       description: 'Report date in YYYY-MM-DD format'
+     }
+     #swagger.parameters['title'] = { in: 'query', type: 'string', required: false, description: 'Samagam/report title' }
+     #swagger.parameters['departments'] = {
+       in: 'query',
+       type: 'string',
+       required: false,
+       description: 'Comma-separated department names. If omitted, default DailyReport departments are used.'
+     }
+     #swagger.parameters['locations'] = {
+       in: 'query',
+       type: 'string',
+       required: false,
+       description: 'Comma-separated location names. If omitted, default DailyReport locations are used.'
+     }
+     #swagger.parameters['includeEmpty'] = { in: 'query', type: 'boolean', required: false, description: 'Set true to include zero-value department rows' }
      #swagger.responses[200] = { description: 'Daily reports retrieved successfully' }
+     #swagger.responses[400] = { description: 'Invalid report query' }
      #swagger.responses[500] = { description: 'Daily reports failed' }
   */
-  (req, res) => {
+  async (req, res) => {
     try {
+      const data = await reportService.getDailyReport(req.query);
       res.json({
         success: true,
-        message: 'Daily reports endpoint - implementation pending',
-        data: [],
+        message: 'Daily reports retrieved successfully',
+        data,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
       logger.error('Daily reports error', { error: error.message });
-      res.status(500).json({
+      const status = /date|required/i.test(error.message) ? 400 : 500;
+      res.status(status).json({
         success: false,
         message: 'Daily reports failed',
         error: error.message

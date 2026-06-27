@@ -4,6 +4,7 @@ const logger = require('../utils/logger');
 
 const DEFAULT_REPORT_TITLE = '60 Maharashtra Nirankari Sant Samagam';
 const DEFAULT_MASTER_REPORT_TITLE = '58th Maharashtra Samagam Dispensary Master Report';
+const DEFAULT_DAILY_REPORT_TITLE = '60TH MAHARASHTRA NIRANKARI SANT SAMAGAM';
 const MAX_REPORT_DATES = 3;
 const DEFAULT_MASTER_LOCATIONS = [
   'Dispensary 1',
@@ -12,6 +13,31 @@ const DEFAULT_MASTER_LOCATIONS = [
   'Langar 1',
   'Langar 2',
   'Langar 3',
+];
+const DEFAULT_DAILY_DEPARTMENTS = [
+  'Registration',
+  'OPD',
+  'INDOOR',
+  'Homeopathy',
+  'Accupressure',
+  'Physiotherapy',
+  'Dental',
+  'Eye',
+  'ENT',
+  'ECG',
+  'Pediatric',
+  'ICU',
+  'Injection',
+  'Dressing',
+  'Pathology',
+];
+const DEFAULT_DAILY_LOCATIONS = [
+  { key: 'Dispensary 1', label: 'Dispensary-1' },
+  { key: 'Dispensary 2', label: 'Dispensary-2' },
+  { key: 'Dispensary 3', label: 'Dispensary-3' },
+  { key: 'Langar 1', label: 'Langar-1' },
+  { key: 'Langar 2', label: 'Langar-2' },
+  { key: 'Langar 3', label: 'Langar-3' },
 ];
 
 const isValidDate = (value) => {
@@ -49,6 +75,11 @@ const normalizeDateList = (query = {}, options = {}) => {
 const formatDateLabel = (date) => {
   const [year, month, day] = date.split('-');
   return `${day}-${month}-${year}`;
+};
+
+const formatDisplayDate = (date) => {
+  const [year, month, day] = date.split('-');
+  return `${Number(day)}/${Number(month)}/${year}`;
 };
 
 const readDepartmentId = (department = {}) =>
@@ -110,6 +141,23 @@ const getRecordLocation = (record = {}) =>
   record.dispensary ||
   'Not assigned';
 
+const normalizeLookupKey = (value = '') =>
+  String(value).toLowerCase().replace(/[\s_-]+/g, '');
+
+const getRecordDepartment = (record = {}) => {
+  const explicitDepartment =
+    record.reportDepartment ||
+    record.serviceDepartment ||
+    record.department ||
+    record.departmentName ||
+    record.service ||
+    record.category;
+
+  if (explicitDepartment) return explicitDepartment;
+
+  return getRecordVisitType(record) === 'ipd' ? 'INDOOR' : 'OPD';
+};
+
 const getRecordVisitType = (record = {}) => {
   const rawType = [
     record.visitType,
@@ -152,6 +200,102 @@ const toReportRow = (label, metric) => ({
   ipd: metric.ipd,
   total: metric.opd + metric.ipd,
 });
+
+const normalizeSingleDate = (query = {}) => {
+  const [date] = normalizeDateList({
+    dates: query.date || query.reportDate || query.date1 || query.dates,
+  });
+  return date;
+};
+
+exports.getDailyReport = async (query = {}) => {
+  const data = await readData();
+  const records = Array.isArray(data.patientRegistrations) ? data.patientRegistrations : [];
+  const reportDate = normalizeSingleDate(query);
+  const title = typeof query.title === 'string' && query.title.trim()
+    ? query.title.trim()
+    : DEFAULT_DAILY_REPORT_TITLE;
+  const includeEmpty = query.includeEmpty === 'true';
+
+  const requestedDepartments = typeof query.departments === 'string'
+    ? query.departments.split(',').map((department) => department.trim()).filter(Boolean)
+    : [];
+  const departments = requestedDepartments.length
+    ? [...new Set(requestedDepartments)]
+    : [...DEFAULT_DAILY_DEPARTMENTS];
+
+  const requestedLocations = typeof query.locations === 'string'
+    ? query.locations.split(',').map((location) => location.trim()).filter(Boolean)
+    : [];
+  const locations = requestedLocations.length
+    ? [...new Set(requestedLocations)].map((location) => ({ key: location, label: location }))
+    : [...DEFAULT_DAILY_LOCATIONS];
+
+  const departmentLookup = new Map(departments.map((department) => [normalizeLookupKey(department), department]));
+  const locationLookup = new Map(locations.map((location) => [normalizeLookupKey(location.key), location.key]));
+  locations.forEach((location) => {
+    locationLookup.set(normalizeLookupKey(location.label), location.key);
+  });
+
+  const matrix = new Map();
+  const getCell = (department, location) => {
+    const key = `${department}::${location}`;
+    if (!matrix.has(key)) matrix.set(key, 0);
+    return key;
+  };
+
+  records.forEach((record) => {
+    const date = getRecordDate(record);
+    if (date !== reportDate) return;
+
+    const departmentKey = normalizeLookupKey(getRecordDepartment(record));
+    const locationKey = normalizeLookupKey(getRecordLocation(record));
+    const department = departmentLookup.get(departmentKey);
+    const location = locationLookup.get(locationKey);
+
+    if (!department || !location) return;
+
+    const metric = readPatientMetric(record);
+    const count = metric.opd + metric.ipd;
+    const cellKey = getCell(department, location);
+    matrix.set(cellKey, matrix.get(cellKey) + count);
+  });
+
+  const totalsByLocation = Object.fromEntries(locations.map((location) => [location.key, 0]));
+  const rows = departments.map((department) => {
+    const values = {};
+    let total = 0;
+
+    locations.forEach((location) => {
+      const value = matrix.get(getCell(department, location.key)) || 0;
+      values[location.key] = value;
+      totalsByLocation[location.key] += value;
+      total += value;
+    });
+
+    return {
+      department,
+      values,
+      total,
+    };
+  }).filter((row) => includeEmpty || row.total > 0);
+
+  const grandTotal = Object.values(totalsByLocation).reduce((sum, value) => sum + value, 0);
+
+  return {
+    title,
+    date: reportDate,
+    dateLabel: formatDisplayDate(reportDate),
+    reportTitle: `DAILY REPORT CHART - ${formatDisplayDate(reportDate)}`,
+    columns: locations,
+    rows,
+    totals: {
+      byLocation: totalsByLocation,
+      grandTotal,
+    },
+    generatedAt: new Date().toISOString(),
+  };
+};
 
 exports.getRegistrationReport = async (query = {}) => {
   const dates = normalizeDateList(query);

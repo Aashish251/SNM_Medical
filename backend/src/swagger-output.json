@@ -1948,10 +1948,50 @@
           "Reports"
         ],
         "summary": "Get daily reports",
-        "description": "Retrieve daily reports data. (Implementation pending)",
+        "description": "Retrieve a single-date department-by-location daily report.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "type": "string",
+            "required": true,
+            "description": "Report date in YYYY-MM-DD format"
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Samagam/report title"
+          },
+          {
+            "name": "departments",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Comma-separated department names. If omitted, default DailyReport departments are used."
+          },
+          {
+            "name": "locations",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Comma-separated location names. If omitted, default DailyReport locations are used."
+          },
+          {
+            "name": "includeEmpty",
+            "in": "query",
+            "type": "boolean",
+            "required": false,
+            "description": "Set true to include zero-value department rows"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Daily reports retrieved successfully"
+          },
+          "400": {
+            "description": "Invalid report query"
           },
           "429": {
             "description": "Too Many Requests"
