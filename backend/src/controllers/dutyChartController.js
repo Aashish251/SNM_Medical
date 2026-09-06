@@ -21,6 +21,19 @@ exports.getChartById = asyncHandler(async (req, res) => {
   sendResponse(res, 200, true, "Duty chart fetched successfully", chart);
 });
 
+exports.getChartByDepartmentYear = asyncHandler(async (req, res) => {
+  const chart = await dutyChartService.getChartByDepartmentYear(
+    req.params.department,
+    req.params.year
+  );
+
+  if (!chart) {
+    return sendResponse(res, 404, false, "Duty chart not found");
+  }
+
+  sendResponse(res, 200, true, "Duty chart fetched successfully", chart);
+});
+
 exports.createEntry = asyncHandler(async (req, res) => {
   const result = await dutyChartService.createEntry(req.body);
   sendResponse(res, 201, true, "Duty chart entry saved successfully", result);

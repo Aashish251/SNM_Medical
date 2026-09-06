@@ -117,3 +117,69 @@
 {"environment":"development","error":"Access denied for user 'root'@'localhost' (using password: YES)","level":"error","message":"Database connection failed","service":"snm-medical-api","timestamp":"2026-06-13 17:27:56"}
 {"environment":"development","error":"Access denied for user 'root'@'localhost' (using password: YES)","level":"error","message":"Database connection failed","service":"snm-medical-api","timestamp":"2026-06-14 18:08:51"}
 {"environment":"development","error":"Access denied for user 'root'@'localhost' (using password: YES)","level":"error","message":"Database connection failed","service":"snm-medical-api","timestamp":"2026-06-20 00:19:10"}
+{"database":"defaultdb","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-06-27 22:33:30"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-06-27 22:33:30"}
+{"database":"defaultdb","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-06-27 22:33:41"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-06-27 22:33:41"}
+{"database":"defaultdb","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-12 21:27:21"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-12 21:27:21"}
+{"database":"defaultdb","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 13:11:06"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 13:11:06"}
+{"body":"N/A","environment":"development","ip":"::1","level":"info","message":"Incoming Request","method":"GET","path":"/api/dashboard/stats","requestId":"d59d0a06-556f-43cf-8af0-23a182a76279","service":"snm-medical-api","timestamp":"2026-07-18 13:11:52","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"}
+{"duration":"10ms","environment":"development","level":"info","message":"Response Sent","method":"GET","path":"/stats","requestId":"d59d0a06-556f-43cf-8af0-23a182a76279","service":"snm-medical-api","statusCode":401,"success":false,"timestamp":"2026-07-18 13:11:52"}
+{"body":"{}","environment":"development","ip":"::1","level":"info","message":"Incoming Request","method":"POST","path":"/api/auth/login","requestId":"b004a943-60a6-40db-83d7-14ceec0994f8","service":"snm-medical-api","timestamp":"2026-07-18 13:13:06","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"}
+{"environment":"development","level":"warn","loginId":"7715077104","message":"Login failed - incorrect password","service":"snm-medical-api","timestamp":"2026-07-18 13:13:16","userId":5}
+{"email":"7715077104","environment":"development","ip":"::1","level":"error","message":"Incorrect password. Please try again.","role":"admin","service":"snm-medical-api","status":500,"timestamp":"2026-07-18 13:13:16"}
+{"duration":"9946ms","environment":"development","level":"info","message":"Response Sent","method":"POST","path":"/login","requestId":"b004a943-60a6-40db-83d7-14ceec0994f8","service":"snm-medical-api","statusCode":500,"success":false,"timestamp":"2026-07-18 13:13:16"}
+{"body":"{}","environment":"development","ip":"::1","level":"info","message":"Incoming Request","method":"POST","path":"/api/auth/login","requestId":"45f0189b-aaf0-4998-81f7-29689b84055f","service":"snm-medical-api","timestamp":"2026-07-18 13:13:38","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"}
+{"email":"aashishravidas251@gmail.com","environment":"development","event":"login_success","level":"info","message":"Auth - login_success","role":"admin","service":"snm-medical-api","timestamp":"2026-07-18T07:43:46.463Z","userId":5,"userType":"admin"}
+{"duration":"7498ms","environment":"development","level":"info","message":"Response Sent","method":"POST","path":"/login","requestId":"45f0189b-aaf0-4998-81f7-29689b84055f","service":"snm-medical-api","statusCode":200,"success":true,"timestamp":"2026-07-18 13:13:46"}
+{"database":"defaultdb","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:41:54"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:41:54"}
+{"database":"defaultdb","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:49:20"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:49:20"}
+{"database":"defaultdb","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:49:33"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:49:33"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:50:09"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:50:09"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:50:21"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:50:21"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:51:05"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:51:05"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:52:30"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:52:30"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 17:52:35"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 17:52:35"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:37:16"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:37:16"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:37:23"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:37:23"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:37:30"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:37:30"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:37:38"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:37:38"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:45:30"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:45:30"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:45:35"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:45:35"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:45:41"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:45:41"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-07-18 18:50:18"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-07-18 18:50:18"}
+{"code":"ENOTFOUND","database":"snm_dispensary","environment":"development","errno":-3008,"error":"getaddrinfo ENOTFOUND snm-dispensary-snm-medical-2606.l.aivencloud.com","host":"snm-dispensary-snm-medical-2606.l.aivencloud.com","level":"error","message":"Database connection failed","port":24362,"service":"snm-medical-api","timestamp":"2026-09-06 17:27:32"}
+{"code":"ENOTFOUND","database":"snm_dispensary","environment":"development","errno":-3008,"error":"getaddrinfo ENOTFOUND snm-dispensary-snm-medical-2606.l.aivencloud.com","host":"snm-dispensary-snm-medical-2606.l.aivencloud.com","level":"error","message":"Database connection failed","port":24362,"service":"snm-medical-api","timestamp":"2026-09-06 17:32:17"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-09-06 17:33:34"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-09-06 17:33:34"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-09-06 20:55:22"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-09-06 20:55:22"}
+{"body":"N/A","environment":"development","ip":"::1","level":"info","message":"Incoming Request","method":"GET","path":"/api/patients","requestId":"581f59db-637e-450a-8b35-90def68c9bbf","service":"snm-medical-api","timestamp":"2026-09-06 21:01:31","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"}
+{"duration":"6ms","environment":"development","level":"info","message":"Response Sent","method":"GET","path":"/","requestId":"581f59db-637e-450a-8b35-90def68c9bbf","service":"snm-medical-api","statusCode":200,"success":true,"timestamp":"2026-09-06 21:01:31"}
+{"body":"N/A","environment":"development","ip":"::1","level":"info","message":"Incoming Request","method":"GET","path":"/favicon.ico","requestId":"6343df6d-2f18-40e5-b2c7-217aed5aae8b","service":"snm-medical-api","timestamp":"2026-09-06 21:01:31","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"}
+{"environment":"development","level":"warn","message":"404 - Route not found","method":"GET","path":"/favicon.ico","service":"snm-medical-api","timestamp":"2026-09-06 21:01:31"}
+{"duration":"3ms","environment":"development","level":"info","message":"Response Sent","method":"GET","path":"/favicon.ico","requestId":"6343df6d-2f18-40e5-b2c7-217aed5aae8b","service":"snm-medical-api","statusCode":404,"success":false,"timestamp":"2026-09-06 21:01:31"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-09-06 21:03:57"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-09-06 21:03:57"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-09-06 21:04:09"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-09-06 21:04:09"}
+{"database":"snm_dispensary","environment":"development","level":"info","message":"MySQL Database connected successfully","service":"snm-medical-api","timestamp":"2026-09-06 21:04:43"}
+{"environment":"development","level":"info","message":"Database query test successful","service":"snm-medical-api","timestamp":"2026-09-06 21:04:43"}

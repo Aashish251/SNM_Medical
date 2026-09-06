@@ -34,6 +34,12 @@ uploads/
 temp/
 tmp/
 
+# Large binary files
+*.zip
+
+# Generated files
+swagger-output.json
+
 # Prevent accidental TypeScript emit into source trees
 src/**/*.js
 src/**/*.js.map

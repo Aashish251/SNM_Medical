@@ -10,6 +10,7 @@ const swaggerDocument = require('./swagger-output.json');
 const errorMiddleware = require("./middlewares/error");
 const requestLogger = require("./middlewares/requestLogger");
 const logger = require("./utils/logger");
+const { getUploadRoot } = require("./utils/filePathHelper");
 
 // Initialize Sentry if available
 let Sentry = null;
@@ -45,11 +46,11 @@ app.use(
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 //  __dirname works automatically in CommonJS (no need for fileURLToPath)
-const __dirnameResolved = __dirname;
+const uploadsPath = getUploadRoot();
 
 // ✅ Serve static files from /uploads folder FIRST (before middleware)
 // Legacy profile_img URLs should read from the current profile folder.
-app.use("/uploads/profile_img", express.static(path.join(__dirnameResolved, "../uploads/profile")));
+app.use("/uploads/profile_img", express.static(path.join(uploadsPath, "profile")));
 
 // Add cache control headers and CORS for static files
 app.use("/uploads", (req, res, next) => {
@@ -63,7 +64,7 @@ app.use("/uploads", (req, res, next) => {
   res.header("Expires", new Date(Date.now() + 2592000000).toUTCString());
 
   next();
-}, express.static(path.join(__dirnameResolved, "../uploads")));
+}, express.static(uploadsPath));
 
 // Security middleware
 app.use(
@@ -189,7 +190,6 @@ app.get("/api/health/db", async (req, res) => {
 // Health check for file uploads
 app.get("/api/health/uploads", (req, res) => {
   const fs = require('fs');
-  const uploadsPath = path.join(__dirname, '../uploads');
 
   const checkDir = (dirPath) => {
     try {

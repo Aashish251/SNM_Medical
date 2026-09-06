@@ -3,6 +3,23 @@ const patientController = require("../controllers/patientController");
 
 const router = express.Router();
 
+// POST must come before GET /:id to avoid route conflicts in Express 5
+router.post("/",
+  /* #swagger.tags = ['Patients']
+     #swagger.summary = 'Create patient registration'
+     #swagger.description = 'Save a patient registration. The API accepts both UI field names (regn, name, mobile, sex, symptoms) and normalized API field names.'
+     #swagger.parameters['body'] = {
+       in: 'body',
+       required: true,
+       schema: { $ref: '#/definitions/PatientRegistrationRequest' }
+     }
+     #swagger.responses[201] = { description: 'Patient registration saved successfully' }
+     #swagger.responses[400] = { description: 'Invalid patient registration data' }
+     #swagger.responses[500] = { description: 'Failed to save patient registration' }
+  */
+  patientController.createPatientRegistration
+);
+
 router.get("/",
   /* #swagger.tags = ['Patients']
      #swagger.summary = 'List patient registrations'
@@ -39,22 +56,6 @@ router.get("/:id",
      #swagger.responses[500] = { description: 'Failed to fetch patient registration' }
   */
   patientController.getPatientRegistrationById
-);
-
-router.post("/",
-  /* #swagger.tags = ['Patients']
-     #swagger.summary = 'Create patient registration'
-     #swagger.description = 'Save a patient registration. The API accepts both UI field names (regn, name, mobile, sex, symptoms) and normalized API field names.'
-     #swagger.parameters['body'] = {
-       in: 'body',
-       required: true,
-       schema: { $ref: '#/definitions/PatientRegistrationRequest' }
-     }
-     #swagger.responses[201] = { description: 'Patient registration saved successfully' }
-     #swagger.responses[400] = { description: 'Invalid patient registration data' }
-     #swagger.responses[500] = { description: 'Failed to save patient registration' }
-  */
-  patientController.createPatientRegistration
 );
 
 module.exports = router;

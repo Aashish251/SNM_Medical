@@ -8,7 +8,18 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('./logger');
 
-exports.uploadFileToS3 = async (
+const BACKEND_ROOT = path.resolve(__dirname, '../..');
+
+const getUploadRoot = () => {
+  const configuredPath = process.env.UPLOAD_DIR || 'uploads';
+  return path.isAbsolute(configuredPath)
+    ? configuredPath
+    : path.resolve(BACKEND_ROOT, configuredPath);
+};
+
+exports.getUploadRoot = getUploadRoot;
+
+exports.uploadFileToLocal = async (
   file,
   category = 'others',
   userId = null,
@@ -34,7 +45,7 @@ exports.uploadFileToS3 = async (
     }
 
     // Create local uploads directory structure
-    const uploadsDir = path.join(__dirname, '../../uploads', category);
+    const uploadsDir = path.join(getUploadRoot(), category);
 
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });

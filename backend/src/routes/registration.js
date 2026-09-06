@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
 const registrationController = require('../controllers/registration');
-const { uploadFileToS3 } = require('../utils/filePathHelper');
+const { uploadFileToLocal } = require('../utils/filePathHelper');
 
 router.get('/dropdown-data',
   /* #swagger.tags = ['Registration']
@@ -102,7 +102,7 @@ router.post('/upload-profile',
     }
 
     try {
-      const filePath = await uploadFileToS3(req.file, 'profile');
+      const filePath = await uploadFileToLocal(req.file, 'profile');
       res.json({
         success: true,
         message: 'Profile image uploaded successfully',
@@ -132,7 +132,7 @@ router.post('/upload-certificate',
     }
 
     try {
-      const filePath = await uploadFileToS3(req.file, 'certificates');
+      const filePath = await uploadFileToLocal(req.file, 'certificates');
       res.json({
         success: true,
         message: 'Certificate uploaded successfully',

@@ -229,7 +229,7 @@ EMAIL_USER=your_email@gmail.com
 EMAIL_APP_PASSWORD=your_gmail_app_password
 
 # File Upload Configuration
-UPLOAD_PATH=./public/uploads
+UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=5242880
 ALLOWED_FILE_TYPES=jpg,jpeg,png,pdf
 

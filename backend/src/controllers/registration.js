@@ -1,7 +1,7 @@
 const registrationService = require('../services/registration');
 const { sendResponse } = require('../utils/response');
 const logger = require("../utils/logger");
-const { uploadFileToS3 } = require('../utils/filePathHelper');
+const { uploadFileToLocal } = require('../utils/filePathHelper');
 
 exports.getDropdownData = async (req, res) => {
   try {
@@ -64,12 +64,12 @@ exports.registerUser = async (req, res, next) => {
 
     try {
       if (files?.profilePic?.[0]) {
-        profileImagePath = await uploadFileToS3(files.profilePic[0], 'profile');
+        profileImagePath = await uploadFileToLocal(files.profilePic[0], 'profile');
         logger.info("Profile image uploaded", { path: profileImagePath });
       }
 
       if (files?.certificate?.[0]) {
-        certificatePath = await uploadFileToS3(files.certificate[0], 'certificates');
+        certificatePath = await uploadFileToLocal(files.certificate[0], 'certificates');
         logger.info("Certificate uploaded", { path: certificatePath });
       }
     } catch (uploadError) {

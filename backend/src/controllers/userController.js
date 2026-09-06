@@ -2,7 +2,7 @@ const userService = require('../services/userService');
 const searchService = require('../services/searchService');
 const { sendResponse } = require('../utils/response');
 const logger = require('../utils/logger');
-const { uploadFileToS3 } = require('../utils/filePathHelper');
+const { uploadFileToLocal } = require('../utils/filePathHelper');
 
 exports.addUserRole = async (req, res) => {
   try {
@@ -116,12 +116,12 @@ exports.updateUserProfile = async (req, res) => {
     // Upload files to local storage if they exist
     try {
       if (req.files?.profilePic?.[0]) {
-        profileData.profileImage = await uploadFileToS3(req.files.profilePic[0], 'profile', regId);
+        profileData.profileImage = await uploadFileToLocal(req.files.profilePic[0], 'profile', regId);
         logger.info(`Profile image uploaded for user ${regId}`, { path: profileData.profileImage });
       }
 
       if (req.files?.certificate?.[0]) {
-        profileData.certificate = await uploadFileToS3(req.files.certificate[0], 'certificates', regId);
+        profileData.certificate = await uploadFileToLocal(req.files.certificate[0], 'certificates', regId);
         logger.info(`Certificate uploaded for user ${regId}`, { path: profileData.certificate });
       }
     } catch (uploadError) {

@@ -66,6 +66,50 @@ exports.getChartById = async (chartId) => {
   return data.dutyCharts.find((chart) => chart.id === Number(chartId)) || null;
 };
 
+exports.getChartByDepartmentYear = async (department, year) => {
+  ensureRequired(department, "Department");
+  ensureRequired(year, "Year");
+
+  if (!/^\d{4}$/.test(String(year))) {
+    throw new Error("Year must be a valid 4-digit year");
+  }
+
+  const data = await readData();
+  const departmentKey = String(department).toLowerCase();
+  const charts = data.dutyCharts
+    .filter((chart) => String(chart.department).toLowerCase() === departmentKey)
+    .filter((chart) => String(chart.year) === String(year))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+  if (!charts.length) {
+    return null;
+  }
+
+  const entries = charts.flatMap((chart) =>
+    chart.entries.map((entry) => ({
+      ...entry,
+      chartId: chart.id,
+      sourceEntryId: entry.id,
+      dutyDate: chart.date,
+    }))
+  );
+
+  const latestChart = charts[charts.length - 1];
+
+  return {
+    id: `${department}_${year}`,
+    title: latestChart.title,
+    department,
+    year: Number(year),
+    date: latestChart.date,
+    totalEntries: entries.length,
+    charts: charts.map(summarizeChart),
+    entries,
+    createdAt: charts[0].createdAt,
+    updatedAt: latestChart.updatedAt,
+  };
+};
+
 exports.createEntry = async (payload) => {
   const chartInput = normalizeChartPayload(payload);
   const entryInput = normalizeEntryPayload(payload);

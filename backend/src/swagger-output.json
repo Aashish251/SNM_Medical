@@ -1820,124 +1820,354 @@
     },
     "/api/dutychart/filter": {
       "get": {
-        "description": "",
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Filter duty charts",
+        "description": "List duty chart summaries, optionally filtered by department and year.",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "example": "NURSES"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "type": "integer",
+            "required": false,
+            "example": 2026
+          }
+        ],
         "responses": {
+          "200": {
+            "description": "Duty charts fetched successfully"
+          },
           "429": {
             "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch duty charts"
           }
         }
       }
     },
     "/api/dutychart/charts": {
       "get": {
-        "description": "",
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "List duty charts",
+        "description": "List duty chart summaries, optionally filtered by department and year.",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "example": "NURSES"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "type": "integer",
+            "required": false,
+            "example": 2026
+          }
+        ],
         "responses": {
+          "200": {
+            "description": "Duty charts fetched successfully"
+          },
           "429": {
             "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch duty charts"
+          }
+        }
+      }
+    },
+    "/api/dutychart/charts/by-key/{department}/{year}": {
+      "get": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Get duty chart by department and year",
+        "description": "Retrieve the duty chart entries for an HTML dropdown key such as NURSES_2026.",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "example": "NURSES"
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "example": 2026
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Duty chart fetched successfully"
+          },
+          "404": {
+            "description": "Duty chart not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch duty chart"
           }
         }
       }
     },
     "/api/dutychart/charts/{chartId}": {
       "get": {
-        "description": "",
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Get duty chart by ID",
+        "description": "Retrieve one duty chart with all entries.",
         "parameters": [
           {
             "name": "chartId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer",
+            "example": 1
           }
         ],
         "responses": {
+          "200": {
+            "description": "Duty chart fetched successfully"
+          },
+          "404": {
+            "description": "Duty chart not found"
+          },
           "429": {
             "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch duty chart"
           }
         }
       }
     },
     "/api/dutychart/charts/{chartId}/export": {
       "get": {
-        "description": "",
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Export duty chart",
+        "description": "Export one duty chart as CSV.",
         "produces": [
-          "text/csv; charset=utf-8"
+          "text/csv"
         ],
         "parameters": [
           {
             "name": "chartId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer",
+            "example": 1
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "CSV file generated successfully"
+          },
+          "404": {
+            "description": "Duty chart not found"
           },
           "429": {
             "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to export duty chart"
           }
         }
       }
     },
     "/api/dutychart/entries": {
       "post": {
-        "description": "",
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Create duty chart entry",
+        "description": "Create a duty chart if needed, then append a duty entry.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "58TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
+                },
+                "department": {
+                  "type": "string",
+                  "example": "NURSES"
+                },
+                "date": {
+                  "type": "string",
+                  "example": "2026-01-01"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Asha Sharma"
+                },
+                "contact": {
+                  "type": "string",
+                  "example": "9876543210"
+                },
+                "shift": {
+                  "type": "string",
+                  "example": "Morning (8.00 AM to 4.00 PM)"
+                }
+              },
+              "required": [
+                "title",
+                "department",
+                "date",
+                "name",
+                "contact",
+                "shift"
+              ]
+            }
+          }
+        ],
         "responses": {
+          "201": {
+            "description": "Duty chart entry saved successfully"
+          },
+          "400": {
+            "description": "Invalid duty chart data"
+          },
           "429": {
             "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save duty chart entry"
           }
         }
       }
     },
     "/api/dutychart/charts/{chartId}/entries/{entryId}": {
       "put": {
-        "description": "",
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Update duty chart entry",
+        "description": "Update name, contact number, and shift for a duty chart entry.",
         "parameters": [
           {
             "name": "chartId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer",
+            "example": 1
           },
           {
             "name": "entryId",
             "in": "path",
             "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "429": {
-            "description": "Too Many Requests"
-          }
-        }
-      },
-      "delete": {
-        "description": "",
-        "produces": [
-          "text/csv; charset=utf-8"
-        ],
-        "parameters": [
-          {
-            "name": "chartId",
-            "in": "path",
-            "required": true,
-            "type": "string"
+            "type": "integer",
+            "example": 1
           },
           {
-            "name": "entryId",
-            "in": "path",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "Asha Sharma"
+                },
+                "contact": {
+                  "type": "string",
+                  "example": "9876543210"
+                },
+                "shift": {
+                  "type": "string",
+                  "example": "Evening (4.00 PM to 10.00 PM)"
+                }
+              },
+              "required": [
+                "name",
+                "contact",
+                "shift"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Duty chart entry updated successfully"
+          },
+          "400": {
+            "description": "Invalid duty chart data"
+          },
+          "404": {
+            "description": "Duty chart or entry not found"
           },
           "429": {
             "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to update duty chart entry"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Delete duty chart entry",
+        "description": "Delete one entry from a duty chart.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Duty chart entry deleted successfully"
+          },
+          "404": {
+            "description": "Duty chart or entry not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to delete duty chart entry"
           }
         }
       }

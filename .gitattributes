@@ -1,2 +1,17 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# ============================================
+# .gitattributes
+# Configure line endings and file attributes
+# ============================================
+
+# Force all text files to use LF (Unix-style) line endings
+# This prevents CRLF issues across different operating systems
+* text=lf
+
+# Optional: Explicitly mark binary files
+# This ensures Git doesn't try to normalize them
+*.pdf binary
+*.exe binary
+*.zip binary
+*.jpg binary
+*.png binary
+*.mp4 binary
