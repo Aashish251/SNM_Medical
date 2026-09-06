@@ -13,6 +13,9 @@ dist-ssr
 *.local
 *.tsbuildinfo
 
+
+.cursor
+
 # Prevent accidental TS emit into source tree
 src/**/*.js
 src/**/*.js.map

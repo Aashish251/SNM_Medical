@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader } from "@shared/components/ui/card";
 import { Button } from "@shared/components/ui/button";
@@ -7,6 +7,11 @@ import { TextareaField } from "@shared/components/FormInputs/TextareaField";
 import { SelectField } from "@shared/components/FormInputs/SelectField";
 import { DatePickerField } from "@shared/components/FormInputs/DatePickerField";
 import { validationRules } from "@shared/lib/formValidation";
+import { useRegisterPatientMutation } from "./services";
+import { normalizeApiError } from "@shared/api/errors";
+import { reportError } from "@shared/lib/monitoring";
+import toast from "react-hot-toast";
+import type { PatientRegistrationPayload } from "./type";
 
 type PatientRegistrationFormValues = {
   regnNo: string;
@@ -27,8 +32,34 @@ const genderOptions = [
   { id: "other", title: "Other" },
 ];
 
+/**
+ * Formats a Date object as YYYY-MM-DD string for the API.
+ */
+function formatDateForApi(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function PatientRegistration() {
-  const [submittedData, setSubmittedData] = useState<PatientRegistrationFormValues | null>(null);
+  const [submittedData, setSubmittedData] =
+    useState<PatientRegistrationFormValues | null>(null);
+  const [disabled, setDisabled] = useState(false);
+  const [triggerRegisterPatient] = useRegisterPatientMutation();
+
+  // Session-scoped counter for generating unique registration numbers
+  const regnCounterRef = useRef(0);
+
+  const generateRegnNo = useCallback((): string => {
+    const currentYear = new Date().getFullYear();
+    regnCounterRef.current += 1;
+    // Combine a timestamp suffix with the counter to ensure uniqueness
+    const uniqueId = String(
+      Date.now() % 100000 + regnCounterRef.current
+    ).padStart(3, "0");
+    return `OPD-${currentYear}-${uniqueId}`;
+  }, []);
 
   const {
     register,
@@ -51,8 +82,46 @@ export default function PatientRegistration() {
     },
   });
 
-  const onSubmit = (values: PatientRegistrationFormValues) => {
-    setSubmittedData(values);
+  const onSubmit = async (values: PatientRegistrationFormValues) => {
+    try {
+      setDisabled(true);
+
+      const regnNo = generateRegnNo();
+
+      // Use form date if provided, otherwise fall back to today
+      const dateForApi = values.date
+        ? formatDateForApi(new Date(values.date))
+        : formatDateForApi(new Date());
+
+      // Map form fields to API payload
+      const payload: PatientRegistrationPayload = {
+        regnNo,
+        date: dateForApi,
+        patientName: values.patientName,
+        mobileNumber: values.mobileNumber,
+        email: values.email,
+        address: values.address,
+        guardianName: values.fatherOrSpouseName,
+        age: Number(values.age) || 0,
+        gender: values.gender
+          ? values.gender.charAt(0).toUpperCase() + values.gender.slice(1)
+          : "",
+        disease: values.diseaseSymptoms,
+      };
+
+      await toast.promise(triggerRegisterPatient(payload).unwrap(), {
+        loading: "Registering patient...",
+        success: "Patient registered successfully!",
+        error: "Failed to register patient",
+      });
+
+      setSubmittedData(values);
+      setDisabled(false);
+    } catch (error) {
+      setDisabled(false);
+      reportError(error, { source: "patient-registration" });
+      toast.error(normalizeApiError(error).message);
+    }
   };
 
   const onReset = () => {
@@ -83,8 +152,9 @@ export default function PatientRegistration() {
               <TextField
                 label="Regn No"
                 register={register("regnNo")}
-                placeholder="Enter registration number"
+                placeholder="Auto-generated on submit"
                 error={errors.regnNo ?? null}
+                disabled
               />
 
               <DatePickerField
@@ -202,7 +272,7 @@ export default function PatientRegistration() {
                 >
                   Reset
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || disabled}>
                   Submit
                 </Button>
               </div>

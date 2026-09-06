@@ -44,6 +44,16 @@ export class ErrorBoundary extends React.Component<
     });
   }
 
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if (
+      this.state.hasError &&
+      this.props.routePath &&
+      this.props.routePath !== prevProps.routePath
+    ) {
+      this.setState({ hasError: false, error: null });
+    }
+  }
+
   private handleReset = () => {
     this.setState({ hasError: false, error: null });
     this.props.onReset?.();
