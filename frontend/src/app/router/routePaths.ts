@@ -34,6 +34,7 @@ export const ROUTE_ADMIN_MASTER_SEARCH = `${ROUTE_ADMIN_BASE}/master-search`;
 export const ROUTE_ADMIN_MASTER_REPORT = `${ROUTE_ADMIN_BASE}/master-report`;
 export const ROUTE_ADMIN_FREE_HEALTH_CHECKUP = `${ROUTE_ADMIN_BASE}/free-health-checkup`;
 export const ROUTE_ADMIN_BLOOD_DONATION = `${ROUTE_ADMIN_BASE}/blood-donation`;
+export const ROUTE_ADMIN_PATIENTS = `${ROUTE_ADMIN_BASE}/patients`;
 export const ROUTE_ADMIN_PROFILE = `${ROUTE_ADMIN_BASE}/profile`;
 
 // ── Administrator Portal — Master sub-routes ──────────────────────────────

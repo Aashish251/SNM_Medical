@@ -16,6 +16,7 @@ function parseArray(value: string | null): string[] {
 const ARRAY_FILTER_KEYS = new Set([
   "status",
   "role",
+  "gender",
   "priority",
   "department",
   "shift",

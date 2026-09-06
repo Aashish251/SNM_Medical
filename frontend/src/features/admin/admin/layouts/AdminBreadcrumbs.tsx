@@ -20,6 +20,7 @@ const LABELS: Record<string, string> = {
   "shift-time": "Shift Time",
   "free-health-checkup": "Free Health Checkup",
   "blood-donation": "Blood Donation",
+  patients: "Patients",
   profile: "Profile",
 };
 

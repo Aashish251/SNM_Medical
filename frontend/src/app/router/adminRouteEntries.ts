@@ -129,6 +129,14 @@ export const adminRouteEntries: AdminRouteEntry[] = [
       })),
   },
   {
+    path: "patients",
+    name: "admin-patients",
+    loader: () =>
+      import("@admin/features/patients").then((m) => ({
+        default: m.Patients,
+      })),
+  },
+  {
     path: "profile",
     name: "admin-profile",
     loader: () =>

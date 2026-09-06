@@ -14,6 +14,7 @@ import {
   ROUTE_ADMIN_USERS,
   ROUTE_ADMIN_FREE_HEALTH_CHECKUP,
   ROUTE_ADMIN_BLOOD_DONATION,
+  ROUTE_ADMIN_PATIENTS,
   ROUTE_ADMIN_PROFILE,
 } from "@admin/constants/routePaths";
 import { type SidebarData } from "../types";
@@ -38,6 +39,7 @@ import {
   Stethoscope,
   Droplet,
   Tent,
+  UserRound,
   UserCog,
 } from "lucide-react";
 
@@ -160,6 +162,11 @@ export const sidebarData: SidebarData = {
               icon: Droplet,
             },
           ],
+        },
+        {
+          title: "Patients",
+          url: ROUTE_ADMIN_PATIENTS,
+          icon: UserRound,
         },
       ],
     },
