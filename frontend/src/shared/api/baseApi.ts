@@ -52,6 +52,7 @@ export const baseApi = createApi({
     "Cities",
     "Login",
     "MasterSearch",
+    "Patients",
     "RegistrationDropdown",
     "UserDetails",
   ],

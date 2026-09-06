@@ -1,17 +1,37 @@
+import { useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { Header } from "@admin/components/layout/header";
 import { Main } from "@admin/components/layout/main";
 import { ProfileDropdown } from "@admin/components/profile-dropdown";
 import { Search } from "@admin/components/search";
 import { ThemeSwitch } from "@admin/components/theme-switch";
 import { useAdminTableSearch } from "@admin/hooks/use-admin-table-search";
+import { normalizeApiError } from "@shared/api/errors";
 import { PatientsDialogs } from "./components/patients-dialogs";
 import { PatientsPrimaryButtons } from "./components/patients-primary-buttons";
 import { PatientsProvider } from "./components/patients-provider";
 import { PatientsTable } from "./components/patients-table";
-import { patients } from "./data/patients";
+import { mapApiPatientToPatient, type Patient } from "./data/schema";
+import { useGetPatientsQuery } from "./services/patientsApi";
 
 export function Patients() {
   const { search, navigate } = useAdminTableSearch();
+  const { data: response, isLoading, isFetching, isError, error } = useGetPatientsQuery();
+
+  const patients: Patient[] = useMemo(() => {
+    const rawItems = Array.isArray(response?.data)
+      ? response.data
+      : Array.isArray(response?.data?.items)
+        ? response.data.items
+        : [];
+    return rawItems.map(mapApiPatientToPatient);
+  }, [response]);
+
+  useEffect(() => {
+    if (isError && error) {
+      toast.error(normalizeApiError(error).message);
+    }
+  }, [error, isError]);
 
   return (
     <PatientsProvider>
@@ -31,7 +51,12 @@ export function Patients() {
           </div>
           <PatientsPrimaryButtons />
         </div>
-        <PatientsTable data={patients} search={search} navigate={navigate} />
+        <PatientsTable
+          data={patients}
+          search={search}
+          navigate={navigate}
+          isLoading={isLoading || isFetching}
+        />
       </Main>
 
       <PatientsDialogs />

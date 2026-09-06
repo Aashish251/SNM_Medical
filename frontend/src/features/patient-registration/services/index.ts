@@ -15,6 +15,7 @@ export const PatientRegistrationApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      invalidatesTags: [{ type: "Patients", id: "LIST" }],
     }),
   }),
   overrideExisting: false,

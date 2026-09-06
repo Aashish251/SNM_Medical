@@ -32,13 +32,16 @@ import { patientGenderOptions, patientStatusOptions } from "../data/data";
 import { type Patient } from "../data/schema";
 import { patientsColumns as columns } from "./patients-columns";
 
+import { Loader2 } from "lucide-react";
+
 type DataTableProps = {
   data: Patient[];
   search: Record<string, unknown>;
   navigate: NavigateFn;
+  isLoading?: boolean;
 };
 
-export function PatientsTable({ data, search, navigate }: DataTableProps) {
+export function PatientsTable({ data, search, navigate, isLoading }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -142,7 +145,19 @@ export function PatientsTable({ data, search, navigate }: DataTableProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center"
+                >
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Loading patient records...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
