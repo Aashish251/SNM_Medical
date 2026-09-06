@@ -11,7 +11,7 @@ export const PatientRegistrationApi = baseApi.injectEndpoints({
       PatientRegistrationPayload
     >({
       query: (body) => ({
-        url: "/api/api/patients",
+        url: "/api/patients",
         method: "POST",
         body,
       }),
