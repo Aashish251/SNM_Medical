@@ -12,6 +12,7 @@ import {
   ROUTE_MS_ADMIN_REGISTRATION_REPORT,
   ROUTE_MS_ADMIN_MASTER_REPORT,
   ROUTE_ADMIN_DASHBOARD,
+  ROUTE_ADMIN_PROFILE,
 } from "@app/router/routePaths";
 
 export const SNM_SITE_LOGO_TITLE = "Medical Sewa";
@@ -70,10 +71,13 @@ export const SNM_NAV_FORGOT_PASSWORD_LABEL = "Forget Password"
 export const SNM_NAV_FORGOT_PASSWORD_LINK = ROUTE_FORGOT_PASSWORD
 
 export const SNM_NAV_BLOOD_DONATION_LABEL = "Blood Donation"
+export const SNM_NAV_BLOOD_DONATION_DESCRIPTION = "Regular blood drives supporting local hospitals."
 export const SNM_NAV_BLOOD_DONATION_LINK = "/blood-donation"
 export const SNM_NAV_FREE_HEALTH_CHECKUPS_LABEL = "Free Health Check-ups"
+export const SNM_NAV_FREE_HEALTH_CHECKUPS_DESCRIPTION = "Community health camps & screenings for early detection."
 export const SNM_NAV_FREE_HEALTH_CHECKUPS_LINK = "/free-health-checkups"
 export const SNM_NAV_PATIENT_REGISTRATION_LABEL = "Patient Registration"
+export const SNM_NAV_PATIENT_REGISTRATION_DESCRIPTION = "Easy patient registration process for seamless healthcare experience."
 export const SNM_NAV_PATIENT_REGISTRATION_LINK = "/patient-registration"
 
 // Medical Staff Admin navigation (/ms-admin/*)
@@ -95,6 +99,8 @@ export const SNM_NAV_MS_MASTER_REPORT_LINK = ROUTE_MS_ADMIN_MASTER_REPORT
 
 // Administrator portal default post-login route (/admin/*)
 export const SNM_NAV_ADMIN_DASHBOARD_LINK = ROUTE_ADMIN_DASHBOARD
+export const SNM_NAV_ADMIN_PROFILE_LABEL = "Update Profile"
+export const SNM_NAV_ADMIN_PROFILE_LINK = ROUTE_ADMIN_PROFILE
 
 // Legacy aliases (backward compatibility for imports)
 export const SNM_NAV_ADMIN_UPDATE_PROFILE_LABEL = SNM_NAV_MS_UPDATE_PROFILE_LABEL

@@ -1,5 +1,6 @@
 import { NavLink } from "@shared/types/NavLinksType";
 import {
+  SNM_ADMIN_USERTYPE,
   SNM_MS_USERTYPE,
   SNM_PUBLIC_USERTYPE,
   SNM_NAV_HOME_LABEL,
@@ -27,6 +28,11 @@ import {
   SNM_NAV_BLOOD_DONATION_LINK,
   SNM_NAV_FREE_HEALTH_CHECKUPS_LINK,
   SNM_NAV_FORGOT_PASSWORD_LINK,
+  SNM_NAV_PATIENT_REGISTRATION_LINK,
+  SNM_NAV_PATIENT_REGISTRATION_LABEL,
+  SNM_NAV_ADMIN_DASHBOARD_LINK,
+  SNM_NAV_ADMIN_PROFILE_LABEL,
+  SNM_NAV_ADMIN_PROFILE_LINK,
 } from "@shared/constants";
 
 export const publicNav: NavLink[] = [
@@ -76,16 +82,10 @@ export const msNav: NavLink[] = [
     type: SNM_MS_USERTYPE,
   },
   {
-    href: SNM_NAV_MS_MASTER_SEARCH_LINK,
-    text: SNM_NAV_MS_MASTER_SEARCH_LABEL,
+    href: SNM_NAV_PATIENT_REGISTRATION_LINK,
+    text: SNM_NAV_PATIENT_REGISTRATION_LABEL,
     type: SNM_MS_USERTYPE,
-  },
-  {
-    href: SNM_NAV_MS_DUTY_CHART_LINK,
-    text: SNM_NAV_MS_DUTY_CHART_LABEL,
-    type: SNM_MS_USERTYPE,
-  },
-  reportsNav,
+  }
 ];
 
 const buildNavLinks = (): NavLink[] => [...publicNav, ...msNav];
@@ -102,5 +102,16 @@ export const navLinksByPage: Record<string, NavLink[]> = {
   [SNM_NAV_FORGOT_PASSWORD_LINK]: buildNavLinks(),
 };
 
-/** Administrator users use sidebar navigation at /admin/* */
-export const adminNav: NavLink[] = [];
+/** Administrator users dropdown navigation */
+export const adminNav: NavLink[] = [
+  {
+    href: SNM_NAV_ADMIN_DASHBOARD_LINK,
+    text: "Dashboard",
+    type: SNM_ADMIN_USERTYPE,
+  },
+  {
+    href: SNM_NAV_ADMIN_PROFILE_LINK,
+    text: SNM_NAV_ADMIN_PROFILE_LABEL,
+    type: SNM_ADMIN_USERTYPE,
+  },
+];

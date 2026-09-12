@@ -22,6 +22,7 @@ const LABELS: Record<string, string> = {
   "blood-donation": "Blood Donation",
   patients: "Patients",
   profile: "Profile",
+  edit: "Edit",
 };
 
 export function AdminBreadcrumbs() {

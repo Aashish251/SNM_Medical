@@ -144,4 +144,12 @@ export const adminRouteEntries: AdminRouteEntry[] = [
         default: m.Profile,
       })),
   },
+  {
+    path: "profile/edit",
+    name: "admin-profile-edit",
+    loader: () =>
+      import("@admin/features/profile/ProfileEdit").then((m) => ({
+        default: m.ProfileEdit,
+      })),
+  },
 ];

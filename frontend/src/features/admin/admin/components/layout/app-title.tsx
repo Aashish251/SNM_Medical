@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { SNM_WEBSITE_LOGO } from '@assets/index'
-import { SNM_SITE_LOGO_TITLE } from '@shared/constants'
-import { ROUTE_ADMIN_DASHBOARD } from '@admin/constants/routePaths'
+import { SNM_NAV_HOME_LINK, SNM_SITE_LOGO_TITLE } from '@shared/constants'
 import { cn } from '@admin/lib/utils'
 import {
   SidebarMenu,
@@ -24,7 +23,7 @@ export function AppTitle() {
         >
           <div className='flex w-full items-center'>
             <Link
-              to={ROUTE_ADMIN_DASHBOARD}
+              to={SNM_NAV_HOME_LINK}
               onClick={() => setOpenMobile(false)}
               className='flex min-w-0 flex-1 items-center gap-2 text-start'
             >
@@ -36,9 +35,6 @@ export function AppTitle() {
               <div className='min-w-0 leading-tight'>
                 <span className='block truncate font-bold text-white'>
                   {SNM_SITE_LOGO_TITLE}
-                </span>
-                <span className='block truncate text-xs text-white/75'>
-                  Admin Portal
                 </span>
               </div>
             </Link>

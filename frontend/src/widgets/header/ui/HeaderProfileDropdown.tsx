@@ -50,7 +50,7 @@ export function HeaderProfileDropdown({
                 alt="User Avatar"
               />
               <AvatarFallback>
-                {userName?.[0]?.toUpperCase() || "U"}+"hgghc"
+                {userName?.[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </button>
