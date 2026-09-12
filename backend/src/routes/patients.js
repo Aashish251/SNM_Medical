@@ -58,4 +58,64 @@ router.get("/:id",
   patientController.getPatientRegistrationById
 );
 
+/**
+ * @swagger
+ * /api/patients/{id}:
+ *   put:
+ *     tags:
+ *       - Patients
+ *     summary: Update patient registration
+ *     description: Update an existing patient registration by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Patient registration ID
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/PatientRegistrationRequest'
+ *     responses:
+ *       200:
+ *         description: Patient registration updated successfully
+ *       404:
+ *         description: Patient registration not found
+ *       409:
+ *         description: Patient registration already exists
+ *       500:
+ *         description: Failed to update patient registration
+ *   delete:
+ *     tags:
+ *       - Patients
+ *     summary: Delete patient registration
+ *     description: Delete a patient registration by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Patient registration ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Patient registration deleted successfully
+ *       404:
+ *         description: Patient registration not found
+ *       500:
+ *         description: Failed to delete patient registration
+ */
+router.route("/:id")
+  .put(
+    patientController.updatePatientRegistration
+  )
+  .delete(
+    patientController.deletePatientRegistration
+  );
+
 module.exports = router;

@@ -21,3 +21,33 @@ exports.getPatientRegistrationById = asyncHandler(async (req, res) => {
 
   sendResponse(res, 200, true, "Patient registration fetched successfully", item);
 });
+
+exports.updatePatientRegistration = asyncHandler(async (req, res) => {
+  let updated;
+  try {
+    updated = await patientService.updatePatientRegistration(req.params.id, req.body);
+  } catch (err) {
+    if (err.message === "Patient registration not found") {
+      return sendResponse(res, 404, false, err.message);
+    }
+    if (err.message.includes("already exists")) {
+      return sendResponse(res, 409, false, err.message);
+    }
+    throw err;
+  }
+
+  sendResponse(res, 200, true, "Patient registration updated successfully", updated);
+});
+
+exports.deletePatientRegistration = asyncHandler(async (req, res) => {
+  try {
+    await patientService.deletePatientRegistration(req.params.id);
+  } catch (err) {
+    if (err.message === "Patient registration not found") {
+      return sendResponse(res, 404, false, err.message);
+    }
+    throw err;
+  }
+
+  sendResponse(res, 200, true, "Patient registration deleted successfully");
+});

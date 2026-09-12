@@ -52,6 +52,23 @@ export const patientsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: "Patients", id }],
     }),
 
+    updatePatient: builder.mutation<PatientDetailResponse, Partial<PatientApiItem> & { id: number | string }>({
+      query: ({ id, ...body }) => ({
+        url: `/api/patients/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: [{ type: "Patients", id: "LIST" }],
+    }),
+
+    deletePatient: builder.mutation<void, number | string>({
+      query: (id) => ({
+        url: `/api/patients/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "Patients", id: "LIST" }],
+    }),
+
     savePatientRegistration: builder.mutation<
       PatientDetailResponse,
       Partial<PatientApiItem>
@@ -71,5 +88,7 @@ export const {
   useGetPatientsQuery,
   useGetPatientByIdQuery,
   useLazyGetPatientByIdQuery,
+  useUpdatePatientMutation,
+  useDeletePatientMutation,
   useSavePatientRegistrationMutation,
 } = patientsApi;

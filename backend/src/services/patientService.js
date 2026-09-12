@@ -80,3 +80,58 @@ exports.getPatientRegistrationById = async (id) => {
   const data = await readData();
   return data.patientRegistrations.find((item) => item.id === Number(id)) || null;
 };
+
+exports.updatePatientRegistration = async (id, payload) => {
+  const patient = normalizePayload(payload);
+  const timestamp = new Date().toISOString();
+  let updatedRecord;
+
+  await updateData(async (data) => {
+    const index = data.patientRegistrations.findIndex((item) => item.id === Number(id));
+
+    if (index === -1) {
+      throw new Error("Patient registration not found");
+    }
+
+    const existing = data.patientRegistrations[index];
+
+    const duplicate = data.patientRegistrations.find(
+      (item) =>
+        item.id !== Number(id) &&
+        item.regnNo === patient.regnNo &&
+        item.date === patient.date
+    );
+
+    if (duplicate) {
+      throw new Error("Patient registration already exists for this registration number and date");
+    }
+
+    updatedRecord = {
+      ...existing,
+      ...patient,
+      id: Number(id),
+      updatedAt: timestamp,
+    };
+
+    data.patientRegistrations[index] = updatedRecord;
+  });
+
+  return updatedRecord;
+};
+
+exports.deletePatientRegistration = async (id) => {
+  let deleted = false;
+
+  await updateData(async (data) => {
+    const index = data.patientRegistrations.findIndex((item) => item.id === Number(id));
+
+    if (index === -1) {
+      throw new Error("Patient registration not found");
+    }
+
+    data.patientRegistrations.splice(index, 1);
+    deleted = true;
+  });
+
+  return deleted;
+};

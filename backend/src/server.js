@@ -156,13 +156,29 @@ try {
   app.use("/api/user", require("./routes/user"));
   app.use("/api/search", require("./routes/search"));
   app.use("/api/community", require("./routes/community"));
-  app.use("/api/patients", require("./routes/patients"));
+
+  // Load patients route with explicit error handling
+  try {
+    const patientsRouter = require("./routes/patients");
+    console.log("✅ /api/patients router loaded successfully");
+    console.log("   Registered routes:", patientsRouter.stack.filter(r => r.route).map(r => Object.keys(r.route.methods).join(',') + ' ' + r.route.path));
+    app.use("/api/patients", patientsRouter);
+  } catch (err) {
+    console.error("❌ Failed to load /api/patients router:", err.message);
+    console.error(err.stack);
+    throw err; // Re-throw to stop server startup
+  }
+
   app.use("/api/masters", require("./routes/masters"));
   app.use("/api/dutychart", require("./routes/dutychart"));
   app.use("/api/reports", require("./routes/reports"));
+
+  // Legacy form compatibility routes - mount AFTER other routes
   app.use("/", require("./routes/formCompat"));
 } catch (error) {
-  logger.error("Error loading routes", { error: error.message });
+  console.error("💥 Error loading routes:", error.message);
+  console.error(error.stack);
+  logger.error("Error loading routes", { error: error.message, stack: error.stack });
   logger.error("Make sure all route files exist in the routes/ directory");
 }
 

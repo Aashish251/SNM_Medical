@@ -27,6 +27,7 @@ import { mapApiPatientToPatient, type Patient } from "../data/schema";
 import {
   useGetPatientByIdQuery,
   useSavePatientRegistrationMutation,
+  useUpdatePatientMutation,
 } from "../services/patientsApi";
 
 type PatientForm = {
@@ -67,6 +68,8 @@ export function PatientsActionDialog({
 
   const [savePatient, { isLoading: isSaving }] =
     useSavePatientRegistrationMutation();
+  const [updatePatient, { isLoading: isUpdating }] =
+    useUpdatePatientMutation();
 
   const form = useForm<PatientForm>({
     defaultValues: {
@@ -140,29 +143,38 @@ export function PatientsActionDialog({
       const currentYear = new Date().getFullYear();
       const randomSuffix = Math.floor(100 + Math.random() * 900);
 
-      const payload = {
-        ...(isEdit && patientId ? { id: Number(patientId) || patientId } : {}),
-        regnNo: isEdit
-          ? (fetchedItem?.regnNo || currentRow?.regnNo || `OPD-${currentYear}-${randomSuffix}`)
-          : `OPD-${currentYear}-${randomSuffix}`,
-        date: isEdit
-          ? (fetchedItem?.date || currentRow?.registrationDate || new Date().toISOString().split("T")[0])
-          : new Date().toISOString().split("T")[0],
-        patientName: values.patientName,
-        mobileNumber: values.mobileNumber,
-        email: values.email,
-        address: values.address,
-        guardianName: values.guardianName,
-        age: Number(values.age),
-        gender: values.gender,
-        disease: values.disease,
-        status: values.status,
-      };
-
-      const res = await savePatient(payload).unwrap();
-      toast.success(
-        res.message || (isEdit ? "Patient updated successfully" : "Patient created successfully")
-      );
+      if (isEdit) {
+        const res = await updatePatient({
+          id: patientId,
+          regnNo: fetchedItem?.regnNo || currentRow?.regnNo || `OPD-${currentYear}-${randomSuffix}`,
+          date: fetchedItem?.date || currentRow?.registrationDate || new Date().toISOString().split("T")[0],
+          patientName: values.patientName,
+          mobileNumber: values.mobileNumber,
+          email: values.email,
+          address: values.address,
+          guardianName: values.guardianName,
+          age: Number(values.age),
+          gender: values.gender,
+          disease: values.disease,
+          status: values.status,
+        }).unwrap();
+        toast.success(res.message || "Patient updated successfully");
+      } else {
+        const res = await savePatient({
+          regnNo: `OPD-${currentYear}-${randomSuffix}`,
+          date: new Date().toISOString().split("T")[0],
+          patientName: values.patientName,
+          mobileNumber: values.mobileNumber,
+          email: values.email,
+          address: values.address,
+          guardianName: values.guardianName,
+          age: Number(values.age),
+          gender: values.gender,
+          disease: values.disease,
+          status: values.status,
+        }).unwrap();
+        toast.success(res.message || "Patient created successfully");
+      }
       form.reset();
       onOpenChange(false);
     } catch (err) {
@@ -171,12 +183,13 @@ export function PatientsActionDialog({
   };
 
   const isBusyLoadingDetails = isEdit && (isLoadingDetails || isFetchingDetails);
+  const isSubmitting = isSaving || isUpdating;
 
   return (
     <Dialog
       open={open}
       onOpenChange={(state) => {
-        if (!isSaving) {
+        if (!isSubmitting) {
           form.reset();
           onOpenChange(state);
         }
@@ -218,7 +231,7 @@ export function PatientsActionDialog({
                           placeholder="John Doe"
                           className="col-span-4"
                           autoComplete="off"
-                          disabled={isSaving}
+                          disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
@@ -237,7 +250,7 @@ export function PatientsActionDialog({
                         <Input
                           placeholder="+91 9876543210"
                           className="col-span-4"
-                          disabled={isSaving}
+                          disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
@@ -258,7 +271,7 @@ export function PatientsActionDialog({
                         <Input
                           placeholder="john@example.com"
                           className="col-span-4"
-                          disabled={isSaving}
+                          disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
@@ -277,7 +290,7 @@ export function PatientsActionDialog({
                         <Input
                           placeholder="Robert Doe"
                           className="col-span-4"
-                          disabled={isSaving}
+                          disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
@@ -297,7 +310,7 @@ export function PatientsActionDialog({
                           type="number"
                           placeholder="30"
                           className="col-span-4"
-                          disabled={isSaving}
+                          disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
@@ -317,7 +330,7 @@ export function PatientsActionDialog({
                         onValueChange={field.onChange}
                         placeholder="Select gender"
                         className="col-span-4"
-                        disabled={isSaving}
+                        disabled={isSubmitting}
                         items={patientGenderOptions.map(({ label, value }) => ({
                           label,
                           value,
@@ -338,7 +351,7 @@ export function PatientsActionDialog({
                         <Input
                           placeholder="123 Main St, New Delhi"
                           className="col-span-4"
-                          disabled={isSaving}
+                          disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
@@ -357,7 +370,7 @@ export function PatientsActionDialog({
                         <Input
                           placeholder="Fever & Flu"
                           className="col-span-4"
-                          disabled={isSaving}
+                          disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
@@ -377,7 +390,7 @@ export function PatientsActionDialog({
                         onValueChange={field.onChange}
                         placeholder="Select status"
                         className="col-span-4"
-                        disabled={isSaving}
+                        disabled={isSubmitting}
                         items={patientStatusOptions.map(({ label, value }) => ({
                           label,
                           value,
@@ -396,9 +409,9 @@ export function PatientsActionDialog({
           <Button
             type="submit"
             form="patient-form"
-            disabled={isBusyLoadingDetails || isSaving}
+            disabled={isBusyLoadingDetails || isSubmitting}
           >
-            {isSaving ? (
+            {isSubmitting ? (
               <>
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
                 <span>Saving...</span>

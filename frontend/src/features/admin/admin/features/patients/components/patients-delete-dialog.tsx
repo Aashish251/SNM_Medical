@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 import { showSubmittedData } from "@admin/lib/show-submitted-data";
 import { Alert, AlertDescription, AlertTitle } from "@admin/components/ui/alert";
 import { Input } from "@admin/components/ui/input";
 import { Label } from "@admin/components/ui/label";
 import { ConfirmDialog } from "@admin/components/confirm-dialog";
+import { normalizeApiError } from "@shared/api/errors";
 import { type Patient } from "../data/schema";
+import { useDeletePatientMutation } from "../services/patientsApi";
 
 type PatientDeleteDialogProps = {
   open: boolean;
@@ -19,12 +22,20 @@ export function PatientsDeleteDialog({
   currentRow,
 }: PatientDeleteDialogProps) {
   const [value, setValue] = useState("");
+  const [deletePatient, { isLoading: isDeleting }] =
+    useDeletePatientMutation();
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (value.trim() !== currentRow.regnNo) return;
 
-    onOpenChange(false);
-    showSubmittedData(currentRow, "The following patient record has been deleted:");
+    try {
+      await deletePatient(currentRow.id).unwrap();
+      onOpenChange(false);
+      showSubmittedData(currentRow, "The following patient record has been deleted:");
+      setValue("");
+    } catch (err) {
+      toast.error(normalizeApiError(err).message);
+    }
   };
 
   return (
@@ -32,7 +43,7 @@ export function PatientsDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       form="patients-delete-form"
-      disabled={value.trim() !== currentRow.regnNo}
+      disabled={value.trim() !== currentRow.regnNo || isDeleting}
       title={
         <span className="text-destructive">
           <AlertTriangle
@@ -78,6 +89,8 @@ export function PatientsDeleteDialog({
       }
       confirmText="Delete"
       destructive
+      isLoading={isDeleting}
     />
   );
 }
+
