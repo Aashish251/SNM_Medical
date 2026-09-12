@@ -36,6 +36,9 @@ export function AppTitle() {
                 <span className='block truncate font-bold text-white'>
                   {SNM_SITE_LOGO_TITLE}
                 </span>
+                <span className='block truncate text-[11px] text-white/70'>
+                  Admin Portal
+                </span>
               </div>
             </Link>
             <ToggleSidebar />

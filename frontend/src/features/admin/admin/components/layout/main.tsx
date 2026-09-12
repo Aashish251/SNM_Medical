@@ -5,9 +5,10 @@ type MainProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean
   fluid?: boolean
   ref?: React.Ref<HTMLElement>
+  hideBreadcrumbs?: boolean
 }
 
-export function Main({ fixed, className, fluid, children, ...props }: MainProps) {
+export function Main({ fixed, className, fluid, hideBreadcrumbs, children, ...props }: MainProps) {
   return (
     <main
       data-layout={fixed ? 'fixed' : 'auto'}
@@ -24,7 +25,7 @@ export function Main({ fixed, className, fluid, children, ...props }: MainProps)
       )}
       {...props}
     >
-      <AdminBreadcrumbs />
+      {!hideBreadcrumbs && <AdminBreadcrumbs />}
       {children}
     </main>
   )

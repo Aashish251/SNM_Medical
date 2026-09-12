@@ -18,6 +18,7 @@ export const UpdateProfileApi = baseApi.injectEndpoints({
           "x-is-form-data": "true",
         },
       }),
+      invalidatesTags: ["UserDetails"],
     }),
     getUserDetailsQuery: builder.query<GetUserProfileResponse, number>({
       keepUnusedDataFor: 0,

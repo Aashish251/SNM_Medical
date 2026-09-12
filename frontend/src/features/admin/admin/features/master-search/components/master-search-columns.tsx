@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@admin/components/ui/button";
+import { Checkbox } from "@admin/components/ui/checkbox";
+import { Avatar, AvatarFallback } from "@admin/components/ui/avatar";
 import {
-  createSelectColumn,
-  createStatusColumn,
-  createTextColumn,
-} from "@admin/components/entity-list";
-import { DataTableColumnHeader } from "@admin/components/data-table";
-import { LongText } from "@admin/components/long-text";
-import { masterSearchStatusMap } from "../data/status";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@admin/components/ui/dropdown-menu";
 import type { MasterSearchUser } from "../types";
 import { getDocumentViewUrl } from "@shared/utils/documentHelper";
 
@@ -26,42 +27,146 @@ export function createMasterSearchColumns({
   isApproving,
 }: CreateMasterSearchColumnsOptions): ColumnDef<MasterSearchUser>[] {
   return [
-    createSelectColumn<MasterSearchUser>(),
+    // 1. Select Checkbox
     {
-      accessorKey: "fullName",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Full Name" />
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected()
+              ? true
+              : table.getIsSomePageRowsSelected()
+              ? "indeterminate"
+              : false
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="translate-y-0.5 border-slate-300"
+        />
       ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-0.5 border-slate-300"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+
+    // 2. Row index (#)
+    {
+      id: "index",
+      header: "#",
+      cell: ({ row, table }) => {
+        const pageIndex = table.getState().pagination.pageIndex;
+        const pageSize = table.getState().pagination.pageSize;
+        return (
+          <span className="text-xs text-slate-500">
+            {pageIndex * pageSize + row.index + 1}
+          </span>
+        );
+      },
+      enableSorting: false,
+    },
+
+    // 3. Status
+    {
+      accessorKey: "status",
+      header: "Status",
       cell: ({ row }) => {
         const user = row.original;
+        const isApproved =
+          user.status === "approved" ||
+          user.isApproved === 1 ||
+          user.isApproved === ("1" as unknown);
+
+        if (isApproved) {
+          return (
+            <span className="inline-flex items-center rounded-md border border-emerald-200/90 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+              Approved
+            </span>
+          );
+        }
         return (
-          <Link
-            to={`/${user.userType}/update-profile`}
-            state={{ userId: user.regId }}
-            className="font-medium text-primary underline underline-offset-2"
+          <span className="inline-flex items-center rounded-md border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+            Pending
+          </span>
+        );
+      },
+      enableSorting: false,
+    },
+
+    // 4. Full Name (with Avatar thumbnail & blue link)
+    {
+      accessorKey: "fullName",
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
+        return (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-3 h-8 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {user.title} {user.fullName}
-          </Link>
+            <span>Full Name</span>
+            {isSorted === "asc" ? (
+              <ArrowUp className="ml-1 h-3.5 w-3.5" />
+            ) : isSorted === "desc" ? (
+              <ArrowDown className="ml-1 h-3.5 w-3.5" />
+            ) : (
+              <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const user = row.original;
+        const name = `${user.title ? user.title + " " : ""}${user.fullName}`;
+        const initials =
+          (user.fullName || "User")
+            .split(" ")
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase() || "U";
+
+        return (
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6.5 w-6.5 shrink-0 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <Link
+              to={`/${user.userType || "admin"}/update-profile`}
+              state={{ userId: user.regId }}
+              className="text-xs font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
+            >
+              {name}
+            </Link>
+          </div>
         );
       },
       enableSorting: true,
     },
+
+    // 5. Certificate
     {
       accessorKey: "certificateDocPath",
       header: "Certificate",
       cell: ({ row }) => {
         const path = row.original.certificateDocPath;
         if (!path) {
-          return <span className="text-muted-foreground">No File</span>;
+          return <span className="text-xs text-slate-400">-</span>;
         }
         const fullUrl = getDocumentViewUrl(row.original.regId);
-
         return (
           <a
             href={fullUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline underline-offset-2"
+            className="text-xs font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
           >
             View
           </a>
@@ -69,77 +174,180 @@ export function createMasterSearchColumns({
       },
       enableSorting: false,
     },
-    createTextColumn<MasterSearchUser>("mobileNo", "Contact", {
-      sortable: false,
-    }),
+
+    // 6. Contact
+    {
+      accessorKey: "mobileNo",
+      header: "Contact",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.mobileNo || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 7. Department
     {
       accessorKey: "departmentName",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Department" />
-      ),
+      header: "Department",
       cell: ({ row }) => (
-        <LongText className="max-w-40">
-          {String(row.getValue("departmentName") ?? "")}
-        </LongText>
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.departmentName || "-"}
+        </span>
       ),
       enableSorting: true,
     },
-    createTextColumn<MasterSearchUser>("sewalocationName", "Sewa Location", {
-      sortable: false,
-    }),
+
+    // 8. Sewa Location
+    {
+      accessorKey: "sewalocationName",
+      header: "Sewa Location",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.sewalocationName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 9. Is Present
     {
       accessorKey: "isPresent",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Is Present" />
+      header: "Is Present",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {yesNo(row.original.isPresent)}
+        </span>
       ),
-      cell: ({ row }) => yesNo(row.original.isPresent),
       enableSorting: true,
     },
+
+    // 10. Pass Entry
     {
       accessorKey: "passEntry",
       header: "Pass Entry",
-      cell: ({ row }) => yesNo(row.original.passEntry),
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {yesNo(row.original.passEntry)}
+        </span>
+      ),
       enableSorting: false,
     },
-    createTextColumn<MasterSearchUser>("shifttime", "Shift Time", {
-      sortable: false,
-    }),
-    createTextColumn<MasterSearchUser>("onduty", "On Duty", {
-      sortable: false,
-    }),
-    createTextColumn<MasterSearchUser>("qualificationName", "Qualification", {
-      sortable: false,
-    }),
-    createTextColumn<MasterSearchUser>("email", "Email", { sortable: false }),
-    createTextColumn<MasterSearchUser>("cityName", "City", { sortable: false }),
-    createTextColumn<MasterSearchUser>("stateName", "State", {
-      sortable: false,
-    }),
-    createStatusColumn<MasterSearchUser>(masterSearchStatusMap),
+
+    // 11. Shift Time
+    {
+      accessorKey: "shifttime",
+      header: "Shift Time",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.shifttime || "All-Time"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 12. On Duty
+    {
+      accessorKey: "onduty",
+      header: "On Duty",
+      cell: ({ row }) => {
+        const val = row.original.onduty;
+        const display =
+          val === "Yes" || val === 1 || val === "1" ? "Yes" : "-";
+        return (
+          <span className="text-xs text-slate-700 dark:text-slate-300">
+            {display}
+          </span>
+        );
+      },
+      enableSorting: false,
+    },
+
+    // 13. Qualification
+    {
+      accessorKey: "qualificationName",
+      header: "Qualification",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.qualificationName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 14. Email
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => {
+        const email = row.original.email || "-";
+        return (
+          <span
+            className="block max-w-[130px] truncate text-xs text-slate-700 dark:text-slate-300"
+            title={email}
+          >
+            {email}
+          </span>
+        );
+      },
+      enableSorting: false,
+    },
+
+    // 15. Actions
     {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
         const user = row.original;
-        if (user.status === "deleted") {
-          return (
-            <span className="text-sm text-muted-foreground">Inactive</span>
-          );
-        }
-        if (user.status === "pending") {
-          return (
-            <Button
-              size="sm"
-              disabled={isApproving}
-              onClick={() => {
-                void onApprove(user.regId);
-              }}
-            >
-              Approve
-            </Button>
-          );
-        }
-        return null;
+        const isApproved =
+          user.status === "approved" ||
+          user.isApproved === 1 ||
+          user.isApproved === ("1" as unknown);
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40 text-xs">
+              <DropdownMenuItem asChild>
+                <Link
+                  to={`/${user.userType || "admin"}/update-profile`}
+                  state={{ userId: user.regId }}
+                >
+                  View Profile
+                </Link>
+              </DropdownMenuItem>
+              {!isApproved && (
+                <DropdownMenuItem
+                  disabled={isApproving}
+                  onClick={() => onApprove(user.regId)}
+                  className="font-medium text-emerald-600 focus:text-emerald-700"
+                >
+                  Approve User
+                </DropdownMenuItem>
+              )}
+              {user.certificateDocPath && (
+                <DropdownMenuItem asChild>
+                  <a
+                    href={getDocumentViewUrl(user.regId)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Certificate
+                  </a>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
       },
       enableSorting: false,
       enableHiding: false,

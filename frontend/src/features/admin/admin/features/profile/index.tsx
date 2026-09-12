@@ -311,18 +311,18 @@ export function Profile() {
   const profileImage = avatarUrl(profile?.profileImage ?? userDetails?.profilePic);
 
   const titleVal =
-    profile?.title === "1" || profile?.title === 1
+    String(profile?.title) === "1"
       ? "Mr"
-      : profile?.title === "2" || profile?.title === 2
+      : String(profile?.title) === "2"
       ? "Mrs"
-      : profile?.title === "3" || profile?.title === 3
+      : String(profile?.title) === "3"
       ? "Ms"
       : d(profile?.title);
 
   const genderVal =
-    profile?.gender === "1" || profile?.gender === 1
+    String(profile?.gender) === "1"
       ? "Male"
-      : profile?.gender === "2" || profile?.gender === 2
+      : String(profile?.gender) === "2"
       ? "Female"
       : d(profile?.gender);
 
