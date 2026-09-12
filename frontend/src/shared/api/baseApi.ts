@@ -54,6 +54,7 @@ export const baseApi = createApi({
     "MasterSearch",
     "Patients",
     "RegistrationDropdown",
+    "Reports",
     "UserDetails",
   ],
   endpoints: () => ({}),
