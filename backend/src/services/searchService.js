@@ -76,13 +76,63 @@ exports.masterSearch = async ({
      */
     const results = resultSets[0] || [];
     const totalCountRow = resultSets[1]?.[0] || {};
-    const totalRecords = Number(
+    let totalRecords = Number(
       totalCountRow.TOTAL_RECORDS ??
       totalCountRow.totalRecords ??
       totalCountRow.total_records ??
-      totalCountRow.count ??
-      results.length
-    ) || 0;
+      totalCountRow.count
+    );
+
+    // Determine total records
+    if (!totalRecords && totalRecords !== 0) {
+      // Fast path: if on page 1 and fewer results than page limit, total is exact results length
+      if (normalizedPage === 1 && results.length < normalizedLimit) {
+        totalRecords = results.length;
+      } else {
+        // Lean COUNT query directly on registration_tbl without any redundant table joins
+        const countParams = [];
+        let countQuery = `SELECT COUNT(1) as total FROM registration_tbl r WHERE 1=1`;
+        
+        if (searchKey) {
+          countQuery += ` AND (CAST(r.reg_id AS CHAR) LIKE ? OR r.full_name LIKE ? OR r.mobile_no LIKE ? OR r.email LIKE ?)`;
+          const likeKey = `%${searchKey}%`;
+          countParams.push(likeKey, likeKey, likeKey, likeKey);
+        }
+        if (departmentId !== null && departmentId !== undefined) {
+          countQuery += ` AND r.department_id = ?`;
+          countParams.push(departmentId);
+        }
+        if (qualificationId !== null && qualificationId !== undefined) {
+          countQuery += ` AND r.qualification_id = ?`;
+          countParams.push(qualificationId);
+        }
+        if (sewaLocationId !== null && sewaLocationId !== undefined) {
+          countQuery += ` AND r.sewa_location_id = ?`;
+          countParams.push(sewaLocationId);
+        }
+        if (cityId !== null && cityId !== undefined) {
+          countQuery += ` AND r.city_id = ?`;
+          countParams.push(cityId);
+        }
+        if (stateId !== null && stateId !== undefined) {
+          countQuery += ` AND r.state_id = ?`;
+          countParams.push(stateId);
+        }
+        if (isPresent !== null && isPresent !== undefined) {
+          countQuery += ` AND r.is_present = ?`;
+          countParams.push(isPresent);
+        }
+        if (passEntry !== null && passEntry !== undefined) {
+          countQuery += ` AND r.pass_entry = ?`;
+          countParams.push(passEntry);
+        }
+
+        const [[countResult]] = await connection.query(countQuery, countParams);
+        totalRecords = Number(countResult?.total) || results.length;
+      }
+    }
+
+    totalRecords = Number(totalRecords) || results.length;
 
     //  Convert column names to camelCase
     const formattedResults = results.map((row) => {

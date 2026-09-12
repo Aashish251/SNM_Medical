@@ -62,25 +62,35 @@ export default function MasterSearchPage() {
   });
 
   useEffect(() => {
+    setCurrentPage(1);
     setSearchPayload((prev) => ({
       ...prev,
       sortBy: sortState.column || "regId",
       sortOrder: sortState.direction,
       page: 1,
     }));
-    setCurrentPage(1);
   }, [setCurrentPage, setSearchPayload, sortState.column, sortState.direction]);
 
   useEffect(() => {
-    setSearchPayload((prev) => ({
-      ...prev,
-      page: currentPage,
-      limit: pageLimit,
-    }));
+    setSearchPayload((prev) => {
+      if (prev.page === currentPage && prev.limit === pageLimit) {
+        return prev;
+      }
+      return {
+        ...prev,
+        page: currentPage,
+        limit: pageLimit,
+      };
+    });
   }, [currentPage, pageLimit, setSearchPayload]);
 
-  const totalRecords = masterSearchData?.total ?? safeUsers.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageLimit));
+  const totalRecords =
+    masterSearchData?.pagination?.totalRecords ??
+    masterSearchData?.total ??
+    safeUsers.length;
+  const totalPages =
+    masterSearchData?.pagination?.total ??
+    Math.max(1, Math.ceil(totalRecords / pageLimit));
 
   return (
     <main className="container mx-auto px-2 sm:px-4 pt-[120px] md:pt-[90px] lg:pt-[100px]">
@@ -142,6 +152,7 @@ export default function MasterSearchPage() {
           currentPage={currentPage}
           totalPages={totalPages}
           pageLimit={pageLimit}
+          totalRecords={totalRecords}
           onLimitChange={(limit) => {
             setPageLimit(limit);
             setCurrentPage(1);

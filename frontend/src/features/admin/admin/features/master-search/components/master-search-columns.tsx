@@ -10,6 +10,7 @@ import { DataTableColumnHeader } from "@admin/components/data-table";
 import { LongText } from "@admin/components/long-text";
 import { masterSearchStatusMap } from "../data/status";
 import type { MasterSearchUser } from "../types";
+import { getDocumentViewUrl } from "@shared/utils/documentHelper";
 
 type CreateMasterSearchColumnsOptions = {
   onApprove: (regId: string | number) => void;
@@ -53,10 +54,7 @@ export function createMasterSearchColumns({
         if (!path) {
           return <span className="text-muted-foreground">No File</span>;
         }
-        const fullUrl =
-          path.startsWith("http://") || path.startsWith("https://")
-            ? path
-            : `${import.meta.env.VITE_API_BASE_URL}${path}`;
+        const fullUrl = getDocumentViewUrl(row.original.regId);
 
         return (
           <a

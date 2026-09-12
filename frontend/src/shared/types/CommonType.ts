@@ -75,6 +75,13 @@ export interface SearchResponse {
   message: string;
   data: User[];
   total?: number;
+  pagination?: {
+    current: number;
+    total: number;
+    pageSize: number;
+    count: number;
+    totalRecords: number;
+  };
 }
 
 

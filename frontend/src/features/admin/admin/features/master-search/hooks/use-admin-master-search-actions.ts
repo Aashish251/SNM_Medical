@@ -48,7 +48,10 @@ export function useAdminMasterSearchActions({
     return masterSearchData.data.map(toMasterSearchUser);
   }, [masterSearchData?.data]);
 
-  const totalRecords = masterSearchData?.total ?? users.length;
+  const totalRecords =
+    masterSearchData?.pagination?.totalRecords ??
+    masterSearchData?.total ??
+    users.length;
 
   const roleForm = useForm<MasterSearchRoleFormValues>({
     mode: "onBlur",

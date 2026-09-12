@@ -3,6 +3,7 @@ import { Button } from "@shared/components/ui/button";
 import { Link } from "react-router-dom";
 import type { TableConfig } from "@shared/components/DataTable/DataTable";
 import { User } from "@shared/types/CommonType";
+import { getDocumentViewUrl } from "@shared/utils/documentHelper";
 
 export const userTableConfig: TableConfig<User> = {
   showCheckbox: true,
@@ -51,20 +52,18 @@ export const userTableConfig: TableConfig<User> = {
       header: "Certificate",
       afterStatus: true,
       render: (user: User) => {
-        const certUrl = user.certificateDocPath?.startsWith("http://") || user.certificateDocPath?.startsWith("https://")
-          ? user.certificateDocPath
-          : `${import.meta.env?.VITE_API_BASE_URL}${user.certificateDocPath}`;
+        const certUrl = getDocumentViewUrl(user.regId);
 
         return (
           <div className="text-center">{user.certificateDocPath ? (
-            <Link
-              to={certUrl}
+            <a
+              href={certUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
             >
               View
-            </Link>
+            </a>
           ) : (
             <span className="text-gray-400">No File</span>
           )}</div>

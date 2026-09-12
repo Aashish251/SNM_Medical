@@ -18,6 +18,7 @@ exports.masterSearch = async (req, res) => {
       success: true,
       message: `Found ${pagination.totalRecords} record(s)`,
       data,
+      total: pagination.totalRecords,
       pagination
     });
   } catch (error) {

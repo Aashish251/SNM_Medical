@@ -215,6 +215,7 @@ const UpdateProfile = () => {
               prevStep={prevStep}
               reset={() => resetFields(step2Fields)}
               existingCertificate={existingCertificate}
+              regId={regId?.userId}
             />
           )}
 

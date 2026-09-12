@@ -115,6 +115,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 try {
   app.use("/api/registration", require("./routes/registration")); // includes file upload endpoints
   app.use("/api/dashboard", require("./routes/dashboard")); // includes profile update with file upload
+  app.use("/api/files", require("./routes/files")); // safe authenticated file viewing and streaming
 
   // Rate limiter for auth routes (brute-force protection)
   const authRateLimitMap = new Map();
