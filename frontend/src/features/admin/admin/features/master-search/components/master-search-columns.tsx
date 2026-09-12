@@ -53,9 +53,14 @@ export function createMasterSearchColumns({
         if (!path) {
           return <span className="text-muted-foreground">No File</span>;
         }
+        const fullUrl =
+          path.startsWith("http://") || path.startsWith("https://")
+            ? path
+            : `${import.meta.env.VITE_API_BASE_URL}${path}`;
+
         return (
           <a
-            href={`${import.meta.env.VITE_API_BASE_URL}${path}`}
+            href={fullUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary underline underline-offset-2"

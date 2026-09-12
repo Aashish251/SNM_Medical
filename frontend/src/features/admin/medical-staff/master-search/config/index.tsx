@@ -50,19 +50,26 @@ export const userTableConfig: TableConfig<User> = {
       key: "certificateDocPath",
       header: "Certificate",
       afterStatus: true,
-      render: (user: User) =>
-        <div className="text-center">{user.certificateDocPath ? (
-          <Link
-            to={`${import.meta.env?.VITE_API_BASE_URL}${user.certificateDocPath}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
-          >
-            View
-          </Link>
-        ) : (
-          <span className="text-gray-400">No File</span>
-        )}</div>,
+      render: (user: User) => {
+        const certUrl = user.certificateDocPath?.startsWith("http://") || user.certificateDocPath?.startsWith("https://")
+          ? user.certificateDocPath
+          : `${import.meta.env?.VITE_API_BASE_URL}${user.certificateDocPath}`;
+
+        return (
+          <div className="text-center">{user.certificateDocPath ? (
+            <Link
+              to={certUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
+            >
+              View
+            </Link>
+          ) : (
+            <span className="text-gray-400">No File</span>
+          )}</div>
+        );
+      },
     },
     { key: "mobileNo", header: "Contact", afterStatus: true, render: (user: User) => <div className="text-center">{user.mobileNo}</div> },
     { key: "departmentName", header: "Department", sortable: true, afterStatus: true, render: (user: User) => <div>{user.departmentName}</div> },

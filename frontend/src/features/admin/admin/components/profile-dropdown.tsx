@@ -24,13 +24,19 @@ export function ProfileDropdown() {
   const email = userDetails?.email ?? "admin@snmmedical.com";
   const initials = displayName.slice(0, 2).toUpperCase();
 
+  const avatarSrc = userDetails?.profilePic
+    ? userDetails.profilePic.startsWith("http://") || userDetails.profilePic.startsWith("https://")
+      ? userDetails.profilePic
+      : `${import.meta.env.VITE_API_BASE_URL}${userDetails.profilePic}`
+    : undefined;
+
   return (
     <>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={userDetails?.profilePic} alt={displayName} />
+              <AvatarImage src={avatarSrc} alt={displayName} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </Button>

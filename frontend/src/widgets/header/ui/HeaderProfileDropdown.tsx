@@ -42,7 +42,9 @@ export function HeaderProfileDropdown({
               <AvatarImage
                 src={
                   profilePic
-                    ? `${import.meta.env.VITE_API_BASE_URL}${profilePic}`
+                    ? profilePic.startsWith("http://") || profilePic.startsWith("https://")
+                      ? profilePic
+                      : `${import.meta.env.VITE_API_BASE_URL}${profilePic}`
                     : DEFAULT_PROFILE_IMAGE
                 }
                 alt="User Avatar"

@@ -79,10 +79,15 @@ exports.login = async ({ role, email, mobileNo, password }) => {
   // Ensure profile picture path is properly formatted
   let profileImagePath = null;
   if (user.profile_img_path && user.profile_img_path.trim() !== '') {
-    // If path doesn't start with /, add it
-    profileImagePath = user.profile_img_path.startsWith('/')
-      ? user.profile_img_path
-      : '/' + user.profile_img_path;
+    // If path is a remote URL (e.g. Cloudinary), keep it as is
+    if (user.profile_img_path.startsWith('http://') || user.profile_img_path.startsWith('https://')) {
+      profileImagePath = user.profile_img_path;
+    } else {
+      // If local path doesn't start with /, add it
+      profileImagePath = user.profile_img_path.startsWith('/')
+        ? user.profile_img_path
+        : '/' + user.profile_img_path;
+    }
   } else {
     // If no profile image, return null to use frontend default
     profileImagePath = null;
