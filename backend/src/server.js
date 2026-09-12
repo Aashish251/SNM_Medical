@@ -297,11 +297,23 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   const dbConnected = await testConnection();
   if (dbConnected) {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(` Environment: ${process.env.NODE_ENV || "development"}`);
       console.log(`   • Health: http://localhost:${PORT}/health`);
       console.log(`   • API Overview: http://localhost:${PORT}/api`)
       console.log(`   • Swagger UI: http://localhost:${PORT}/api-docs`);
+    });
+
+    server.on("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.error(`\n❌ Port ${PORT} is already in use by another running process!`);
+        console.error(`   To resolve this:`);
+        console.error(`   1. Stop the other running terminal/server instance, OR`);
+        console.error(`   2. In PowerShell run: Stop-Process -Id (Get-NetTCPConnection -LocalPort ${PORT}).OwningProcess -Force\n`);
+      } else {
+        console.error("❌ Server startup error:", err.message);
+      }
+      process.exit(1);
     });
   } else {
     console.error(
