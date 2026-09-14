@@ -18,6 +18,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { cn } from "@admin/lib/utils";
+import { useAppSelector } from "@app/store/hooks";
 import {
   Table,
   TableBody,
@@ -78,13 +79,14 @@ export function MasterSearchTable({
   onExport,
   isExporting,
 }: MasterSearchTableProps) {
+  const currentUserId = useAppSelector((state) => state.auth.userDetails?.id);
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const columns = useMemo(
-    () => createMasterSearchColumns({ onApprove, isApproving }),
-    [isApproving, onApprove]
+    () => createMasterSearchColumns({ onApprove, isApproving, currentUserId }),
+    [currentUserId, isApproving, onApprove]
   );
 
   const sorting: SortingState = sortState.column

@@ -10,12 +10,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@admin/components/ui/dropdown-menu";
+import {
+  ROUTE_ADMIN_PROFILE,
+  ROUTE_ADMIN_UPDATE_PROFILE,
+} from "@admin/constants/routePaths";
 import type { MasterSearchUser } from "../types";
-import { getDocumentViewUrl } from "@shared/utils/documentHelper";
+import { openDocumentView } from "@shared/utils/documentHelper";
 
 type CreateMasterSearchColumnsOptions = {
   onApprove: (regId: string | number) => void;
   isApproving: boolean;
+  currentUserId?: string | number;
 };
 
 function yesNo(value: unknown) {
@@ -25,6 +30,7 @@ function yesNo(value: unknown) {
 export function createMasterSearchColumns({
   onApprove,
   isApproving,
+  currentUserId,
 }: CreateMasterSearchColumnsOptions): ColumnDef<MasterSearchUser>[] {
   return [
     // 1. Select Checkbox
@@ -78,6 +84,7 @@ export function createMasterSearchColumns({
       header: "Status",
       cell: ({ row }) => {
         const user = row.original;
+        const isCurrentUser = String(user.regId) === String(currentUserId);
         const isApproved =
           user.status === "approved" ||
           user.isApproved === 1 ||
@@ -124,6 +131,7 @@ export function createMasterSearchColumns({
       },
       cell: ({ row }) => {
         const user = row.original;
+        const isCurrentUser = String(user.regId) === String(currentUserId);
         const name = `${user.title ? user.title + " " : ""}${user.fullName}`;
         const initials =
           (user.fullName || "User")
@@ -138,9 +146,9 @@ export function createMasterSearchColumns({
             <Avatar className="h-6.5 w-6.5 shrink-0 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
-            <Link
-              to={`/${user.userType || "admin"}/update-profile`}
-              state={{ userId: user.regId }}
+              <Link
+                to={isCurrentUser ? ROUTE_ADMIN_PROFILE : ROUTE_ADMIN_UPDATE_PROFILE}
+                state={isCurrentUser ? undefined : { userId: user.regId }}
               className="text-xs font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
             >
               {name}
@@ -160,16 +168,14 @@ export function createMasterSearchColumns({
         if (!path) {
           return <span className="text-xs text-slate-400">-</span>;
         }
-        const fullUrl = getDocumentViewUrl(row.original.regId);
         return (
-          <a
-            href={fullUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => void openDocumentView(row.original.regId)}
             className="text-xs font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
           >
             View
-          </a>
+          </button>
         );
       },
       enableSorting: false,
@@ -300,6 +306,7 @@ export function createMasterSearchColumns({
       header: "Actions",
       cell: ({ row }) => {
         const user = row.original;
+        const isCurrentUser = String(user.regId) === String(currentUserId);
         const isApproved =
           user.status === "approved" ||
           user.isApproved === 1 ||
@@ -319,8 +326,8 @@ export function createMasterSearchColumns({
             <DropdownMenuContent align="end" className="w-40 text-xs">
               <DropdownMenuItem asChild>
                 <Link
-                  to={`/${user.userType || "admin"}/update-profile`}
-                  state={{ userId: user.regId }}
+                  to={isCurrentUser ? ROUTE_ADMIN_PROFILE : ROUTE_ADMIN_UPDATE_PROFILE}
+                  state={isCurrentUser ? undefined : { userId: user.regId }}
                 >
                   View Profile
                 </Link>
@@ -335,14 +342,12 @@ export function createMasterSearchColumns({
                 </DropdownMenuItem>
               )}
               {user.certificateDocPath && (
-                <DropdownMenuItem asChild>
-                  <a
-                    href={getDocumentViewUrl(user.regId)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                <DropdownMenuItem
+                  onSelect={() => {
+                    void openDocumentView(user.regId);
+                  }}
+                >
                     View Certificate
-                  </a>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

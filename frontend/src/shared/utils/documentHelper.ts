@@ -16,3 +16,35 @@ export const getDocumentViewUrl = (regId?: number | string | null, localBlobPath
 
   return `${baseUrl}/api/files/view?regId=${encodeURIComponent(String(regId))}`;
 };
+
+export const openDocumentView = async (regId?: number | string | null): Promise<void> => {
+  const documentUrl = getDocumentViewUrl(regId);
+  if (!documentUrl) return;
+
+  const documentWindow = window.open("about:blank", "_blank");
+
+  try {
+    const persistedState = localStorage.getItem("persist:root");
+    const persistedRoot = persistedState ? JSON.parse(persistedState) : null;
+    const persistedAuth = persistedRoot?.auth ? JSON.parse(persistedRoot.auth) : null;
+    const token = persistedAuth?.token as string | undefined;
+
+    const response = await fetch(documentUrl, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to open certificate");
+    }
+
+    const documentBlob = await response.blob();
+    const blobUrl = URL.createObjectURL(documentBlob);
+    if (documentWindow) {
+      documentWindow.location.href = blobUrl;
+    }
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+  } catch (error) {
+    documentWindow?.close();
+    console.error("Unable to open certificate", error);
+  }
+};

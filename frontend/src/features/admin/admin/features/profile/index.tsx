@@ -11,6 +11,7 @@ import { Button } from "@admin/components/ui/button";
 import { Separator } from "@admin/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@admin/components/ui/avatar";
 import { Skeleton } from "@admin/components/ui/skeleton";
+import { ROUTE_ADMIN_PROFILE_EDIT } from "@admin/constants/routePaths";
 import { useGetUserDetailsQueryQuery } from "@features/update-profile/services";
 import { useGetRegistrationDropdownDataQuery } from "@shared/services/commonApi";
 import {
@@ -20,8 +21,6 @@ import {
   MapPin,
   Calendar,
   Pencil,
-  Lock,
-  Bell,
   Download,
   Briefcase,
   GraduationCap,
@@ -281,7 +280,7 @@ function ProfileTabs({
 
 export function Profile() {
   const navigate = useNavigate();
-  const { userDetails, userType } = useAppSelector((state) => state.auth);
+  const { userDetails } = useAppSelector((state) => state.auth);
   const userId = userDetails?.id;
 
   const { data: profileResponse, isLoading } = useGetUserDetailsQueryQuery(
@@ -355,12 +354,7 @@ export function Profile() {
   // Navigation
   const handleEditProfile = () => {
     if (!userId) return;
-    navigate("/admin/profile/edit", { state: { userId } });
-  };
-
-  const handleChangePassword = () => {
-    if (!userId) return;
-    navigate(`/${userType ?? "admin"}/update-profile`, { state: { userId } });
+    navigate(ROUTE_ADMIN_PROFILE_EDIT, { state: { userId } });
   };
 
   /* ---------------------------------------------------------------- */
@@ -616,17 +610,6 @@ export function Profile() {
           />
           <InfoRow label="Password" value="••••••••" />
         </div>
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleChangePassword}
-            className="rounded-xl gap-1.5"
-          >
-            <Lock className="size-4" />
-            Change Password
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
@@ -649,18 +632,6 @@ export function Profile() {
             description="Update your personal information"
             onClick={handleEditProfile}
             active
-          />
-          <QuickActionItem
-            icon={Lock}
-            title="Change Password"
-            description="Keep your account secure"
-            onClick={handleChangePassword}
-          />
-          <QuickActionItem
-            icon={Bell}
-            title="Notification Settings"
-            description="Manage your preferences"
-            disabled
           />
           <QuickActionItem
             icon={Download}

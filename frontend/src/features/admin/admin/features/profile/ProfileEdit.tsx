@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "@app/store/hooks";
 import { useForm } from "react-hook-form";
 import { Header } from "@admin/components/layout/header";
@@ -31,6 +31,7 @@ import {
   useLazyGetCitiesByStateQuery,
 } from "@shared/services/commonApi";
 import { createUpdateProfileFormData } from "@entities/registration";
+import { FileUploadField } from "@shared/components/FormInputs";
 import { calculateAge } from "@shared/lib/utils";
 import { DUMMY } from "@shared/config/common";
 import { normalizeApiError } from "@shared/api/errors";
@@ -108,15 +109,18 @@ function EditSkeleton() {
 
 export function ProfileEdit() {
   const navigate = useNavigate();
+  const { state } = useLocation();
   const { userDetails } = useAppSelector((state) => state.auth);
-  const userId = userDetails?.id;
+  const userIdFromState = state?.userId;
+  const defaultUserId = userDetails?.id;
+  const userId = userIdFromState ? String(userIdFromState) : defaultUserId;
 
   /* --- APIs -------------------------------------------------------- */
   const {
     data: profileResponse,
     isLoading: profileLoading,
-  } = useGetUserDetailsQueryQuery(userId ? Number(userId) : 0, {
-    skip: !userId,
+  } = useGetUserDetailsQueryQuery(Number(userId), {
+    skip: !userId || userId === "0",
   });
 
   const { data: dropdownData, isLoading: dropdownLoading } =
@@ -138,6 +142,7 @@ export function ProfileEdit() {
   const profileData = profileResponse?.data;
   const [cities, setCities] = useState<CityItem[]>([]);
   const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
+  const [existingCertificate, setExistingCertificate] = useState<string | undefined>();
   const [previewUrl, setPreviewUrl] = useState<string | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasReset = useRef(false);
@@ -147,6 +152,11 @@ export function ProfileEdit() {
     if (profileData && !hasReset.current) {
       hasReset.current = true;
       setExistingProfilePic(profileData.profileImage ?? undefined);
+      setExistingCertificate(
+        typeof profileData.certificate === "string"
+          ? profileData.certificate
+          : undefined
+      );
       const getVal = (val: any) => {
         if (!val) return "";
         if (typeof val === "object") return String(val.id ?? "");
@@ -514,6 +524,15 @@ export function ProfileEdit() {
                           placeholder="Recommended By"
                         />
                       </FormField>
+
+                      <FileUploadField
+                        label="Certificate"
+                        existingUrl={existingCertificate}
+                        regId={userId}
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        selectedFile={watch("certificate")}
+                        register={register("certificate")}
+                      />
 
                       <FormField label="Joined Date">
                         <Input

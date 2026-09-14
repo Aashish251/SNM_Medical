@@ -36,6 +36,7 @@ export const ROUTE_ADMIN_FREE_HEALTH_CHECKUP = `${ROUTE_ADMIN_BASE}/free-health-
 export const ROUTE_ADMIN_BLOOD_DONATION = `${ROUTE_ADMIN_BASE}/blood-donation`;
 export const ROUTE_ADMIN_PATIENTS = `${ROUTE_ADMIN_BASE}/patients`;
 export const ROUTE_ADMIN_PROFILE = `${ROUTE_ADMIN_BASE}/profile`;
+export const ROUTE_ADMIN_UPDATE_PROFILE = `${ROUTE_ADMIN_BASE}/update-profile`;
 
 // ── Administrator Portal — Master sub-routes ──────────────────────────────
 export const ROUTE_ADMIN_MASTER_BASE = `${ROUTE_ADMIN_BASE}/master`;

@@ -152,4 +152,9 @@ export const adminRouteEntries: AdminRouteEntry[] = [
         default: m.ProfileEdit,
       })),
   },
+  {
+    path: "update-profile",
+    name: "admin-update-profile",
+    loader: () => import("@pages/protected/update-profile"),
+  },
 ];

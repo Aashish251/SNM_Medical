@@ -16,8 +16,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@admin/components/ui/dropdown-menu";
+import { ROUTE_ADMIN_UPDATE_PROFILE } from "@admin/constants/routePaths";
+import { ROUTE_ADMIN_PROFILE } from "@admin/constants/routePaths";
+import { useAppSelector } from "@app/store/hooks";
 import type { MasterSearchUser } from "../types";
-import { getDocumentViewUrl } from "@shared/utils/documentHelper";
+import { openDocumentView } from "@shared/utils/documentHelper";
 
 type MasterSearchCardsProps = {
   data: MasterSearchUser[];
@@ -38,6 +41,8 @@ export function MasterSearchCards({
   onApprove,
   isApproving,
 }: MasterSearchCardsProps) {
+  const currentUserId = useAppSelector((state) => state.auth.userDetails?.id);
+
   const toggleSelect = (id: string, selected: boolean) => {
     onRowSelectionChange((prev) => ({
       ...prev,
@@ -62,6 +67,10 @@ export function MasterSearchCards({
           user.isApproved === 1 ||
           user.isApproved === ("1" as unknown);
         const name = `${user.title ? user.title + " " : ""}${user.fullName}`;
+        const isCurrentUser = String(user.regId) === String(currentUserId);
+        const profileRoute = isCurrentUser
+          ? ROUTE_ADMIN_PROFILE
+          : ROUTE_ADMIN_UPDATE_PROFILE;
         const initials =
           (user.fullName || "User")
             .split(" ")
@@ -113,8 +122,8 @@ export function MasterSearchCards({
                 <DropdownMenuContent align="end" className="w-40 text-xs">
                   <DropdownMenuItem asChild>
                     <Link
-                      to={`/${user.userType || "admin"}/update-profile`}
-                      state={{ userId: user.regId }}
+                      to={profileRoute}
+                      state={isCurrentUser ? undefined : { userId: user.regId }}
                     >
                       View Profile
                     </Link>
@@ -129,14 +138,12 @@ export function MasterSearchCards({
                     </DropdownMenuItem>
                   )}
                   {user.certificateDocPath && (
-                    <DropdownMenuItem asChild>
-                      <a
-                        href={getDocumentViewUrl(user.regId)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        void openDocumentView(user.regId);
+                      }}
+                    >
                         View Certificate
-                      </a>
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
@@ -150,8 +157,8 @@ export function MasterSearchCards({
               </Avatar>
               <div className="min-w-0 flex-1">
                 <Link
-                  to={`/${user.userType || "admin"}/update-profile`}
-                  state={{ userId: user.regId }}
+                  to={profileRoute}
+                  state={isCurrentUser ? undefined : { userId: user.regId }}
                   className="block truncate text-sm font-semibold text-slate-900 underline-offset-2 hover:text-blue-600 hover:underline dark:text-slate-100"
                 >
                   {name}
@@ -200,15 +207,14 @@ export function MasterSearchCards({
             {/* Bottom row: Certificate link */}
             {user.certificateDocPath && (
               <div className="mt-3 border-t border-slate-100 pt-2.5 dark:border-slate-800/80">
-                <a
-                  href={getDocumentViewUrl(user.regId)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => void openDocumentView(user.regId)}
                   className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
                 >
                   <FileCheck className="h-3.5 w-3.5" />
                   View Certificate
-                </a>
+                </button>
               </div>
             )}
           </div>

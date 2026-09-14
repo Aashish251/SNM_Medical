@@ -3,7 +3,8 @@ import { Button } from "@shared/components/ui/button";
 import { Link } from "react-router-dom";
 import type { TableConfig } from "@shared/components/DataTable/DataTable";
 import { User } from "@shared/types/CommonType";
-import { getDocumentViewUrl } from "@shared/utils/documentHelper";
+import { openDocumentView } from "@shared/utils/documentHelper";
+import { ROUTE_ADMIN_UPDATE_PROFILE } from "@admin/constants/routePaths";
 
 export const userTableConfig: TableConfig<User> = {
   showCheckbox: true,
@@ -39,7 +40,7 @@ export const userTableConfig: TableConfig<User> = {
       afterStatus: true,
       render: (user: User) => (
         <Link
-          to={`/${user?.userType}/update-profile`}
+          to={ROUTE_ADMIN_UPDATE_PROFILE}
           state={{ userId: user?.regId }}
           className="text-blue-600 font-medium underline underline-offset-2"
         >
@@ -52,18 +53,15 @@ export const userTableConfig: TableConfig<User> = {
       header: "Certificate",
       afterStatus: true,
       render: (user: User) => {
-        const certUrl = getDocumentViewUrl(user.regId);
-
         return (
           <div className="text-center">{user.certificateDocPath ? (
-            <a
-              href={certUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => void openDocumentView(user.regId)}
               className="text-blue-600 underline hover:text-blue-800 cursor-pointer"
             >
               View
-            </a>
+            </button>
           ) : (
             <span className="text-gray-400">No File</span>
           )}</div>

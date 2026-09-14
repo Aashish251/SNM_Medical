@@ -108,16 +108,28 @@ router.get('/view', authenticateToken, async (req, res) => {
 
     // 4. Case: Cloudinary URL
     if (cleanUrl.includes('cloudinary.com') || cleanUrl.startsWith('snm_medical/')) {
-      // Hard allowlist check for full URLs
       if (cleanUrl.startsWith('http')) {
-         try {
-           const urlObj = new URL(cleanUrl);
-           if (urlObj.hostname !== 'res.cloudinary.com' || !cleanUrl.includes('/ep2sjj0f/')) {
-             return res.status(400).json({ success: false, message: 'Invalid URL source' });
-           }
-         } catch(e) {
-           return res.status(400).json({ success: false, message: 'Malformed URL' });
-         }
+        try {
+          const urlObj = new URL(cleanUrl);
+          if (urlObj.hostname !== 'res.cloudinary.com') {
+            return res.status(400).json({ success: false, message: 'Invalid URL source' });
+          }
+        } catch (e) {
+          return res.status(400).json({ success: false, message: 'Malformed URL' });
+        }
+      }
+
+      // Uploaded Cloudinary assets are public delivery URLs. Stream the URL
+      // stored with the record first so the latest Cloudinary asset is served.
+      if (cleanUrl.startsWith('http')) {
+        try {
+          await streamRemoteUrl(cleanUrl, res, path.basename(cleanUrl));
+          return;
+        } catch (directStreamError) {
+          logger.warn('Direct Cloudinary stream failed, trying signed URL', {
+            error: directStreamError.message,
+          });
+        }
       }
 
       if (isCloudinaryConfigured()) {
