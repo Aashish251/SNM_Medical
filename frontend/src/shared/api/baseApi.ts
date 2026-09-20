@@ -50,6 +50,7 @@ export const baseApi = createApi({
   tagTypes: [
     "AdminStats",
     "Cities",
+    "DutyChart",
     "Login",
     "MasterSearch",
     "Patients",

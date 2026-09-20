@@ -1,1 +1,1 @@
-export { default } from "@features/admin/medical-staff/duty-chart";
+export { default } from "@admin/features/duty-chart";

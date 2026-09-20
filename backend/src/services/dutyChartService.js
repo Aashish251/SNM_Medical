@@ -1,4 +1,5 @@
 const { readData, updateData, getNextArrayId } = require("./localDataStore");
+const { promisePool } = require("../config/database");
 
 function ensureRequired(value, label) {
   if (!value && value !== 0) {
@@ -29,6 +30,7 @@ function normalizeEntryPayload(payload = {}) {
     name: payload.name,
     contact: payload.contact,
     shift: payload.shift,
+    status: payload.status || "assigned",
   };
 
   ensureRequired(entry.name, "Name");
@@ -36,6 +38,25 @@ function normalizeEntryPayload(payload = {}) {
   ensureRequired(entry.shift, "Duty shift");
 
   return entry;
+}
+
+// Helper to flatten chart + entry into a single record for frontend
+function summarizeEntry(entry, chart) {
+  return {
+    id: `${chart.id}_${entry.id}`,
+    chartId: chart.id,
+    entryId: entry.id,
+    title: chart.title,
+    department: chart.department,
+    date: chart.date,
+    year: chart.year,
+    name: entry.name,
+    contact: entry.contact,
+    shift: entry.shift,
+    status: entry.status || "assigned",
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+  };
 }
 
 function summarizeChart(chart) {
@@ -59,6 +80,24 @@ exports.listCharts = async ({ department, year } = {}) => {
     .filter((chart) => !year || String(chart.year) === String(year))
     .sort((a, b) => String(b.date).localeCompare(String(a.date)))
     .map(summarizeChart);
+};
+
+// New: List all entries flattened with chart context
+exports.listEntries = async ({ department, year } = {}) => {
+  const data = await readData();
+  let charts = data.dutyCharts;
+
+  if (department) {
+    const deptKey = String(department).toLowerCase();
+    charts = charts.filter((chart) => String(chart.department).toLowerCase() === deptKey);
+  }
+  if (year) {
+    charts = charts.filter((chart) => String(chart.year) === String(year));
+  }
+
+  return charts.flatMap((chart) =>
+    chart.entries.map((entry) => summarizeEntry(entry, chart))
+  );
 };
 
 exports.getChartById = async (chartId) => {
@@ -86,12 +125,7 @@ exports.getChartByDepartmentYear = async (department, year) => {
   }
 
   const entries = charts.flatMap((chart) =>
-    chart.entries.map((entry) => ({
-      ...entry,
-      chartId: chart.id,
-      sourceEntryId: entry.id,
-      dutyDate: chart.date,
-    }))
+    chart.entries.map((entry) => summarizeEntry(entry, chart))
   );
 
   const latestChart = charts[charts.length - 1];
@@ -108,6 +142,72 @@ exports.getChartByDepartmentYear = async (department, year) => {
     createdAt: charts[0].createdAt,
     updatedAt: latestChart.updatedAt,
   };
+};
+
+// New: Create a chart without entries
+exports.createChart = async (payload) => {
+  const chartInput = normalizeChartPayload(payload);
+  const timestamp = new Date().toISOString();
+  let createdChart;
+
+  await updateData(async (data) => {
+    const chartYear = new Date(chartInput.date).getFullYear();
+    const chart = {
+      id: getNextArrayId(data.dutyCharts),
+      title: chartInput.title,
+      department: chartInput.department,
+      date: chartInput.date,
+      year: chartYear,
+      entries: [],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    data.dutyCharts.push(chart);
+    createdChart = { ...chart };
+  });
+
+  return createdChart;
+};
+
+// New: Update a chart's details
+exports.updateChart = async (chartId, payload) => {
+  const updates = normalizeChartPayload(payload);
+  let updatedChart = null;
+
+  await updateData(async (data) => {
+    const chart = data.dutyCharts.find((item) => item.id === Number(chartId));
+    if (!chart) {
+      throw new Error("Duty chart not found");
+    }
+
+    chart.title = updates.title;
+    chart.department = updates.department;
+    chart.date = updates.date;
+    chart.year = new Date(updates.date).getFullYear();
+    chart.updatedAt = new Date().toISOString();
+    updatedChart = { ...chart };
+  });
+
+  return updatedChart;
+};
+
+// New: Delete a chart and all its entries
+exports.deleteChart = async (chartId) => {
+  let deleted = false;
+
+  await updateData(async (data) => {
+    const originalLength = data.dutyCharts.length;
+    data.dutyCharts = data.dutyCharts.filter((item) => item.id !== Number(chartId));
+
+    if (data.dutyCharts.length === originalLength) {
+      throw new Error("Duty chart not found");
+    }
+
+    deleted = true;
+  });
+
+  return deleted;
 };
 
 exports.createEntry = async (payload) => {
@@ -177,6 +277,7 @@ exports.updateEntry = async (chartId, entryId, payload) => {
     entry.name = updates.name;
     entry.contact = updates.contact;
     entry.shift = updates.shift;
+    entry.status = updates.status;
     entry.updatedAt = new Date().toISOString();
     chart.updatedAt = entry.updatedAt;
     updatedEntry = { ...entry };
@@ -231,4 +332,24 @@ exports.exportChart = async (chartId) => {
     content: csv,
     chart,
   };
+};
+
+/**
+ * Fetch department options directly from sp_department_master stored procedure.
+ */
+exports.getDutyDepartments = async (search = "") => {
+  const [rows] = await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
+    "GET",
+    null,
+    null,
+    null,
+    search ? search.trim() : null,
+  ]);
+
+  const depts = rows[0] || [];
+  return depts.map((d) => ({
+    id: d.id,
+    label: d.department_name,
+    value: d.department_name,
+  }));
 };

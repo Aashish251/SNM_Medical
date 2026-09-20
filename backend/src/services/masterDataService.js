@@ -1,4 +1,5 @@
 const { readData, updateData, getNextArrayId } = require("./localDataStore");
+const { promisePool } = require("../config/database");
 
 const MODULES = {
   qualification: { extraFieldLabel: null },
@@ -47,6 +48,26 @@ exports.listModules = async () => {
 
 exports.listItems = async (moduleName, search = "") => {
   validateModule(moduleName);
+
+  if (moduleName === "department") {
+    const [rows] = await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
+      "GET",
+      null,
+      null,
+      null,
+      search ? search.trim() : null,
+    ]);
+    const items = rows[0] || [];
+    return items.map((row) => ({
+      id: row.id,
+      value: row.department_name,
+      department_name: row.department_name,
+      createdAt: row.created_datetime,
+      updatedAt: row.updated_datetime,
+      isDeleted: false,
+    }));
+  }
+
   const data = await readData();
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -59,6 +80,21 @@ exports.listItems = async (moduleName, search = "") => {
 exports.createItem = async (moduleName, payload) => {
   validateModule(moduleName);
   const item = normalizePayload(moduleName, payload);
+
+  if (moduleName === "department") {
+    await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
+      "INSERT",
+      null,
+      item.value,
+      item.updatedBy || 1,
+      null,
+    ]);
+    return {
+      value: item.value,
+      updatedBy: item.updatedBy,
+    };
+  }
+
   const timestamp = new Date().toISOString();
   let createdRecord;
 
@@ -91,6 +127,22 @@ exports.createItem = async (moduleName, payload) => {
 exports.updateItem = async (moduleName, id, payload) => {
   validateModule(moduleName);
   const updates = normalizePayload(moduleName, payload);
+
+  if (moduleName === "department") {
+    await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
+      "UPDATE",
+      Number(id),
+      updates.value,
+      updates.updatedBy || 1,
+      null,
+    ]);
+    return {
+      id: Number(id),
+      value: updates.value,
+      updatedBy: updates.updatedBy,
+    };
+  }
+
   const timestamp = new Date().toISOString();
   let updatedRecord = null;
 
@@ -125,6 +177,18 @@ exports.updateItem = async (moduleName, id, payload) => {
 
 exports.deleteItem = async (moduleName, id, deletedBy = 1) => {
   validateModule(moduleName);
+
+  if (moduleName === "department") {
+    await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
+      "DELETE",
+      Number(id),
+      null,
+      Number(deletedBy) || 1,
+      null,
+    ]);
+    return { id: Number(id), isDeleted: true };
+  }
+
   let deletedRecord = null;
 
   await updateData(async (data) => {
