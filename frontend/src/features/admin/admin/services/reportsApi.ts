@@ -1,5 +1,32 @@
 import { baseApi } from "@shared/api/baseApi";
 
+// Metadata types
+export interface AvailableDate {
+  date: string;
+  count: number;
+  label: string;
+}
+
+export interface ReportMetadata {
+  availableDates: AvailableDate[];
+  departments: Array<{ id: number; name: string }>;
+  locations: Array<{ id: number; name: string }>;
+  summary: {
+    totalRecords: number;
+    totalDates: number;
+    totalDepartments: number;
+    totalLocations: number;
+    latestDate: string;
+  };
+}
+
+export interface ReportMetadataResponse {
+  success: boolean;
+  message: string;
+  data: ReportMetadata;
+  timestamp?: string;
+}
+
 // Registration Report API types
 export interface RegistrationReportQueryParams {
   dates?: string;
@@ -8,6 +35,7 @@ export interface RegistrationReportQueryParams {
   date3?: string;
   title?: string;
   includeEmpty?: boolean | string;
+  includeRecords?: boolean | string;
 }
 
 export interface RegistrationReportRow {
@@ -15,6 +43,16 @@ export interface RegistrationReportRow {
   department: string;
   values: Record<string, number>;
   total: number;
+}
+
+export interface RegistrationRecordDetail {
+  id: number;
+  fullName: string;
+  mobileNo: string;
+  gender?: string;
+  department: string;
+  location: string;
+  createdAt: string;
 }
 
 export interface RegistrationReportData {
@@ -26,6 +64,7 @@ export interface RegistrationReportData {
     byDate: Record<string, number>;
     grandTotal: number;
   };
+  records?: RegistrationRecordDetail[];
   generatedAt: string;
 }
 
@@ -116,24 +155,37 @@ export interface MasterReportResponse {
 
 export const reportsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getReportMetadata: builder.query<ReportMetadataResponse, void>({
+      query: () => ({
+        url: "/api/reports/metadata",
+        method: "GET",
+      }),
+      providesTags: [{ type: "Reports", id: "METADATA" }],
+    }),
+
     getRegistrationReport: builder.query<
       RegistrationReportResponse,
       RegistrationReportQueryParams | void
     >({
       query: (params) => {
         const p = (params || {}) as RegistrationReportQueryParams;
-        const today = new Date().toISOString().slice(0, 10);
         const queryParams = new URLSearchParams();
 
-        const datesParam = p.dates || p.date1 || today;
-        queryParams.set("dates", datesParam);
+        if (p.dates) queryParams.set("dates", p.dates);
+        if (p.date1) queryParams.set("date1", p.date1);
+        if (p.date2) queryParams.set("date2", p.date2);
+        if (p.date3) queryParams.set("date3", p.date3);
         if (p.title) queryParams.set("title", p.title);
         if (p.includeEmpty !== undefined) {
           queryParams.set("includeEmpty", String(p.includeEmpty));
         }
+        if (p.includeRecords !== undefined) {
+          queryParams.set("includeRecords", String(p.includeRecords));
+        }
 
+        const queryString = queryParams.toString();
         return {
-          url: `/api/reports/registration?${queryParams.toString()}`,
+          url: queryString ? `/api/reports/registration?${queryString}` : "/api/reports/registration",
           method: "GET",
         };
       },
@@ -146,11 +198,9 @@ export const reportsApi = baseApi.injectEndpoints({
     >({
       query: (params) => {
         const p = (params || {}) as DailyReportQueryParams;
-        const today = new Date().toISOString().slice(0, 10);
         const queryParams = new URLSearchParams();
 
-        const dateParam = p.date || today;
-        queryParams.set("date", dateParam);
+        if (p.date) queryParams.set("date", p.date);
         if (p.title) queryParams.set("title", p.title);
         if (p.departments) queryParams.set("departments", p.departments);
         if (p.locations) queryParams.set("locations", p.locations);
@@ -158,8 +208,9 @@ export const reportsApi = baseApi.injectEndpoints({
           queryParams.set("includeEmpty", String(p.includeEmpty));
         }
 
+        const queryString = queryParams.toString();
         return {
-          url: `/api/reports/daily?${queryParams.toString()}`,
+          url: queryString ? `/api/reports/daily?${queryString}` : "/api/reports/daily",
           method: "GET",
         };
       },
@@ -196,6 +247,7 @@ export const reportsApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetReportMetadataQuery,
   useGetRegistrationReportQuery,
   useGetDailyReportQuery,
   useGetMasterReportQuery,

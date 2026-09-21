@@ -3,6 +3,28 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const reportService = require('../services/reportService');
 
+// Report metadata (active dates, departments, locations)
+router.get('/metadata',
+  async (req, res) => {
+    try {
+      const data = await reportService.getReportMetadata();
+      res.json({
+        success: true,
+        message: 'Report metadata retrieved successfully',
+        data,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      logger.error('Report metadata error', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve report metadata',
+        error: error.message
+      });
+    }
+  }
+);
+
 // Daily reports endpoint
 router.get('/daily',
   /* #swagger.tags = ['Reports']
