@@ -18,7 +18,7 @@
     "cloudinary": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
-    "exceljs": "^4.4.0",
+    "exceljs": "^3.4.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -28,7 +28,7 @@
     "path-to-regexp": "^8.2.0",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.2",
     "winston": "^3.19.0"
   },
   "devDependencies": {

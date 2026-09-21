@@ -33,9 +33,20 @@ if (Sentry) {
 }
 
 // CORS
+const configuredOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || configuredOrigins.includes(origin) || /^https?:\/\/localhost:\d+$/.test(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -184,6 +195,15 @@ try {
 }
 
 // Health check endpoints
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "SNM Dispensary API is running",
+    health: "/health",
+    api: "/api",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get("/health", (req, res) => {
   res.status(200).json({
     message: "SNM Dispensary Server is running!",
@@ -256,7 +276,7 @@ app.get("/api", (req, res) => {
 });
 
 // 404 handler (MUST be before error handlers)
-app.use("*", (req, res) => {
+app.use((req, res) => {
   logger.warn("404 - Route not found", {
     method: req.method,
     path: req.originalUrl,
