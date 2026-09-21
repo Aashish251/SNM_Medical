@@ -10,13 +10,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@shared/components/ui/dialog";
-import { Link } from "react-router-dom";
+
 import { Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@shared/components/ui/tooltip";
+
+import { getDocumentViewUrl } from "@shared/utils/documentHelper";
 
 interface FileUploadFieldProps {
   label: string;
@@ -27,6 +29,7 @@ interface FileUploadFieldProps {
   disabled?: boolean;
   existingUrl?: string;
   selectedFile?: any;
+  regId?: number | string | null;
 }
 
 export const FileUploadField = ({
@@ -38,15 +41,9 @@ export const FileUploadField = ({
   error,
   existingUrl,
   selectedFile,
+  regId,
 }: FileUploadFieldProps) => {
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "");
-  const fullUrl = existingUrl
-    ? existingUrl.startsWith("http")
-      ? existingUrl
-      : `${BASE_URL}${existingUrl}`
-    : null;
-
-
+  const fullUrl = existingUrl ? getDocumentViewUrl(regId, existingUrl) : null;
 
   // Determine effective file and preview URL
   let file: File | null = null;
@@ -72,13 +69,13 @@ export const FileUploadField = ({
 
   const displayUrl = previewUrl || fullUrl;
 
-  console.log("displayUrl", displayUrl)
-
   const isImage = (url: string, fileObj?: File | null) => {
     if (fileObj) {
       return fileObj.type.startsWith("image/");
     }
-    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
+    // Remove query params before checking extension
+    const cleanUrl = url.split("?")[0].toLowerCase();
+    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(cleanUrl);
   };
 
   return (
@@ -130,14 +127,16 @@ export const FileUploadField = ({
                 </DialogContent>
               </Dialog>
             ) : (
-              <Link
-                to={displayUrl}
+              // Use native <a> tag for PDFs and external URLs — React Router Link
+              // incorrectly treats blob:// and https:// URLs as internal routes
+              <a
+                href={displayUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
               >
                 Preview
-              </Link>
+              </a>
             )}
           </>
         )}

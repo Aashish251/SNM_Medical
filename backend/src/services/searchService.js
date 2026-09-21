@@ -1,5 +1,6 @@
 const { promisePool } = require('../config/database');
 const ExcelJS = require('exceljs');
+const logger = require('../utils/logger');
 
 const toCamelCase = (obj) => {
   const newObj = {};
@@ -23,7 +24,7 @@ exports.getSewaLocations = async () => {
     const results = resultSets[0] || resultSets;
     return results.map(toCamelCase);
   } catch (error) {
-    console.error(' getSewaLocations Error:', error);
+    logger.error('getSewaLocations Error', { error: error.message });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -45,6 +46,8 @@ exports.masterSearch = async ({
   sortOrder = 'ASC'
 }) => {
   let connection;
+  const normalizedPage = Math.max(Number.parseInt(page, 10) || 1, 1);
+  const normalizedLimit = Math.max(Number.parseInt(limit, 10) || 10, 1);
 
   try {
     connection = await promisePool.getConnection();
@@ -61,8 +64,8 @@ exports.masterSearch = async ({
         stateId,
         isPresent,
         passEntry,
-        page,
-        limit
+        normalizedPage,
+        normalizedLimit
       ]
     );
 
@@ -72,7 +75,64 @@ exports.masterSearch = async ({
      *  - resultSets[1] → total count (from SELECT FOUND_ROWS())
      */
     const results = resultSets[0] || [];
-    const totalRecords = resultSets[1]?.[0]?.TOTAL_RECORDS || 0;
+    const totalCountRow = resultSets[1]?.[0] || {};
+    let totalRecords = Number(
+      totalCountRow.TOTAL_RECORDS ??
+      totalCountRow.totalRecords ??
+      totalCountRow.total_records ??
+      totalCountRow.count
+    );
+
+    // Determine total records
+    if (!totalRecords && totalRecords !== 0) {
+      // Fast path: if on page 1 and fewer results than page limit, total is exact results length
+      if (normalizedPage === 1 && results.length < normalizedLimit) {
+        totalRecords = results.length;
+      } else {
+        // Lean COUNT query directly on registration_tbl without any redundant table joins
+        const countParams = [];
+        let countQuery = `SELECT COUNT(1) as total FROM registration_tbl r WHERE 1=1`;
+        
+        if (searchKey) {
+          countQuery += ` AND (CAST(r.reg_id AS CHAR) LIKE ? OR r.full_name LIKE ? OR r.mobile_no LIKE ? OR r.email LIKE ?)`;
+          const likeKey = `%${searchKey}%`;
+          countParams.push(likeKey, likeKey, likeKey, likeKey);
+        }
+        if (departmentId !== null && departmentId !== undefined) {
+          countQuery += ` AND r.department_id = ?`;
+          countParams.push(departmentId);
+        }
+        if (qualificationId !== null && qualificationId !== undefined) {
+          countQuery += ` AND r.qualification_id = ?`;
+          countParams.push(qualificationId);
+        }
+        if (sewaLocationId !== null && sewaLocationId !== undefined) {
+          countQuery += ` AND r.sewa_location_id = ?`;
+          countParams.push(sewaLocationId);
+        }
+        if (cityId !== null && cityId !== undefined) {
+          countQuery += ` AND r.city_id = ?`;
+          countParams.push(cityId);
+        }
+        if (stateId !== null && stateId !== undefined) {
+          countQuery += ` AND r.state_id = ?`;
+          countParams.push(stateId);
+        }
+        if (isPresent !== null && isPresent !== undefined) {
+          countQuery += ` AND r.is_present = ?`;
+          countParams.push(isPresent);
+        }
+        if (passEntry !== null && passEntry !== undefined) {
+          countQuery += ` AND r.pass_entry = ?`;
+          countParams.push(passEntry);
+        }
+
+        const [[countResult]] = await connection.query(countQuery, countParams);
+        totalRecords = Number(countResult?.total) || results.length;
+      }
+    }
+
+    totalRecords = Number(totalRecords) || results.length;
 
     //  Convert column names to camelCase
     const formattedResults = results.map((row) => {
@@ -92,12 +152,13 @@ exports.masterSearch = async ({
     });
 
     //  Build pagination object
-    const totalPages = Math.ceil(totalRecords / limit);
+    const totalPages = Math.ceil(totalRecords / normalizedLimit);
     const currentCount = formattedResults.length;
 
     const pagination = {
-      current: page,
+      current: normalizedPage,
       total: totalPages,
+      pageSize: normalizedLimit,
       count: currentCount,
       totalRecords
     };
@@ -119,7 +180,7 @@ exports.masterSearch = async ({
       pagination
     };
   } catch (error) {
-    console.error('Master Search Service Error:', error);
+    logger.error('Master Search Service Error', { error: error.message, stack: error.stack });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -148,7 +209,7 @@ exports.approveUser = async (regId) => {
       affectedRows: affected
     };
   } catch (error) {
-    console.error(' approveUser Service Error:', error);
+    logger.error('approveUser Service Error', { regId, error: error.message });
     throw error;
   }
 };
@@ -159,7 +220,7 @@ exports.updateSelectedUsers = async (userUpdates) => {
   let connection;
   try {
     connection = await promisePool.getConnection();
-    
+
     const queries = userUpdates.map((u) => {
       // Build dynamic UPDATE query based on provided fields
       const updateFields = [];
@@ -234,7 +295,7 @@ exports.updateSelectedUsers = async (userUpdates) => {
     await Promise.all(queries);
     return true;
   } catch (error) {
-    console.error(' updateSelectedUsers Service Error:', error);
+    logger.error('updateSelectedUsers Service Error', { error: error.message, count: userUpdates?.length });
     throw error;
   } finally {
     if (connection) connection.release();

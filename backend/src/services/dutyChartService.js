@@ -1,0 +1,378 @@
+const { readData, updateData, getNextArrayId } = require("./localDataStore");
+const { promisePool } = require("../config/database");
+
+function ensureRequired(value, label) {
+  if (!value && value !== 0) {
+    throw new Error(`${label} is required`);
+  }
+}
+
+function normalizeChartPayload(payload = {}) {
+  const chart = {
+    title: payload.title,
+    department: payload.department,
+    date: payload.date,
+  };
+
+  ensureRequired(chart.title, "Samagam title");
+  ensureRequired(chart.department, "Department");
+  ensureRequired(chart.date, "Date");
+
+  if (Number.isNaN(new Date(chart.date).getTime())) {
+    throw new Error("Date must be a valid date");
+  }
+
+  return chart;
+}
+
+function normalizeEntryPayload(payload = {}) {
+  const entry = {
+    name: payload.name,
+    contact: payload.contact,
+    shift: payload.shift,
+    status: payload.status || "assigned",
+  };
+
+  ensureRequired(entry.name, "Name");
+  ensureRequired(entry.contact, "Contact number");
+  ensureRequired(entry.shift, "Duty shift");
+
+  return entry;
+}
+
+// Helper to flatten chart + entry into a single record for frontend
+function summarizeEntry(entry, chart) {
+  return {
+    id: `${chart.id}_${entry.id}`,
+    chartId: chart.id,
+    entryId: entry.id,
+    title: chart.title,
+    department: chart.department,
+    date: chart.date,
+    year: chart.year,
+    name: entry.name,
+    contact: entry.contact,
+    shift: entry.shift,
+    status: entry.status || "assigned",
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+  };
+}
+
+function summarizeChart(chart) {
+  return {
+    id: chart.id,
+    title: chart.title,
+    department: chart.department,
+    date: chart.date,
+    year: chart.year,
+    totalEntries: chart.entries.length,
+    createdAt: chart.createdAt,
+    updatedAt: chart.updatedAt,
+  };
+}
+
+exports.listCharts = async ({ department, year } = {}) => {
+  const data = await readData();
+
+  return data.dutyCharts
+    .filter((chart) => !department || chart.department === department)
+    .filter((chart) => !year || String(chart.year) === String(year))
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .map(summarizeChart);
+};
+
+// New: List all entries flattened with chart context
+exports.listEntries = async ({ department, year } = {}) => {
+  const data = await readData();
+  let charts = data.dutyCharts;
+
+  if (department) {
+    const deptKey = String(department).toLowerCase();
+    charts = charts.filter((chart) => String(chart.department).toLowerCase() === deptKey);
+  }
+  if (year) {
+    charts = charts.filter((chart) => String(chart.year) === String(year));
+  }
+
+  return charts.flatMap((chart) =>
+    chart.entries.map((entry) => summarizeEntry(entry, chart))
+  );
+};
+
+exports.getChartById = async (chartId) => {
+  const data = await readData();
+  return data.dutyCharts.find((chart) => chart.id === Number(chartId)) || null;
+};
+
+exports.getChartByDepartmentYear = async (department, year) => {
+  ensureRequired(department, "Department");
+  ensureRequired(year, "Year");
+
+  if (!/^\d{4}$/.test(String(year))) {
+    throw new Error("Year must be a valid 4-digit year");
+  }
+
+  const data = await readData();
+  const departmentKey = String(department).toLowerCase();
+  const charts = data.dutyCharts
+    .filter((chart) => String(chart.department).toLowerCase() === departmentKey)
+    .filter((chart) => String(chart.year) === String(year))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+  if (!charts.length) {
+    return null;
+  }
+
+  const entries = charts.flatMap((chart) =>
+    chart.entries.map((entry) => summarizeEntry(entry, chart))
+  );
+
+  const latestChart = charts[charts.length - 1];
+
+  return {
+    id: `${department}_${year}`,
+    title: latestChart.title,
+    department,
+    year: Number(year),
+    date: latestChart.date,
+    totalEntries: entries.length,
+    charts: charts.map(summarizeChart),
+    entries,
+    createdAt: charts[0].createdAt,
+    updatedAt: latestChart.updatedAt,
+  };
+};
+
+// New: Create a chart without entries
+exports.createChart = async (payload) => {
+  const chartInput = normalizeChartPayload(payload);
+  const timestamp = new Date().toISOString();
+  let createdChart;
+
+  await updateData(async (data) => {
+    const chartYear = new Date(chartInput.date).getFullYear();
+    const chart = {
+      id: getNextArrayId(data.dutyCharts),
+      title: chartInput.title,
+      department: chartInput.department,
+      date: chartInput.date,
+      year: chartYear,
+      entries: [],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    data.dutyCharts.push(chart);
+    createdChart = { ...chart };
+  });
+
+  return createdChart;
+};
+
+// New: Update a chart's details
+exports.updateChart = async (chartId, payload) => {
+  const updates = normalizeChartPayload(payload);
+  let updatedChart = null;
+
+  await updateData(async (data) => {
+    const chart = data.dutyCharts.find((item) => item.id === Number(chartId));
+    if (!chart) {
+      throw new Error("Duty chart not found");
+    }
+
+    chart.title = updates.title;
+    chart.department = updates.department;
+    chart.date = updates.date;
+    chart.year = new Date(updates.date).getFullYear();
+    chart.updatedAt = new Date().toISOString();
+    updatedChart = { ...chart };
+  });
+
+  return updatedChart;
+};
+
+// New: Delete a chart and all its entries
+exports.deleteChart = async (chartId) => {
+  let deleted = false;
+
+  await updateData(async (data) => {
+    const originalLength = data.dutyCharts.length;
+    data.dutyCharts = data.dutyCharts.filter((item) => item.id !== Number(chartId));
+
+    if (data.dutyCharts.length === originalLength) {
+      throw new Error("Duty chart not found");
+    }
+
+    deleted = true;
+  });
+
+  return deleted;
+};
+
+exports.createEntry = async (payload) => {
+  const chartInput = normalizeChartPayload(payload);
+  const entryInput = normalizeEntryPayload(payload);
+  const timestamp = new Date().toISOString();
+  let responsePayload;
+
+  await updateData(async (data) => {
+    const chartYear = new Date(chartInput.date).getFullYear();
+    let chart = data.dutyCharts.find(
+      (item) =>
+        item.title === chartInput.title &&
+        item.department === chartInput.department &&
+        item.date === chartInput.date
+    );
+
+    if (!chart) {
+      chart = {
+        id: getNextArrayId(data.dutyCharts),
+        title: chartInput.title,
+        department: chartInput.department,
+        date: chartInput.date,
+        year: chartYear,
+        entries: [],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      data.dutyCharts.push(chart);
+    }
+
+    const entry = {
+      id: getNextArrayId(chart.entries),
+      ...entryInput,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    chart.entries.push(entry);
+    chart.updatedAt = timestamp;
+
+    responsePayload = {
+      chart: { ...chart, entries: [...chart.entries] },
+      entry,
+    };
+  });
+
+  return responsePayload;
+};
+
+exports.updateEntry = async (chartId, entryId, payload) => {
+  const updates = normalizeEntryPayload(payload);
+  let updatedEntry = null;
+
+  await updateData(async (data) => {
+    const chart = data.dutyCharts.find((item) => item.id === Number(chartId));
+    if (!chart) {
+      throw new Error("Duty chart not found");
+    }
+
+    const entry = chart.entries.find((item) => item.id === Number(entryId));
+    if (!entry) {
+      throw new Error("Duty chart entry not found");
+    }
+
+    entry.name = updates.name;
+    entry.contact = updates.contact;
+    entry.shift = updates.shift;
+    entry.status = updates.status;
+    entry.updatedAt = new Date().toISOString();
+    chart.updatedAt = entry.updatedAt;
+    updatedEntry = { ...entry };
+  });
+
+  return updatedEntry;
+};
+
+exports.deleteEntry = async (chartId, entryId) => {
+  let deleted = false;
+
+  await updateData(async (data) => {
+    const chart = data.dutyCharts.find((item) => item.id === Number(chartId));
+    if (!chart) {
+      throw new Error("Duty chart not found");
+    }
+
+    const originalLength = chart.entries.length;
+    chart.entries = chart.entries.filter((item) => item.id !== Number(entryId));
+
+    if (chart.entries.length === originalLength) {
+      throw new Error("Duty chart entry not found");
+    }
+
+    chart.updatedAt = new Date().toISOString();
+    deleted = true;
+  });
+
+  return deleted;
+};
+
+exports.exportChart = async (chartId) => {
+  const chart = await exports.getChartById(chartId);
+
+  if (!chart) {
+    throw new Error("Duty chart not found");
+  }
+
+  const header = ["Sr No", "Name", "Contact No", "Duty Shift"];
+  const rows = chart.entries.map((entry, index) => [
+    index + 1,
+    entry.name,
+    entry.contact,
+    entry.shift,
+  ]);
+
+  const escapeValue = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const csv = [header, ...rows].map((row) => row.map(escapeValue).join(",")).join("\n");
+
+  return {
+    filename: `${chart.department}_${chart.year}_duty_chart.csv`.replace(/\s+/g, "_"),
+    content: csv,
+    chart,
+  };
+};
+
+/**
+ * Fetch department options directly from sp_department_master stored procedure.
+ */
+exports.getDutyDepartments = async (search = "") => {
+  const [rows] = await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
+    "GET",
+    null,
+    null,
+    null,
+    search ? search.trim() : null,
+  ]);
+
+  const depts = rows[0] || [];
+  return depts.map((d) => ({
+    id: d.id,
+    label: d.department_name,
+    value: d.department_name,
+  }));
+};
+
+/**
+ * Fetch staff names from registration_tbl for duty assignment.
+ */
+exports.getDutyStaff = async (search = "") => {
+  let query = `SELECT reg_id, full_name, mobile_no FROM registration_tbl WHERE is_deleted = 0`;
+  const params = [];
+
+  if (search && search.trim()) {
+    query += ` AND full_name LIKE ?`;
+    params.push(`%${search.trim()}%`);
+  }
+
+  query += ` ORDER BY full_name ASC`;
+
+  const [rows] = await promisePool.execute(query, params);
+  return rows.map((r) => ({
+    id: r.reg_id,
+    label: r.full_name,
+    value: r.full_name,
+    contact: r.mobile_no,
+  }));
+};

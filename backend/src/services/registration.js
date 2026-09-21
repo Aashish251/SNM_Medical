@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const { promisePool } = require("../config/database");
 const { sanitizeInput } = require("../utils/sanitize");
 const { validators } = require("../utils/validators");
-const { normalizeFilePath } = require("../utils/filePathHelper");
+const logger = require("../utils/logger");
 const BCRYPT_ROUNDS = 12;
 
 
@@ -34,6 +34,19 @@ exports.getCitiesByState = async (stateId) => {
   try {
     const [cities] = await connection.execute("CALL sp_get_city_details(?)", [stateId]);
     return cities[0] || [];
+  } finally {
+    connection.release();
+  }
+};
+
+exports.checkEmailExists = async (email) => {
+  const connection = await promisePool.getConnection();
+  try {
+    const [[result]] = await connection.execute(
+      "SELECT 1 FROM registration_tbl WHERE email = ? AND is_deleted = 0 LIMIT 1",
+      [email.trim().toLowerCase()]
+    );
+    return !!result;
   } finally {
     connection.release();
   }
@@ -148,8 +161,8 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       parseInt(departmentId) || 0,
       parseInt(availableDayId) || 0,
       parseInt(shiftTimeId) || 0,
-      normalizeFilePath(filePaths.profileImagePath) || "",
-      normalizeFilePath(filePaths.certificatePath) || "",
+      filePaths.profileImagePath || "",
+      filePaths.certificatePath || "",
       parseInt(isPresent) || 0,
       parseInt(passEntry) || 0,
       parseInt(sewaLocationId) || 0,
@@ -174,6 +187,8 @@ exports.createUser = async (data = {}, filePaths = {}) => {
       paramArr
     );
 
+    logger.info('User registered successfully', { email: cleanEmail, loginId });
+
     return {
       success: true,
       message: "User registered successfully",
@@ -181,7 +196,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
     };
 
   } catch (error) {
-    console.error("Registration Error:", error);
+    logger.error("Registration Error", { error: error.message, stack: error.stack });
     throw error;
   } finally {
     connection.release();

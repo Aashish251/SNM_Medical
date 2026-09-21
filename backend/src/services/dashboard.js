@@ -1,5 +1,6 @@
 // src/services/dashboard.service.js
 const { promisePool } = require('../config/database');
+const logger = require('../utils/logger');
 
 /**
  * Fetch overall dashboard statistics.
@@ -23,6 +24,8 @@ exports.getDashboardStats = async (userId) => {
     color: getDepartmentColor(dept.title || `Department ${index + 1}`),
   }));
 
+  logger.debug('Dashboard stats fetched', { totalUsers, recentRegistrations, deptCount: transformedStats.length });
+
   // Step 4: Combine both SP results
   return {
     totalUsers,
@@ -41,12 +44,12 @@ function getDepartmentColor(departmentName) {
     '#EC4899', '#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#06B6D4',
     '#EF4444', '#84CC16', '#F97316', '#6366F1', '#EC4899', '#14B8A6'
   ];
-  
+
   const hash = departmentName.split('').reduce((a, b) => {
     a = ((a << 5) - a) + b.charCodeAt(0);
     return a & a;
   }, 0);
-  
+
   return colors[Math.abs(hash) % colors.length];
 }
 
@@ -65,10 +68,16 @@ exports.getUserProfile = async (userId) => {
     ? new Date(user.dob || user.date_of_birth)
     : null;
 
-  const age = birthDate
-    ? new Date().getFullYear() - birthDate.getFullYear() -
-      (new Date() < new Date(birthDate.setFullYear(new Date().getFullYear())) ? 1 : 0)
-    : null;
+  let age = null;
+  if (birthDate) {
+    const today = new Date();
+    const birthdayThisYear = new Date(
+      today.getFullYear(),
+      birthDate.getMonth(),
+      birthDate.getDate()
+    );
+    age = today.getFullYear() - birthDate.getFullYear() - (today < birthdayThisYear ? 1 : 0);
+  }
 
   const location = user.city_name && user.state_name
     ? `${user.city_name}, ${user.state_name}`
@@ -89,7 +98,7 @@ exports.getUserProfile = async (userId) => {
     address: user.address || 'Not provided',
     age,
     gender: user.gender === 1 ? 'Male' : user.gender === 2 ? 'Female' : 'Other',
-    dateOfBirth: birthDate ? birthDate.toISOString().split('T')[0] : null, 
+    dateOfBirth: birthDate ? birthDate.toISOString().split('T')[0] : null,
     experience: user.total_exp || 0,
     previousSewa: user.prev_sewa_perform || 'None',
     recommendedBy: user.recom_by || 'Not specified',
@@ -111,38 +120,38 @@ exports.updateUserProfile = async (userId, data) => {
     qualificationId,
   } = data;
 
+  const params = [
+    'update',                 // p_action
+    userId,                   // p_id
+    null,                     // p_user_type (no change)
+    null,                     // p_login_id
+    null,                     // p_title
+    fullName || null,
+    email || null,
+    null,                     // p_password (do NOT update here)
+    mobileNo || null,
+    null,                     // p_dob
+    null,                     // p_gender
+    address || null,
+    stateId || null,
+    cityId || null,
+    qualificationId || null,
+    departmentId || null,
+    null, null, null, null,
+    null, null, null,
+    null,                     // p_remark
+    null,                     // p_total_exp
+    null,                     // p_prev_sewa_perform
+    null,                     // p_recom_by
+    null,                     // p_samagam_held_in
+    0,                        // p_is_deleted
+    null, null, null, null,
+    null                      // p_is_approved (don't change here)
+  ];
+
   const [result] = await promisePool.execute(
-    `CALL sp_save_user_profile(
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-    )`,
-    [
-      'update',                 // p_action
-      userId,                   // p_id
-      null,                     // p_user_type (no change)
-      null,                     // p_login_id
-      null,                     // p_title
-      fullName || null,
-      email || null,
-      null,                     // p_password (do NOT update here)
-      mobileNo || null,
-      null,                     // p_dob
-      null,                     // p_gender
-      address || null,
-      stateId || null,
-      cityId || null,
-      qualificationId || null,
-      departmentId || null,
-      null, null, null, null,
-      null, null, null,
-      null,                     // p_remark
-      null,                     // p_total_exp
-      null,                     // p_prev_sewa_perform
-      null,                     // p_recom_by
-      null,                     // p_samagam_held_in
-      0,                        // p_is_deleted
-      null, null, null, null,
-      null                      // p_is_approved (don’t change here)
-    ]
+    `CALL sp_save_user_profile(${params.map(() => '?').join(',')})`,
+    params
   );
 
   const affected = result?.[0]?.affected_rows || 0;
@@ -159,14 +168,14 @@ exports.updateUserProfile = async (userId, data) => {
 //     'CALL sp_get_user_profile(?)',
 //     [userId]
 //   );
-  
+
 //   const userData = userResult?.[0]?.[0];
 //   if (!userData) {
 //     throw new Error('User not found');
 //   }
-  
+
 //   const sewaLocationId = userData.sewa_location_id;
-  
+
 //   const [result] = await promisePool.execute(
 //     'CALL sp_update_master_user_role(?, ?, ?, ?, ?, ?, ?, ?)',
 //     [

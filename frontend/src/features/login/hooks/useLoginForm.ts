@@ -5,13 +5,14 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useLoginUserMutation } from "../services/loginApi";
-import { useDispatch } from "react-redux";
-import { signIn } from "../redux/authSlice";
+import { useAppDispatch } from "@app/store/hooks";
+import { signIn } from "@entities/session";
+import { normalizeApiError } from "@shared/api/errors";
+import { reportError } from "@shared/lib/monitoring";
+import { getDefaultRouteForUserType } from "@app/router/authRedirects";
 import {
   SNM_ADMIN_USERTYPE,
   SNM_MS_USERTYPE,
-  SNM_NAV_ADMIN_DASHBOARD_LINK,
-  SNM_NAV_MS_DASHBOARD_LINK,
 } from "@shared/constants";
 
 export type Role = "admin" | "ms";
@@ -26,7 +27,7 @@ export const useLoginForm = () => {
   const [role, setRole] = useState<Role>(SNM_MS_USERTYPE);
   const [triggerLoginUser] = useLoginUserMutation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const form = useForm<FormData>();
 
   const handleRoleChange = (selectedRole: Role) => {
@@ -70,22 +71,12 @@ export const useLoginForm = () => {
         })
       );
 
-      if (user.userType === SNM_ADMIN_USERTYPE) {
-        navigate(SNM_NAV_ADMIN_DASHBOARD_LINK, { replace: true });
-      } else {
-        navigate(SNM_NAV_MS_DASHBOARD_LINK, { replace: true });
-      }
-    } catch (err: any) {
-      // Dismiss loading toast if it exists
+      navigate(getDefaultRouteForUserType(user.userType), { replace: true });
+    } catch (error) {
       toast.dismiss();
-
-      // Show specific error message from backend
-      const errorMessage = err?.data?.message || err?.message || "Something went wrong. Please try again.";
-      toast.error(errorMessage, {
-        duration: 20000, // 20 seconds
-      });
-
-      console.error("Login error:", errorMessage);
+      const { message } = normalizeApiError(error);
+      toast.error(message, { duration: 20000 });
+      reportError(error, { source: "login" });
     } finally {
       setLoading(false);
     }

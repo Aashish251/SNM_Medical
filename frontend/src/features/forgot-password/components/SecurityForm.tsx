@@ -13,6 +13,7 @@ import {
 } from "../constants/constants";
 import { useForgotPasswordMutation } from "@features/forgot-password/service/ForgotPasswordApi";
 import { toast } from "@shared/lib/toast";
+import { normalizeApiError } from "@shared/api/errors";
 import { handleAlphabeticInput } from "@shared/lib/utils";
 
 interface Props {
@@ -57,8 +58,8 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
           "Failed to process your request. Please try again."
         );
       }
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Something went wrong.");
+    } catch (error) {
+      toast.error(normalizeApiError(error).message);
     }
   };
 

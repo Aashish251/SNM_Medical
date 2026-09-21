@@ -1,11 +1,7 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQueryWithAuth } from "@lib/customBaseQuery"
+import { baseApi } from "@shared/api/baseApi";
 import { LoginRequest, LoginResponse } from "../type";
 
-export const loginApi = createApi({
-    reducerPath: "loginApi",
-    baseQuery: customBaseQueryWithAuth,
-    tagTypes: ["Login"],
+export const loginApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         loginUser: builder.mutation<LoginResponse, LoginRequest>({
             query: (body) => ({
@@ -16,6 +12,7 @@ export const loginApi = createApi({
             invalidatesTags: ["Login"],
         }),
     }),
+    overrideExisting: false,
 });
 
 export const { useLoginUserMutation } = loginApi;

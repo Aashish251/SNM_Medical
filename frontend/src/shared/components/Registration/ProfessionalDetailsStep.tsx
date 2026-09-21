@@ -18,6 +18,7 @@ export const ProfessionalDetailsStep = ({
   prevStep,
   reset,
   existingCertificate,
+  regId,
 }: any) => {
   const {
     control,
@@ -144,6 +145,7 @@ export const ProfessionalDetailsStep = ({
         <FileUploadField
           label="Upload Certificate"
           existingUrl={existingCertificate}
+          regId={regId}
           accept=".jpg,.jpeg,.png,.pdf"
           required
           selectedFile={watch("certificate")}

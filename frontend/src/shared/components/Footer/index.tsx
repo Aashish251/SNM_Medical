@@ -9,6 +9,9 @@ import { GoMail } from "react-icons/go";
 import { SNM_WEBSITE_LOGO } from "@assets/index";
 import { publicNav } from "@shared/config/navlinks";
 import {
+  SNM_ADMIN_USERTYPE,
+  SNM_MS_USERTYPE,
+  SNM_NAV_PATIENT_REGISTRATION_LABEL,
   SNM_SITE_ADDRESS,
   SNM_SITE_EMAIL,
   SNM_SITE_LOGO_DESCRIPTION,
@@ -17,8 +20,21 @@ import {
   SNM_SITE_PHONE,
 } from "@shared/constants";
 import { services, SNMSocialMedia } from "@shared/config/common";
+import { useAppSelector } from "@app/store/hooks";
 
 const Footer: React.FC = () => {
+  const { isSignedIn, userType } = useAppSelector((state) => state.auth);
+
+  const visibleServices = services.filter((s) => {
+    if (s.title === SNM_NAV_PATIENT_REGISTRATION_LABEL) {
+      return (
+        isSignedIn &&
+        (userType === SNM_MS_USERTYPE || userType === SNM_ADMIN_USERTYPE)
+      );
+    }
+    return true;
+  });
+
   return (
     <footer className="bg-to-two-right-theme-gradient text-white">
       {/* Top wave / decorative separator (optional) */}
@@ -101,14 +117,14 @@ const Footer: React.FC = () => {
               Our Services
             </h5>
             <ul className="space-y-3">
-              {services.map((s) => (
+              {visibleServices.map((s) => (
                 <li key={s.title} className="flex gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-base flex-shrink-0">
-                    <s.icon size={24} />
+                    {s.icon && <s.icon size={24} />}
                   </div>
                   <div>
                     <Link
-                      to=""
+                      to={s.href}
                       className="text-sm font-medium block hover:text-yellow-200 transition"
                     >
                       {s.title}

@@ -7,12 +7,15 @@ import {
   PersonalDetailsStep,
   ProfessionalDetailsStep,
   LoginDetailsStep,
-} from "@shared/components/Registration";
+} from "@widgets/registration-wizard";
 import { useRegisterUserMutation } from "./services";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { FormValues } from "@shared/types/CommonType";
+import { normalizeApiError } from "@shared/api/errors";
+import { reportError } from "@shared/lib/monitoring";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
+import { createRegistrationFormData } from "@entities/registration";
 
 const Register = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
@@ -102,52 +105,7 @@ const Register = () => {
         return;
       }
 
-      const formData = new FormData();
-
-      // Required fields
-      formData.append("fullName", data.fullName);
-      formData.append("email", data.email);
-      formData.append("password", data.password);
-      formData.append("confirmPassword", data.confirmPassword || data.password);
-      formData.append("mobileNo", data.mobileNo); // mapped from contact
-      formData.append("dateOfBirth", data.dateOfBirth); // mapped from birthdate
-      formData.append("address", data.address || "");
-      formData.append("stateId", String(data.stateId || ""));
-      formData.append("cityId", String(data.cityId || ""));
-      formData.append("departmentId", String(data.departmentId || ""));
-      formData.append("qualificationId", String(data.qualificationId || ""));
-
-      // Optional fields
-      formData.append("title", data.title || "Mr");
-      formData.append("age", String(data.age || 0));
-      formData.append("shiftTimeId", data.shiftTimeId || "");
-      formData.append("availableDayId", data.availableDayId || "");
-      formData.append("gender", data.gender || "Male");
-      formData.append("userType", data.userType || "ms");
-      formData.append("experience", String(data.experience || 0));
-      formData.append("lastSewa", data.lastSewa || "");
-      formData.append("recommendedBy", data.recommendedBy || "");
-      formData.append("samagamHeldIn", data.samagamHeldIn || "");
-
-      formData.append("favoriteFood", data.favoriteFood || "");
-      formData.append("childhoodNickname", data.childhoodNickname || "");
-      formData.append("motherMaidenName", data.motherMaidenName || "");
-      formData.append("hobbies", data.hobbies || "");
-
-      // Handle file uploads
-      if (data.profilePic instanceof FileList && data.profilePic.length > 0) {
-        formData.append("profilePic", data.profilePic[0]);
-      }
-      if (data.certificate instanceof FileList && data.certificate.length > 0) {
-        formData.append("certificate", data.certificate[0]);
-      }
-
-      // Debug: Log form data entries
-      //console.log("FormData contents:", formData);
-      // return;
-      for (const pair of (formData as any).entries()) {
-        console.log(pair[0], pair[1]);
-      }
+      const formData = createRegistrationFormData(data);
 
       await toast.promise(triggerRegisterUser(formData).unwrap(), {
         loading: "Registering...",
@@ -156,10 +114,10 @@ const Register = () => {
       });
       setDisabled(false);
       navigate("/login"); // redirect on success
-    } catch (error: any) {
+    } catch (error) {
       setDisabled(false);
-      console.error("Registration failed:", error);
-      toast.error(error?.data?.message || "Something went wrong");
+      reportError(error, { source: "registration" });
+      toast.error(normalizeApiError(error).message);
     }
   };
 

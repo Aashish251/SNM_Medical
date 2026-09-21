@@ -1,29 +1,25 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQuery } from "@lib/customBaseQuery";
-import {
-  CitiesByStateRequest,
-  CitiesByStateResponse,
-  RegistrationDropdownResponse,
-} from "@shared/types/CommonType";
+import { baseApi } from "@shared/api/baseApi";
 
-export const RegisterApi = createApi({
-  reducerPath: "RegisterApi",
-  baseQuery: customBaseQuery,
-  tagTypes: [],
+type RegisterUserResponse = {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+};
+
+export const RegisterApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    registerUser: builder.mutation<any, FormData>({
+    registerUser: builder.mutation<RegisterUserResponse, FormData>({
       query: (formData) => ({
         url: "/api/registration/register",
         method: "POST",
         body: formData,
-        formData: true,
         headers: {
           "x-is-form-data": "true",
-          // Don't set Content-Type here, browser will set it with correct boundary
         },
       }),
     }),
   }),
+  overrideExisting: false,
 });
 
 export const {

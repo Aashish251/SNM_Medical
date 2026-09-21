@@ -1,0 +1,121 @@
+const express = require("express");
+const patientController = require("../controllers/patientController");
+
+const router = express.Router();
+
+// POST must come before GET /:id to avoid route conflicts in Express 5
+router.post("/",
+  /* #swagger.tags = ['Patients']
+     #swagger.summary = 'Create patient registration'
+     #swagger.description = 'Save a patient registration. The API accepts both UI field names (regn, name, mobile, sex, symptoms) and normalized API field names.'
+     #swagger.parameters['body'] = {
+       in: 'body',
+       required: true,
+       schema: { $ref: '#/definitions/PatientRegistrationRequest' }
+     }
+     #swagger.responses[201] = { description: 'Patient registration saved successfully' }
+     #swagger.responses[400] = { description: 'Invalid patient registration data' }
+     #swagger.responses[500] = { description: 'Failed to save patient registration' }
+  */
+  patientController.createPatientRegistration
+);
+
+router.get("/",
+  /* #swagger.tags = ['Patients']
+     #swagger.summary = 'List patient registrations'
+     #swagger.description = 'Retrieve all patient registrations sorted by newest registration date first.'
+     #swagger.responses[200] = {
+       description: 'Patient registrations fetched successfully',
+       schema: {
+         success: true,
+         message: 'Patient registrations fetched successfully',
+         data: {
+           items: [{ id: 1, regnNo: 'OPD-2026-001', patientName: 'Anita Sharma' }],
+           count: 1
+         }
+       }
+     }
+     #swagger.responses[500] = { description: 'Failed to fetch patient registrations' }
+  */
+  patientController.listPatientRegistrations
+);
+
+router.get("/:id",
+  /* #swagger.tags = ['Patients']
+     #swagger.summary = 'Get patient registration by ID'
+     #swagger.description = 'Retrieve one patient registration record by its numeric ID.'
+     #swagger.parameters['id'] = {
+       in: 'path',
+       type: 'integer',
+       required: true,
+       description: 'Patient registration ID',
+       example: 1
+     }
+     #swagger.responses[200] = { description: 'Patient registration fetched successfully' }
+     #swagger.responses[404] = { description: 'Patient registration not found' }
+     #swagger.responses[500] = { description: 'Failed to fetch patient registration' }
+  */
+  patientController.getPatientRegistrationById
+);
+
+/**
+ * @swagger
+ * /api/patients/{id}:
+ *   put:
+ *     tags:
+ *       - Patients
+ *     summary: Update patient registration
+ *     description: Update an existing patient registration by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Patient registration ID
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/PatientRegistrationRequest'
+ *     responses:
+ *       200:
+ *         description: Patient registration updated successfully
+ *       404:
+ *         description: Patient registration not found
+ *       409:
+ *         description: Patient registration already exists
+ *       500:
+ *         description: Failed to update patient registration
+ *   delete:
+ *     tags:
+ *       - Patients
+ *     summary: Delete patient registration
+ *     description: Delete a patient registration by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Patient registration ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Patient registration deleted successfully
+ *       404:
+ *         description: Patient registration not found
+ *       500:
+ *         description: Failed to delete patient registration
+ */
+router.route("/:id")
+  .put(
+    patientController.updatePatientRegistration
+  )
+  .delete(
+    patientController.deletePatientRegistration
+  );
+
+module.exports = router;

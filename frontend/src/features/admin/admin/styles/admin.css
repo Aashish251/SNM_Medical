@@ -1,0 +1,261 @@
+.admin-root {
+  --radius: 0.625rem;
+
+  /* Map shadcn tokens → SNM Medical brand variables (index.css) */
+  --background: #f9f9f6;
+  --foreground: var(--color-brand-neutral-dark);
+  --card: #ffffff;
+  --card-foreground: var(--color-brand-neutral-dark);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-brand-neutral-dark);
+  --primary: var(--color-brand-primary);
+  --primary-foreground: #ffffff;
+  --secondary: color-mix(in srgb, var(--color-brand-secondary) 12%, white);
+  --secondary-foreground: var(--color-brand-primary-dark);
+  --muted: var(--color-brand-neutral-light);
+  --muted-foreground: var(--color-brand-neutral);
+  --accent: color-mix(in srgb, var(--color-brand-primary) 8%, white);
+  --accent-foreground: var(--color-brand-primary-dark);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: color-mix(in srgb, var(--color-brand-primary) 14%, white);
+  --input: color-mix(in srgb, var(--color-brand-primary) 8%, white);
+  --ring: var(--color-brand-primary);
+  --chart-1: var(--color-brand-primary);
+  --chart-2: var(--color-brand-secondary);
+  --chart-3: var(--color-brand-accent);
+  --chart-4: var(--color-brand-primary-light);
+  --chart-5: var(--color-brand-secondary-light);
+
+  /* Sidebar — brand gradient palette */
+  --sidebar: var(--color-brand-primary);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--color-brand-accent);
+  --sidebar-primary-foreground: var(--color-brand-neutral-dark);
+  --sidebar-accent: rgba(255, 255, 255, 0.12);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.15);
+  --sidebar-ring: var(--color-brand-accent);
+}
+
+.admin-root.dark {
+  --background: var(--color-brand-neutral-dark);
+  --foreground: #f3f4f6;
+  --card: #1a2332;
+  --card-foreground: #f3f4f6;
+  --popover: #1a2332;
+  --popover-foreground: #f3f4f6;
+  --primary: var(--color-brand-primary);
+  --primary-foreground: #ffffff;
+  --secondary: color-mix(in srgb, var(--color-brand-secondary) 18%, transparent);
+  --secondary-foreground: #f3f4f6;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
+  --accent-foreground: #f3f4f6;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: var(--color-brand-primary-light);
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: rgba(255, 255, 255, 0.1);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+}
+
+.admin-root * {
+  border-color: var(--border);
+}
+
+/* ─── Sidebar gradient (blue → coral, top to bottom) ─── */
+.admin-root [data-sidebar='sidebar'],
+.admin-root [data-slot='sidebar-inner'],
+.admin-root [data-mobile='true'][data-sidebar='sidebar'] {
+  background-color: transparent !important;
+  background-image: var(--to-bottom-gradient-theme);
+}
+
+.admin-root [data-slot='sidebar-group-label'] {
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Sidebar hover — matches main app nav (subtle white overlay) */
+.admin-root [data-slot='sidebar-menu-button']:hover:not([data-active='true']),
+.admin-root [data-slot='sidebar-menu-sub-button']:hover:not([data-active='true']) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Active sidebar item — gold accent left border */
+.admin-root [data-slot='sidebar-menu-button'][data-active='true'] {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+  font-weight: 500;
+  box-shadow: inset 3px 0 0 0 var(--color-brand-accent);
+}
+
+.admin-root [data-slot='sidebar-menu-sub-button'][data-active='true'] {
+  color: var(--color-brand-accent) !important;
+  font-weight: 500;
+}
+
+/* ─── Header gradient accent line ─── */
+.admin-root [data-slot='admin-header'] {
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-root [data-slot='admin-header']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--to-right-gradient-theme);
+}
+
+/* ─── Cards & surfaces ─── */
+.admin-root [data-slot='card'],
+.admin-root .admin-surface {
+  border-color: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-brand-primary) 6%, transparent);
+}
+
+.admin-root.dark [data-slot='card'],
+.admin-root.dark .admin-surface {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.admin-root .admin-surface {
+  overflow: hidden;
+  border-radius: var(--radius);
+  border-width: 1px;
+  border-style: solid;
+  background: var(--card);
+}
+
+/* ─── Forms & inputs ─── */
+.admin-root [data-slot='input'],
+.admin-root [data-slot='textarea'],
+.admin-root [data-slot='select-trigger'] {
+  background-color: color-mix(in srgb, var(--color-brand-primary) 4%, white);
+}
+
+.admin-root.dark [data-slot='input'],
+.admin-root.dark [data-slot='textarea'],
+.admin-root.dark [data-slot='select-trigger'] {
+  background-color: var(--input);
+}
+
+.admin-root [data-slot='input']:focus-visible,
+.admin-root [data-slot='textarea']:focus-visible,
+.admin-root [data-slot='select-trigger']:focus-visible {
+  border-color: var(--color-brand-primary);
+}
+
+/* ─── Tabs ─── */
+.admin-root [data-slot='tabs-trigger'][data-state='active'] {
+  color: var(--color-brand-primary);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 25%, transparent);
+  background: var(--card);
+}
+
+.admin-root.dark [data-slot='tabs-trigger'][data-state='active'] {
+  color: var(--color-brand-primary-light);
+  background: var(--input);
+}
+
+/* ─── Tables ─── */
+.admin-root [data-slot='table-row']:hover {
+  background: color-mix(in srgb, var(--color-brand-primary) 5%, transparent);
+}
+
+.admin-root.dark [data-slot='table-row']:hover {
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+}
+
+.admin-root [data-slot='table-head'] {
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+/* Empty state */
+.admin-root .admin-empty-state {
+  color: var(--muted-foreground);
+}
+
+/* ─── Pagination active page ─── */
+.admin-root [data-slot='button'][data-variant='default'] {
+  background-color: var(--color-brand-primary);
+  color: #ffffff;
+}
+
+.admin-root [data-slot='button'][data-variant='default']:hover {
+  background-color: color-mix(in srgb, var(--color-brand-primary) 88%, black);
+}
+
+/* ─── Dialog / modal accent ─── */
+.admin-root [data-slot='dialog-content'] {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-root [data-slot='dialog-content']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 3px;
+  background: var(--to-right-gradient-theme);
+}
+
+/* ─── Sidebar footer profile card ─── */
+.admin-root [data-slot='sidebar-footer'] [data-slot='sidebar-menu-button'] {
+  color: var(--sidebar-foreground);
+}
+
+.admin-root [data-slot='sidebar-footer'] [data-slot='sidebar-menu-button']:hover,
+.admin-root [data-slot='sidebar-footer'] [data-slot='sidebar-menu-button'][data-state='open'] {
+  background: var(--sidebar-accent) !important;
+  color: var(--sidebar-accent-foreground) !important;
+}
+
+/* ─── Checkbox & switch brand tint ─── */
+.admin-root [data-slot='checkbox'][data-state='checked'] {
+  background-color: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+}
+
+/* ─── Badge default uses brand primary via --primary token ─── */
+
+.admin-root .CollapsibleContent {
+  overflow: hidden;
+}
+
+.admin-root .CollapsibleContent[data-state='open'] {
+  animation: adminSlideDown 300ms ease-out;
+}
+
+.admin-root .CollapsibleContent[data-state='closed'] {
+  animation: adminSlideUp 300ms ease-out;
+}
+
+@keyframes adminSlideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes adminSlideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}

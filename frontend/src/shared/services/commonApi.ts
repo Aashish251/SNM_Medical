@@ -1,17 +1,11 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQuery } from "@lib/customBaseQuery";
+import { baseApi } from "@shared/api/baseApi";
 import {
   CitiesByStateRequest,
   CitiesByStateResponse,
   RegistrationDropdownResponse,
 } from "@shared/types/CommonType";
 
-// Create a single API slice for all common endpoints
-export const CommonApi = createApi({
-  reducerPath: "CommonApi",
-  baseQuery: customBaseQuery,
-  tagTypes: ["RegistrationDropdown", "Cities"],
-
+export const CommonApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     //  Dropdown master data
     getRegistrationDropdownData: builder.query<
@@ -37,6 +31,7 @@ export const CommonApi = createApi({
       providesTags: ["Cities"],
     }),
   }),
+  overrideExisting: false,
 });
 
 //  Export auto-generated hooks

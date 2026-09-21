@@ -7,10 +7,27 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Environment files
+.env
+.env.*
+.env.local
+.env.*.local
+!.env.example
+
 node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
+
+
+.cursor
+
+# Prevent accidental TS emit into source tree
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
 
 # Editor directories and files
 .vscode/*

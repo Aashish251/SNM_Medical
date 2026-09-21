@@ -5,6 +5,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"],
@@ -12,7 +14,11 @@
       "@features/*": ["src/features/*"],
       "@lib/*": ["src/lib/*"],
       "@assets/*": ["src/assets/*"],
-      "@routes/*": ["src/routes/*"]
+      "@routes/*": ["src/routes/*"],
+      "@entities/*": ["src/entities/*"],
+      "@widgets/*": ["src/widgets/*"],
+      "@pages/*": ["src/pages/*"],
+      "@admin/*": ["src/features/admin/admin/*"]
     },
 
     //  Loosen strict checks and remove unused warnings

@@ -1,5 +1,6 @@
 const searchService = require('../services/searchService');
 const ExcelJS = require('exceljs');
+const logger = require('../utils/logger');
 
 exports.masterSearch = async (req, res) => {
   try {
@@ -8,6 +9,7 @@ exports.masterSearch = async (req, res) => {
     const pagination = result?.pagination || {
       current: req.body.page || 1,
       total: 1,
+      pageSize: req.body.limit || 10,
       count: data.length,
       totalRecords: data.length
     };
@@ -16,10 +18,11 @@ exports.masterSearch = async (req, res) => {
       success: true,
       message: `Found ${pagination.totalRecords} record(s)`,
       data,
+      total: pagination.totalRecords,
       pagination
     });
   } catch (error) {
-    console.error('Master Search Error:', error);
+    logger.error('Master Search Error', { error: error.message, filters: req.body });
     res.status(500).json({
       success: false,
       message: 'Failed to perform master search',
@@ -97,12 +100,12 @@ exports.exportSearch = async (req, res) => {
     // write() does not automatically end the response in all versions, so:
     res.end();
   } catch (error) {
-    console.error('Export Error (stream):', error);
+    logger.error('Export Error (stream)', { error: error.message });
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: 'Export failed' });
     } else {
       // headers already sent — connection likely aborted by client
-      try { res.end(); } catch (_) {}
+      try { res.end(); } catch (_) { }
     }
   }
 };
@@ -112,11 +115,14 @@ exports.approveUser = async (req, res) => {
   try {
     const { regId } = req.params;
     const approved = await searchService.approveUser(regId);
+    logger.info('User approval processed', { regId, approved: !!approved?.success });
     res.json({
-      success: approved,
-      message: approved ? 'User approved successfully' : 'User not found'
+      success: approved.success,
+      message: approved.message,
+      affectedRows: approved.affectedRows
     });
   } catch (error) {
+    logger.error('User approval failed', { regId: req.params?.regId, error: error.message });
     res.status(500).json({ success: false, message: 'Approval failed' });
   }
 };
@@ -129,8 +135,10 @@ exports.updateSelected = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No users provided' });
 
     await searchService.updateSelectedUsers(users);
+    logger.info('Bulk user update completed', { count: users.length });
     res.json({ success: true, message: 'Users updated successfully' });
   } catch (error) {
+    logger.error('Bulk user update failed', { error: error.message, count: req.body?.users?.length });
     res.status(500).json({ success: false, message: 'Update failed' });
   }
 };

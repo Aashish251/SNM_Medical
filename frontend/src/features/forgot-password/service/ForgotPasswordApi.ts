@@ -1,5 +1,4 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
-import { customBaseQueryWithAuth } from "@lib/customBaseQuery";
+import { baseApi } from "@shared/api/baseApi";
 import {
   ForgotPasswordRequest,
   ForgotPasswordResponse,
@@ -7,10 +6,7 @@ import {
   ResetPasswordResponse,
 } from "../type";
 
-export const ForgotPasswordApi = createApi({
-  reducerPath: "ForgotPasswordApi",
-  baseQuery: customBaseQueryWithAuth,
-  tagTypes: [],
+export const ForgotPasswordApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     forgotPassword: builder.mutation<
       ForgotPasswordResponse,
@@ -33,6 +29,7 @@ export const ForgotPasswordApi = createApi({
       }),
     }),
   }),
+  overrideExisting: false,
 });
 
 export const { useForgotPasswordMutation, useResetPasswordMutation } =

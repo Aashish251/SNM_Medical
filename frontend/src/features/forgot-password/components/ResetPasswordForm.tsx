@@ -8,6 +8,7 @@ import { ResetPassword, UserRegIdObj } from "../type";
 import { ANIM } from "../constants/constants";
 import { useResetPasswordMutation } from "../service/ForgotPasswordApi";
 import { toast } from "@shared/lib/toast";
+import { normalizeApiError } from "@shared/api/errors";
 import { SNM_NAV_LOGIN_LINK } from "@shared/constants";
 interface Props {
   onReset: () => void;
@@ -43,11 +44,8 @@ const ResetPasswordForm: React.FC<Props> = ({ onReset, userRegIdObj }) => {
         reset();
         navigate(SNM_NAV_LOGIN_LINK);
       }
-    } catch (error: any) {
-      console.error("Reset password failed:", error);
-      const serverMessage =
-        error?.data?.message || error?.message || "Something went wrong.";
-      toast.error(serverMessage);
+    } catch (error) {
+      toast.error(normalizeApiError(error).message);
     }
   };
 

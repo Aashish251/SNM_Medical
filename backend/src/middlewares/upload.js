@@ -12,7 +12,8 @@ const path = require("path");
 const fs = require("fs");
 const logger = require("../utils/logger");
 
-const BASE_UPLOAD_DIR = path.join(__dirname, "../../uploads");
+// Temporary directory for local storage
+const TEMP_UPLOAD_DIR = path.join(__dirname, "../../temp");
 
 const ensureDir = (dir) => {
   if (!fs.existsSync(dir)) {
@@ -20,20 +21,13 @@ const ensureDir = (dir) => {
   }
 };
 
+// Ensure temp directory exists
+ensureDir(TEMP_UPLOAD_DIR);
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let folder = "others";
-
-    if (["profilePic", "profileImage"].includes(file.fieldname)) {
-      folder = "profile";
-    } else if (file.fieldname === "certificate") {
-      folder = "certificates";
-    }
-
-    const fullPath = path.join(BASE_UPLOAD_DIR, folder);
-    ensureDir(fullPath);
-
-    cb(null, fullPath);
+    // All files go to temp folder
+    cb(null, TEMP_UPLOAD_DIR);
   },
 
   filename: (req, file, cb) => {
@@ -58,7 +52,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 module.exports = upload;
