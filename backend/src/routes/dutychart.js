@@ -14,6 +14,17 @@ router.get("/departments",
   dutyChartController.getDutyDepartments
 );
 
+router.get("/staff",
+  /* #swagger.tags = ['DutyChart']
+     #swagger.summary = 'List registered staff for duty assignment'
+     #swagger.description = 'Fetch staff names from registration_tbl for duty chart assignment.'
+     #swagger.parameters['search'] = { in: 'query', type: 'string', required: false, example: 'Pratik' }
+     #swagger.responses[200] = { description: 'Staff fetched successfully' }
+     #swagger.responses[500] = { description: 'Failed to fetch staff' }
+  */
+  dutyChartController.getDutyStaff
+);
+
 router.get("/charts",
   /* #swagger.tags = ['DutyChart']
      #swagger.summary = 'List duty charts'

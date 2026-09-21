@@ -1,14 +1,16 @@
 import type { LucideIcon } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { RegisterOptions } from "react-hook-form";
+import type { RegisterOptions, UseFormSetValue } from "react-hook-form";
 
 export type EntityFormField = {
   name: string;
   label: string;
-  type?: "text" | "email" | "number" | "select" | "date" | "textarea";
+  type?: "text" | "email" | "number" | "select" | "searchable-select" | "date" | "textarea";
   placeholder?: string;
   options?: { label: string; value: string }[];
   rules?: RegisterOptions;
+  /** Called when the field value changes (for select fields). Use setValue to auto-fill other fields. */
+  onValueChange?: (value: string, setValue: UseFormSetValue<Record<string, string>>) => void;
 };
 
 export type EntityListHandlers<T extends { id: string }> = {

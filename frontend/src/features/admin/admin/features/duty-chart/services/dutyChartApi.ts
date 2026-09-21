@@ -48,11 +48,27 @@ export interface DutyDepartmentOption {
   value: string;
 }
 
+export interface DutyStaffOption {
+  id?: number;
+  label: string;
+  value: string;
+  contact?: string;
+}
+
 export interface DutyDepartmentsResponse {
   success?: boolean;
   message?: string;
   data?: {
     items?: Array<{ id?: number; label?: string; value?: string; department_name?: string }>;
+    count?: number;
+  };
+}
+
+export interface DutyStaffResponse {
+  success?: boolean;
+  message?: string;
+  data?: {
+    items?: Array<{ id?: number; label?: string; value?: string; contact?: string; full_name?: string }>;
     count?: number;
   };
 }
@@ -84,6 +100,23 @@ export const dutyChartApi = baseApi.injectEndpoints({
         });
       },
       providesTags: [{ type: "DutyChart", id: "DEPARTMENTS" }],
+    }),
+
+    getDutyStaff: builder.query<DutyStaffOption[], void>({
+      query: () => ({
+        url: "/api/dutychart/staff",
+        method: "GET",
+      }),
+      transformResponse: (response: DutyStaffResponse) => {
+        const rawItems = response?.data?.items || [];
+        return rawItems.map((item) => ({
+          id: item.id,
+          label: item.label || item.full_name || item.value || "",
+          value: item.label || item.full_name || item.value || "",
+          contact: item.contact || "",
+        }));
+      },
+      providesTags: [{ type: "DutyChart", id: "STAFF" }],
     }),
 
     createDutyEntry: builder.mutation<DutyChartListResponse, CreateEntryPayload>({
@@ -118,6 +151,7 @@ export const dutyChartApi = baseApi.injectEndpoints({
 export const {
   useGetDutyEntriesQuery,
   useGetDutyDepartmentsQuery,
+  useGetDutyStaffQuery,
   useCreateDutyEntryMutation,
   useUpdateDutyEntryMutation,
   useDeleteDutyEntryMutation,

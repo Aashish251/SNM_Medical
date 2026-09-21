@@ -7,6 +7,7 @@ import {
 } from "./data/records";
 import { dutyChartColumns } from "./data/columns";
 import type { DutyChartEntry } from "./services/dutyChartApi";
+import type { DutyStaffOption } from "./services/dutyChartApi";
 
 export interface DutyChartHandlers {
   onCreate: (values: Record<string, string>) => void | Promise<void>;
@@ -17,8 +18,24 @@ export interface DutyChartHandlers {
 export function createDutyChartConfig(
   data: DutyChartEntry[],
   handlers: DutyChartHandlers,
-  departmentOptions: Array<{ label: string; value: string }> = []
+  departmentOptions: Array<{ label: string; value: string }> = [],
+  staffOptions: DutyStaffOption[] = []
 ): EntityListModuleConfig<DutyChartEntry> {
+  /** Auto-fill the contact number when a staff name is selected */
+  const staffNameField = {
+    name: "name",
+    label: "Staff Name",
+    type: "searchable-select" as const,
+    options: staffOptions,
+    placeholder: "Select Staff",
+    onValueChange: (value: string, setValue: (name: string, value: string) => void) => {
+      const match = staffOptions.find((s) => s.value === value);
+      if (match?.contact) {
+        setValue("contact", match.contact);
+      }
+    },
+  };
+
   return {
     title: "Duty Chart",
     description: "Manage and monitor staff duty assignments.",
@@ -55,11 +72,7 @@ export function createDutyChartConfig(
         label: "Date",
         type: "date",
       },
-      {
-        name: "name",
-        label: "Staff Name",
-        placeholder: "Full Name",
-      },
+      staffNameField,
       {
         name: "contact",
         label: "Contact Number",
@@ -79,11 +92,7 @@ export function createDutyChartConfig(
       },
     ],
     secondaryFormFields: [
-      {
-        name: "name",
-        label: "Staff Name",
-        placeholder: "Select staff",
-      },
+      staffNameField,
       {
         name: "shift",
         label: "Shift",

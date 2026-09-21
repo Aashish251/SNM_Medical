@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { EntityListPage } from "@admin/components/entity-list";
 import { normalizeApiError } from "@shared/api/errors";
@@ -9,12 +9,13 @@ import {
   useDeleteDutyEntryMutation,
 } from "./services/dutyChartApi";
 import { createDutyChartConfig } from "./config";
-import { useDutyDepartmentOptions } from "./data/records";
+import { useDutyDepartmentOptions, useDutyStaffOptions } from "./data/records";
 import type { DutyChartEntry } from "./services/dutyChartApi";
 
 export function DutyChart() {
   const { data: response, isLoading, isFetching, isError, error } = useGetDutyEntriesQuery();
   const departmentOptions = useDutyDepartmentOptions();
+  const staffOptions = useDutyStaffOptions();
   const [createEntry] = useCreateDutyEntryMutation();
   const [updateEntry] = useUpdateDutyEntryMutation();
   const [deleteEntry] = useDeleteDutyEntryMutation();
@@ -34,6 +35,16 @@ export function DutyChart() {
     }
   }, [error, isError]);
 
+  /** Look up the contact number for the selected staff name */
+  const resolveContact = useCallback(
+    (staffName: string, formContact?: string) => {
+      if (formContact) return formContact;
+      const match = staffOptions.find((s) => s.value === staffName);
+      return match?.contact || "";
+    },
+    [staffOptions]
+  );
+
   const handleCreate = async (values: Record<string, string>) => {
     try {
       await createEntry({
@@ -41,7 +52,7 @@ export function DutyChart() {
         department: values.department,
         date: values.date,
         name: values.name,
-        contact: values.contact,
+        contact: resolveContact(values.name, values.contact),
         shift: values.shift,
         status: values.status || "assigned",
       }).unwrap();
@@ -58,7 +69,7 @@ export function DutyChart() {
         entryId: row.entryId,
         body: {
           name: values.name,
-          contact: values.contact,
+          contact: resolveContact(values.name, values.contact),
           shift: values.shift,
           status: values.status,
         },
@@ -96,7 +107,8 @@ export function DutyChart() {
       onUpdate: handleUpdate,
       onDelete: handleDelete,
     },
-    departmentOptions
+    departmentOptions,
+    staffOptions
   );
 
   return <EntityListPage config={config} />;

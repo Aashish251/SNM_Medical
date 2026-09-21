@@ -353,3 +353,26 @@ exports.getDutyDepartments = async (search = "") => {
     value: d.department_name,
   }));
 };
+
+/**
+ * Fetch staff names from registration_tbl for duty assignment.
+ */
+exports.getDutyStaff = async (search = "") => {
+  let query = `SELECT reg_id, full_name, mobile_no FROM registration_tbl WHERE is_deleted = 0`;
+  const params = [];
+
+  if (search && search.trim()) {
+    query += ` AND full_name LIKE ?`;
+    params.push(`%${search.trim()}%`);
+  }
+
+  query += ` ORDER BY full_name ASC`;
+
+  const [rows] = await promisePool.execute(query, params);
+  return rows.map((r) => ({
+    id: r.reg_id,
+    label: r.full_name,
+    value: r.full_name,
+    contact: r.mobile_no,
+  }));
+};
