@@ -10,7 +10,7 @@ import { toast } from "@shared/lib/toast";
 import { normalizeApiError } from "./errors";
 
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_BASE_URL,
+  baseUrl: import.meta.env.VITE_API_BASE_URL || "",
   credentials: "omit",
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as { auth?: { token?: string } };
