@@ -15,8 +15,10 @@ export interface LoginData {
   user: UserObject;
 }
 
-export interface LoginResponse {
+export interface LoginResponseEnvelope {
   success: boolean;
   message?: string;
   data: LoginData;
 }
+
+export type LoginResponse = LoginResponseEnvelope | LoginData;

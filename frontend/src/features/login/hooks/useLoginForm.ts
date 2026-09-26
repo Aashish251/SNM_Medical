@@ -56,11 +56,26 @@ export const useLoginForm = () => {
       // Call login API
       const response = await triggerLoginUser(payload).unwrap();
 
-      // Dismiss loading and show success
+      if ("success" in response && !response.success) {
+        throw new Error(response.message || "Login failed. Please try again.");
+      }
+
+      const loginData = "data" in response ? response.data : response;
+      const { token, user } = loginData || {};
+
+      if (
+        typeof token !== "string" ||
+        !token ||
+        !user ||
+        typeof user.userType !== "string"
+      ) {
+        throw new Error(
+          "The server returned an incomplete login response. Please try again or contact support."
+        );
+      }
+
       toast.dismiss(loadingToast);
       toast.success("Login successful!");
-
-      const { token, user } = response?.data;
 
       dispatch(
         signIn({
