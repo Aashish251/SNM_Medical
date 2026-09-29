@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@admin/components/ui/dialog";
 
-type EntityViewDialogProps<T extends Record<string, unknown>> = {
+type EntityViewDialogProps<T extends object> = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -14,7 +14,7 @@ type EntityViewDialogProps<T extends Record<string, unknown>> = {
   labels: Partial<Record<keyof T, string>>;
 };
 
-export function EntityViewDialog<T extends Record<string, unknown>>({
+export function EntityViewDialog<T extends object>({
   open,
   onOpenChange,
   title,
@@ -23,7 +23,7 @@ export function EntityViewDialog<T extends Record<string, unknown>>({
 }: EntityViewDialogProps<T>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Record details</DialogDescription>

@@ -357,8 +357,8 @@ exports.getDutyDepartments = async (search = "") => {
 /**
  * Fetch staff names from registration_tbl for duty assignment.
  */
-exports.getDutyStaff = async (search = "") => {
-  let query = `SELECT reg_id, full_name, mobile_no FROM registration_tbl WHERE is_deleted = 0`;
+exports.getDutyStaff = async (search = "", department = "") => {
+  let query = `SELECT reg_id, full_name, mobile_no, department_id FROM registration_tbl WHERE is_deleted = 0`;
   const params = [];
 
   if (search && search.trim()) {
@@ -369,10 +369,46 @@ exports.getDutyStaff = async (search = "") => {
   query += ` ORDER BY full_name ASC`;
 
   const [rows] = await promisePool.execute(query, params);
-  return rows.map((r) => ({
-    id: r.reg_id,
-    label: r.full_name,
-    value: r.full_name,
-    contact: r.mobile_no,
-  }));
+
+  // Fetch departments to map department_id -> department_name
+  let deptMap = new Map();
+  try {
+    const [deptRows] = await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
+      "GET",
+      null,
+      null,
+      null,
+      null,
+    ]);
+    const depts = deptRows[0] || [];
+    depts.forEach((d) => {
+      deptMap.set(Number(d.id), d.department_name);
+    });
+  } catch (_) {
+    // fallback if SP fails
+  }
+
+  let staff = rows.map((r) => {
+    const deptId = r.department_id != null ? Number(r.department_id) : null;
+    const deptName = deptId ? deptMap.get(deptId) || "" : "";
+    return {
+      id: r.reg_id,
+      label: r.full_name,
+      value: r.full_name,
+      contact: r.mobile_no || "",
+      departmentId: deptId,
+      department: deptName,
+    };
+  });
+
+  if (department && department.trim()) {
+    const targetDept = department.trim().toLowerCase();
+    staff = staff.filter(
+      (s) =>
+        String(s.departmentId) === targetDept ||
+        (s.department && s.department.toLowerCase() === targetDept)
+    );
+  }
+
+  return staff;
 };

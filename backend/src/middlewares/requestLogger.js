@@ -12,6 +12,19 @@ const requestLogger = (req, res, next) => {
   // Store start time for performance tracking
   req.startTime = Date.now();
 
+  // Sanitize request body for logging (mask sensitive fields)
+  const sanitizeBody = (body) => {
+    if (!body || typeof body !== "object") return body;
+    const sensitiveFields = ["password", "newPassword", "confirmPassword", "currentPassword", "token", "authorization"];
+    const sanitized = { ...body };
+    for (const field of sensitiveFields) {
+      if (sanitized[field]) {
+        sanitized[field] = "***MASKED***";
+      }
+    }
+    return sanitized;
+  };
+
   // Log incoming request
   logger.info("Incoming Request", {
     requestId: req.id,
@@ -19,7 +32,7 @@ const requestLogger = (req, res, next) => {
     path: req.path,
     ip: req.ip,
     userAgent: req.get("user-agent"),
-    body: req.method !== "GET" ? (JSON.stringify(req.body) || "{}").substring(0, 200) : "N/A",
+    body: req.method !== "GET" ? JSON.stringify(sanitizeBody(req.body)).substring(0, 200) : "N/A",
   });
 
   // Override res.json to log response

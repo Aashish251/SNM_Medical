@@ -2,6 +2,28 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const reportService = require('../services/reportService');
+const reportBuilderService = require('../services/reportBuilderService');
+const authenticateToken = require('../middlewares/auth');
+const { isAdmin } = require('../middlewares/role');
+
+router.get('/builder/:type', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const data = await reportBuilderService.getReportBuilder(req.params.type);
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+});
+
+router.put('/builder/:type', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const data = await reportBuilderService.saveReportBuilder(req.params.type, req.body);
+    res.json({ success: true, message: 'Report saved successfully', data });
+  } catch (error) {
+    logger.warn('Report builder save failed', { type: req.params.type, error: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+});
 
 // Report metadata (active dates, departments, locations)
 router.get('/metadata',

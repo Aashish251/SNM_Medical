@@ -16,7 +16,7 @@ type EntityDeleteDialogProps<T> = {
   onDelete?: () => void;
 };
 
-export function EntityDeleteDialog<T extends Record<string, unknown>>({
+export function EntityDeleteDialog<T extends object>({
   open,
   onOpenChange,
   currentRow,

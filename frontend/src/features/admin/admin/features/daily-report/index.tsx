@@ -45,7 +45,7 @@ const CHART_COLORS = [
   "#ec4899", "#f97316", "#6366f1", "#14b8a6", "#84cc16",
 ];
 
-export function DailyReport() {
+export function DailyDatabaseAnalytics() {
   const { data: metaResponse, isLoading: isMetaLoading } = useGetReportMetadataQuery();
   const availableDates = metaResponse?.data?.availableDates || [];
 
@@ -696,3 +696,5 @@ export function DailyReport() {
     </div>
   );
 }
+
+export { DailyReportBuilder as DailyReport } from "./builder";

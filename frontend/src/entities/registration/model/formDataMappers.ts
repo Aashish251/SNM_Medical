@@ -6,8 +6,14 @@ type ProfileFormDataOptions = {
   includeRemark?: boolean;
 };
 
-export function createRegistrationFormData(data: FormValues) {
-  return createProfileFormData(data, { includeCredentials: true });
+export function createRegistrationFormData(
+  data: FormValues,
+  options?: { includeRemark?: boolean }
+) {
+  return createProfileFormData(data, {
+    includeCredentials: true,
+    includeRemark: options?.includeRemark ?? Boolean(data.remark),
+  });
 }
 
 export function createUpdateProfileFormData(

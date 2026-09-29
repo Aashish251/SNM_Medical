@@ -13,6 +13,10 @@ export function EntityListDialogs<T extends { id: string }>({
 }: EntityListDialogsProps<T>) {
   const { open, setOpen, currentRow } = useEntityList<T>();
 
+  if (config.renderDialogs) {
+    return <>{config.renderDialogs({ open, setOpen, currentRow, config })}</>;
+  }
+
   const viewLabels = config.formFields.reduce<Partial<Record<keyof T, string>>>(
     (acc, field) => {
       acc[field.name as keyof T] = field.label;
@@ -44,13 +48,15 @@ export function EntityListDialogs<T extends { id: string }>({
             : undefined
         }
       />
-      <EntityFormDialog
-        open={open === "secondary"}
-        onOpenChange={(state) => setOpen(state ? "secondary" : null)}
-        title={config.secondaryDialogTitle}
-        description={config.secondaryDialogDescription}
-        fields={config.secondaryFormFields}
-      />
+      {config.secondaryFormFields && config.secondaryFormFields.length > 0 && (
+        <EntityFormDialog
+          open={open === "secondary"}
+          onOpenChange={(state) => setOpen(state ? "secondary" : null)}
+          title={config.secondaryDialogTitle || "Secondary Action"}
+          description={config.secondaryDialogDescription || ""}
+          fields={config.secondaryFormFields}
+        />
+      )}
       {currentRow && (
         <>
           <EntityDeleteDialog

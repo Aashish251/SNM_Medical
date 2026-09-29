@@ -39,7 +39,7 @@ import {
   Legend,
 } from "recharts";
 
-export function MasterReport() {
+export function MasterDatabaseAnalytics() {
   const { data: metaResponse, isLoading: isMetaLoading } = useGetReportMetadataQuery();
   const availableDates = metaResponse?.data?.availableDates || [];
 
@@ -741,3 +741,5 @@ export function MasterReport() {
     </div>
   );
 }
+
+export { MasterReportBuilder as MasterReport } from "./builder";

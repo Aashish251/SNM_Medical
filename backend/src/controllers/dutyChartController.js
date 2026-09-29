@@ -97,7 +97,10 @@ exports.getDutyDepartments = asyncHandler(async (req, res) => {
 });
 
 exports.getDutyStaff = asyncHandler(async (req, res) => {
-  const items = await dutyChartService.getDutyStaff(req.query.search || "");
+  const items = await dutyChartService.getDutyStaff(
+    req.query.search || "",
+    req.query.department || req.query.departmentId || ""
+  );
   sendResponse(res, 200, true, "Staff fetched successfully from registration_tbl", {
     items,
     count: items.length,

@@ -5,9 +5,24 @@ const logger = require("../utils/logger");
  * Global Error Handler Middleware
  * Catches all errors and logs them appropriately
  */
+
+// Sensitive fields to mask in logs
+const SENSITIVE_FIELDS = ["password", "newPassword", "confirmPassword", "currentPassword", "token", "authorization"];
+
+const sanitizeBody = (body) => {
+  if (!body || typeof body !== "object") return body;
+  const sanitized = { ...body };
+  for (const field of SENSITIVE_FIELDS) {
+    if (sanitized[field]) {
+      sanitized[field] = "***MASKED***";
+    }
+  }
+  return sanitized;
+};
+
 module.exports = (err, req, res, next) => {
   const errorId = req.id || `error-${Date.now()}`;
-  
+
   // Log error with full context
   const errorMeta = {
     errorId,
@@ -18,7 +33,7 @@ module.exports = (err, req, res, next) => {
     userId: req.userId || "anonymous",
     userAgent: req.get("user-agent"),
     stack: err.stack,
-    body: req.body ? JSON.stringify(req.body).substring(0, 500) : "N/A",
+    body: req.body ? JSON.stringify(sanitizeBody(req.body)).substring(0, 500) : "N/A",
   };
 
   // Multer file upload errors

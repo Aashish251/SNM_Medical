@@ -21,6 +21,7 @@ import { type SidebarData } from "../types";
 import {
   LayoutDashboard,
   Users,
+  UserPlus,
   AudioWaveform,
   Command,
   GalleryVerticalEnd,
@@ -76,9 +77,9 @@ export const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: "Users",
+          title: "Add New Registration",
           url: ROUTE_ADMIN_USERS,
-          icon: Users,
+          icon: UserPlus,
         },
         {
           title: "Duty Chart",

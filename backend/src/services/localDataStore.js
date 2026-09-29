@@ -9,6 +9,7 @@ const DEFAULT_DATA = Object.freeze({
   eligibilityChecks: [],
   patientRegistrations: [],
   dutyCharts: [],
+  reportBuilders: {},
   masterData: {
     qualification: [],
     department: [],

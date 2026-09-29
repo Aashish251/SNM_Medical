@@ -153,8 +153,51 @@ export interface MasterReportResponse {
   timestamp?: string;
 }
 
+export type ReportBuilderType = "registration" | "daily" | "master";
+
+export interface RegistrationBuilderData {
+  title: string;
+  dates: string[];
+  rows: Array<{ id: string; department: string; values: number[] }>;
+}
+
+export interface DailyBuilderData {
+  title: string;
+  date: string;
+  rows: Array<{ id: string; department: string; values: number[] }>;
+}
+
+export interface MasterBuilderData {
+  title: string;
+  dates: string[];
+  locations: string[];
+  values: Record<string, Record<string, { opd: number; ipd: number }>>;
+}
+
+export type ReportBuilderData = RegistrationBuilderData | DailyBuilderData | MasterBuilderData;
+
+export interface ReportBuilderResponse {
+  success: boolean;
+  message?: string;
+  data: ReportBuilderData;
+}
+
 export const reportsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getReportBuilder: builder.query<ReportBuilderResponse, ReportBuilderType>({
+      query: (type) => `/api/reports/builder/${type}`,
+      providesTags: (_result, _error, type) => [{ type: "Reports", id: `BUILDER_${type}` }],
+    }),
+
+    saveReportBuilder: builder.mutation<ReportBuilderResponse, { type: ReportBuilderType; data: ReportBuilderData }>({
+      query: ({ type, data }) => ({
+        url: `/api/reports/builder/${type}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { type }) => [{ type: "Reports", id: `BUILDER_${type}` }],
+    }),
+
     getReportMetadata: builder.query<ReportMetadataResponse, void>({
       query: () => ({
         url: "/api/reports/metadata",
@@ -247,6 +290,8 @@ export const reportsApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetReportBuilderQuery,
+  useSaveReportBuilderMutation,
   useGetReportMetadataQuery,
   useGetRegistrationReportQuery,
   useGetDailyReportQuery,

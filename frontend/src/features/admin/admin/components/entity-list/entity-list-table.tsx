@@ -117,6 +117,7 @@ export function EntityListTable<T extends { id: string }>({
         searchPlaceholder={config.searchPlaceholder}
         searchKey={config.searchKey}
         filters={config.filters}
+        extraActions={config.extraToolbarActions?.(table)}
       />
       <div className="admin-surface">
         <Table>
