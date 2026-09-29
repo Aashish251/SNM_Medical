@@ -76,6 +76,16 @@
     "application/json"
   ],
   "paths": {
+    "/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "description": "",
@@ -599,6 +609,45 @@
             "bearerAuth": []
           }
         ]
+      }
+    },
+    "/api/files/view": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "regId",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/auth/login": {
@@ -1449,6 +1498,37 @@
       }
     },
     "/api/patients/": {
+      "post": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Create patient registration",
+        "description": "Save a patient registration. The API accepts both UI field names (regn, name, mobile, sex, symptoms) and normalized API field names.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PatientRegistrationRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Patient registration saved successfully"
+          },
+          "400": {
+            "description": "Invalid patient registration data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save patient registration"
+          }
+        }
+      },
       "get": {
         "tags": [
           "Patients"
@@ -1511,37 +1591,6 @@
             "description": "Failed to fetch patient registrations"
           }
         }
-      },
-      "post": {
-        "tags": [
-          "Patients"
-        ],
-        "summary": "Create patient registration",
-        "description": "Save a patient registration. The API accepts both UI field names (regn, name, mobile, sex, symptoms) and normalized API field names.",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/PatientRegistrationRequest"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Patient registration saved successfully"
-          },
-          "400": {
-            "description": "Invalid patient registration data"
-          },
-          "429": {
-            "description": "Too Many Requests"
-          },
-          "500": {
-            "description": "Failed to save patient registration"
-          }
-        }
       }
     },
     "/api/patients/{id}": {
@@ -1573,6 +1622,38 @@
           },
           "500": {
             "description": "Failed to fetch patient registration"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "429": {
+            "description": "Too Many Requests"
           }
         }
       }
@@ -1818,38 +1899,72 @@
         }
       }
     },
-    "/api/dutychart/filter": {
+    "/api/dutychart/departments": {
       "get": {
         "tags": [
           "DutyChart"
         ],
-        "summary": "Filter duty charts",
-        "description": "List duty chart summaries, optionally filtered by department and year.",
+        "summary": "List duty departments",
+        "description": "Fetch department options directly via sp_department_master stored procedure.",
         "parameters": [
           {
-            "name": "department",
+            "name": "search",
             "in": "query",
             "type": "string",
             "required": false,
-            "example": "NURSES"
-          },
-          {
-            "name": "year",
-            "in": "query",
-            "type": "integer",
-            "required": false,
-            "example": 2026
+            "example": "Cardio"
           }
         ],
         "responses": {
           "200": {
-            "description": "Duty charts fetched successfully"
+            "description": "Departments fetched successfully"
           },
           "429": {
             "description": "Too Many Requests"
           },
           "500": {
-            "description": "Failed to fetch duty charts"
+            "description": "Failed to fetch departments"
+          }
+        }
+      }
+    },
+    "/api/dutychart/staff": {
+      "get": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "List registered staff for duty assignment",
+        "description": "Fetch staff names from registration_tbl for duty chart assignment with optional department filter.",
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "example": "Pratik"
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "example": "Dispansary"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch staff"
           }
         }
       }
@@ -1886,6 +2001,157 @@
           },
           "500": {
             "description": "Failed to fetch duty charts"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Create duty chart",
+        "description": "Create a new duty chart without entries.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "58TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
+                },
+                "department": {
+                  "type": "string",
+                  "example": "NURSES"
+                },
+                "date": {
+                  "type": "string",
+                  "example": "2026-01-01"
+                }
+              },
+              "required": [
+                "title",
+                "department",
+                "date"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Duty chart created successfully"
+          },
+          "400": {
+            "description": "Invalid duty chart data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to create duty chart"
+          }
+        }
+      }
+    },
+    "/api/dutychart/entries": {
+      "get": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "List all duty entries",
+        "description": "List all duty entries flattened with chart context, optionally filtered by department and year.",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "example": "NURSES"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "type": "integer",
+            "required": false,
+            "example": 2026
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Duty entries fetched successfully"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to fetch duty entries"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Create duty chart entry",
+        "description": "Create a duty chart if needed, then append a duty entry.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "58TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
+                },
+                "department": {
+                  "type": "string",
+                  "example": "NURSES"
+                },
+                "date": {
+                  "type": "string",
+                  "example": "2026-01-01"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Asha Sharma"
+                },
+                "contact": {
+                  "type": "string",
+                  "example": "9876543210"
+                },
+                "shift": {
+                  "type": "string",
+                  "example": "Morning (8.00 AM to 4.00 PM)"
+                }
+              },
+              "required": [
+                "title",
+                "department",
+                "date",
+                "name",
+                "contact",
+                "shift"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Duty chart entry saved successfully"
+          },
+          "400": {
+            "description": "Invalid duty chart data"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to save duty chart entry"
           }
         }
       }
@@ -1959,6 +2225,96 @@
             "description": "Failed to fetch duty chart"
           }
         }
+      },
+      "put": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Update duty chart",
+        "description": "Update title, department, and date for a duty chart.",
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "58TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
+                },
+                "department": {
+                  "type": "string",
+                  "example": "NURSES"
+                },
+                "date": {
+                  "type": "string",
+                  "example": "2026-01-01"
+                }
+              },
+              "required": [
+                "title",
+                "department",
+                "date"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Duty chart updated successfully"
+          },
+          "400": {
+            "description": "Invalid duty chart data"
+          },
+          "404": {
+            "description": "Duty chart not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to update duty chart"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DutyChart"
+        ],
+        "summary": "Delete duty chart",
+        "description": "Delete a duty chart and all its entries.",
+        "parameters": [
+          {
+            "name": "chartId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Duty chart deleted successfully"
+          },
+          "404": {
+            "description": "Duty chart not found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Failed to delete duty chart"
+          }
+        }
       }
     },
     "/api/dutychart/charts/{chartId}/export": {
@@ -1996,80 +2352,13 @@
         }
       }
     },
-    "/api/dutychart/entries": {
-      "post": {
-        "tags": [
-          "DutyChart"
-        ],
-        "summary": "Create duty chart entry",
-        "description": "Create a duty chart if needed, then append a duty entry.",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "title": {
-                  "type": "string",
-                  "example": "58TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
-                },
-                "department": {
-                  "type": "string",
-                  "example": "NURSES"
-                },
-                "date": {
-                  "type": "string",
-                  "example": "2026-01-01"
-                },
-                "name": {
-                  "type": "string",
-                  "example": "Asha Sharma"
-                },
-                "contact": {
-                  "type": "string",
-                  "example": "9876543210"
-                },
-                "shift": {
-                  "type": "string",
-                  "example": "Morning (8.00 AM to 4.00 PM)"
-                }
-              },
-              "required": [
-                "title",
-                "department",
-                "date",
-                "name",
-                "contact",
-                "shift"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Duty chart entry saved successfully"
-          },
-          "400": {
-            "description": "Invalid duty chart data"
-          },
-          "429": {
-            "description": "Too Many Requests"
-          },
-          "500": {
-            "description": "Failed to save duty chart entry"
-          }
-        }
-      }
-    },
     "/api/dutychart/charts/{chartId}/entries/{entryId}": {
       "put": {
         "tags": [
           "DutyChart"
         ],
         "summary": "Update duty chart entry",
-        "description": "Update name, contact number, and shift for a duty chart entry.",
+        "description": "Update name, contact number, shift, and status for a duty chart entry.",
         "parameters": [
           {
             "name": "chartId",
@@ -2103,12 +2392,17 @@
                 "shift": {
                   "type": "string",
                   "example": "Evening (4.00 PM to 10.00 PM)"
+                },
+                "status": {
+                  "type": "string",
+                  "example": "assigned"
                 }
               },
               "required": [
                 "name",
                 "contact",
-                "shift"
+                "shift",
+                "status"
               ]
             }
           }
@@ -2168,6 +2462,100 @@
           },
           "500": {
             "description": "Failed to delete duty chart entry"
+          }
+        }
+      }
+    },
+    "/api/reports/builder/{type}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/reports/metadata": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }

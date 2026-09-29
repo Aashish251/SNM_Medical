@@ -19,19 +19,13 @@ import {
 import { Button } from "@admin/components/ui/button";
 import { Input } from "@admin/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@admin/components/ui/select";
-import {
   DEFAULT_ROLE_FORM_VALUES,
   SELECT_NONE_VALUE,
   YES_NO_OPTIONS,
   ON_DUTY_OPTIONS,
 } from "../constants";
 import type { MasterSearchRoleFormValues, SelectOption } from "../types";
+import { MasterSearchSelect } from "./master-search-select";
 
 type MasterSearchRoleCardProps = {
   form: UseFormReturn<MasterSearchRoleFormValues>;
@@ -74,11 +68,11 @@ export function MasterSearchRoleCard({
   };
 
   return (
-    <div className="rounded-2xl border border-rose-200/80 bg-rose-50/35 shadow-xs transition-all dark:border-rose-900/40 dark:bg-rose-950/20">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rose-100/80 p-4 sm:px-6 dark:border-rose-900/30">
+    <div className="rounded-2xl border border-rose-200/80 bg-rose-50/20 shadow-xs transition-all dark:border-rose-900/40 dark:bg-rose-950/20 overflow-hidden">
+      {/* Header with darker title bar background */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rose-200/80 bg-rose-100/70 p-4 sm:px-6 dark:border-rose-900/50 dark:bg-rose-950/50">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100/80 text-rose-600 dark:bg-rose-900/50 dark:text-rose-400">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-200/80 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300">
             <UserPlus className="h-5 w-5" />
           </div>
           <div>
@@ -87,7 +81,7 @@ export function MasterSearchRoleCard({
                 Add User Role
               </h3>
               {selectedCount > 0 && (
-                <span className="rounded-full bg-rose-200/70 px-2 py-0.5 text-[11px] font-bold text-rose-800 dark:bg-rose-900/80 dark:text-rose-200">
+                <span className="rounded-full bg-rose-200 px-2 py-0.5 text-[11px] font-bold text-rose-800 dark:bg-rose-900/80 dark:text-rose-200">
                   {selectedCount} selected
                 </span>
               )}
@@ -103,7 +97,7 @@ export function MasterSearchRoleCard({
           variant="outline"
           size="sm"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="h-8.5 gap-1 rounded-lg border-rose-200/80 bg-white/80 px-3 text-xs font-medium text-rose-800 hover:bg-rose-100/50 dark:border-rose-800 dark:bg-slate-900 dark:text-rose-300"
+          className="h-8.5 gap-1 rounded-lg border-rose-200/80 bg-white px-3 text-xs font-medium text-rose-800 hover:bg-rose-100/50 dark:border-rose-800 dark:bg-slate-900 dark:text-rose-300"
         >
           <span>{isCollapsed ? "Show" : "Hide"}</span>
           {isCollapsed ? (
@@ -117,192 +111,101 @@ export function MasterSearchRoleCard({
       {/* Collapsible Form Body */}
       {!isCollapsed && (
         <form onSubmit={handleSubmitRole} className="p-4 sm:p-6 sm:pt-5">
-          {/* Row 1: 5 Columns */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {/* Row 1: 5 Columns with left-side icons & no duplicate labels */}
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-5">
             {/* 1. Is Present */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <UserCheck className="h-3.5 w-3.5 text-blue-500" />
-                Is Present
-              </label>
-              <Select
-                value={String(currentValues.isPresent ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("isPresent", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select isPresent" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SELECT_NONE_VALUE} className="text-xs">
-                    Select isPresent
-                  </SelectItem>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.isPresent ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("isPresent", val)}
+              options={YES_NO_OPTIONS}
+              placeholder="Select is present"
+              icon={UserCheck}
+              iconColor="text-blue-500"
+              searchable={false}
+            />
 
             {/* 2. Pass Entry */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <CreditCard className="h-3.5 w-3.5 text-blue-500" />
-                Pass Entry
-              </label>
-              <Select
-                value={String(currentValues.passEntry ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("passEntry", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select pass entry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SELECT_NONE_VALUE} className="text-xs">
-                    Select pass entry
-                  </SelectItem>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.passEntry ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("passEntry", val)}
+              options={YES_NO_OPTIONS}
+              placeholder="Select pass entry"
+              icon={CreditCard}
+              iconColor="text-blue-500"
+              searchable={false}
+            />
 
             {/* 3. Is Admin */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <ShieldCheck className="h-3.5 w-3.5 text-blue-500" />
-                Is Admin
-              </label>
-              <Select
-                value={String(currentValues.isAdmin ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("isAdmin", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select isAdmin" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SELECT_NONE_VALUE} className="text-xs">
-                    Select isAdmin
-                  </SelectItem>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.isAdmin ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("isAdmin", val)}
+              options={YES_NO_OPTIONS}
+              placeholder="Select is admin"
+              icon={ShieldCheck}
+              iconColor="text-blue-500"
+              searchable={false}
+            />
 
             {/* 4. Is Delete */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <Trash2 className="h-3.5 w-3.5 text-rose-500" />
-                Is Delete
-              </label>
-              <Select
-                value={String(currentValues.isDeleted ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("isDeleted", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select isDelete" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SELECT_NONE_VALUE} className="text-xs">
-                    Select isDelete
-                  </SelectItem>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.isDeleted ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("isDeleted", val)}
+              options={YES_NO_OPTIONS}
+              placeholder="Select is delete"
+              icon={Trash2}
+              iconColor="text-rose-500"
+              searchable={false}
+            />
 
             {/* 5. On Duty */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <Briefcase className="h-3.5 w-3.5 text-blue-500" />
-                On Duty
-              </label>
-              <Select
-                value={String(currentValues.onDuty ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("onDuty", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select onDuty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SELECT_NONE_VALUE} className="text-xs">
-                    Select onDuty
-                  </SelectItem>
-                  {ON_DUTY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.onDuty ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("onDuty", val)}
+              options={ON_DUTY_OPTIONS}
+              placeholder="Select on duty"
+              icon={Briefcase}
+              iconColor="text-blue-500"
+              searchable={false}
+            />
           </div>
 
-          {/* Row 2: 3 Fields + Action Buttons */}
-          <div className="mt-4 grid grid-cols-1 items-end gap-4 lg:grid-cols-12">
-            {/* Sewa Location */}
+          {/* Row 2: 3 Fields + Action Buttons with left icons */}
+          <div className="mt-3.5 grid grid-cols-1 items-center gap-3.5 lg:grid-cols-12">
+            {/* Sewa Location (Searchable, ascending order) */}
             <div className="lg:col-span-4">
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <MapPin className="h-3.5 w-3.5 text-blue-500" />
-                Sewa Location
-              </label>
-              <Select
+              <MasterSearchSelect
                 value={String(currentValues.sewaLocation ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("sewaLocation", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select sewa Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sewaLocationOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(val) => setValue("sewaLocation", val)}
+                options={sewaLocationOptions}
+                placeholder="Select sewa location"
+                icon={MapPin}
+                iconColor="text-blue-500"
+                searchable
+              />
             </div>
 
             {/* Samagam Location */}
-            <div className="lg:col-span-3">
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <Building className="h-3.5 w-3.5 text-blue-500" />
-                Samagam Location
-              </label>
+            <div className="relative lg:col-span-3">
+              <Building className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-blue-500" />
               <Input
                 placeholder="Enter samagam location"
                 {...register("samagamHeldIn")}
-                className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                className="h-9.5 rounded-lg border-slate-200 bg-white pl-9 text-xs shadow-none placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800"
               />
             </div>
 
             {/* Remark Message */}
-            <div className="lg:col-span-3">
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
-                Remark Message
-              </label>
+            <div className="relative lg:col-span-3">
+              <MessageSquare className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-blue-500" />
               <Input
                 placeholder="Enter remark message"
                 {...register("remark")}
-                className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                className="h-9.5 rounded-lg border-slate-200 bg-white pl-9 text-xs shadow-none placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800"
               />
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-2.5 lg:col-span-2">
+            <div className="flex items-center justify-end gap-2 lg:col-span-2">
               <Button
                 type="button"
                 variant="outline"

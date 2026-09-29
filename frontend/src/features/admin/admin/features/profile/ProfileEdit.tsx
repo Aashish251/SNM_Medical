@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "@app/store/hooks";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Header } from "@admin/components/layout/header";
 import { Main } from "@admin/components/layout/main";
 import { ProfileDropdown } from "@admin/components/profile-dropdown";
@@ -48,6 +48,8 @@ import {
   ExternalLink,
   Save,
   CircleCheck,
+  FileText,
+  Lock,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -58,6 +60,72 @@ function avatarUrl(path?: string | null): string | undefined {
   if (!path) return undefined;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
   return `${import.meta.env.VITE_API_BASE_URL}${path}`;
+}
+
+type ProfileOption = {
+  id: string | number;
+  [key: string]: unknown;
+};
+
+type EditProfileDropdowns = {
+  states: Array<ProfileOption & { state_name: string }>;
+  departments: Array<ProfileOption & { department_name?: string; name?: string }>;
+  qualifications: Array<ProfileOption & { qualification_name?: string; name?: string }>;
+  availableDays: Array<ProfileOption & { available_day?: string; name?: string }>;
+  shiftTimes: Array<ProfileOption & { shifttime?: string; name?: string }>;
+};
+
+function resolveOptionId(
+  value: unknown,
+  label: unknown,
+  options: ProfileOption[],
+  labelKeys: string[]
+): string {
+  const rawValue =
+    value && typeof value === "object"
+      ? (value as Record<string, unknown>).id
+      : value;
+  const valueId = rawValue === null || rawValue === undefined ? "" : String(rawValue);
+
+  if (valueId && valueId !== "0") {
+    const matchingId = options.find((option) => String(option.id) === valueId);
+    if (matchingId) return String(matchingId.id);
+  }
+
+  const normalizedLabel = String(label ?? "").trim().toLowerCase();
+  if (normalizedLabel) {
+    const matchingLabel = options.find((option) =>
+      labelKeys.some(
+        (key) =>
+          typeof option[key] === "string" &&
+          option[key].trim().toLowerCase() === normalizedLabel
+      )
+    );
+    if (matchingLabel) return String(matchingLabel.id);
+  }
+
+  return valueId === "0" ? "" : valueId;
+}
+
+function resolveChoiceValue(
+  value: unknown,
+  options: Array<{ id: number; label: string; value: string }>
+): string {
+  const rawValue = String(value ?? "").trim();
+  if (!rawValue) return "";
+  const match = options.find(
+    (option) =>
+      String(option.id) === rawValue ||
+      option.value.toLowerCase() === rawValue.toLowerCase() ||
+      option.label.toLowerCase() === rawValue.toLowerCase()
+  );
+  return match?.value ?? rawValue;
+}
+
+function resolveUserType(value: unknown): "admin" | "ms" {
+  const userType = String(value ?? "").trim().toLowerCase();
+  if (userType === "admin" || userType.includes("admin")) return "admin";
+  return "ms";
 }
 
 /* ------------------------------------------------------------------ */
@@ -139,40 +207,97 @@ export function ProfileEdit() {
   const { register, handleSubmit, watch, setValue, reset, formState } = form;
   const { errors, isSubmitting } = formState;
 
-  const profileData = profileResponse?.data;
+  const dropdowns = dropdownData?.data as unknown as EditProfileDropdowns | undefined;
+  const qualifications = dropdowns?.qualifications ?? [];
+  const departments = dropdowns?.departments ?? [];
+  const states = dropdowns?.states ?? [];
+  const availableDays = dropdowns?.availableDays ?? [];
+  const shiftTimes = dropdowns?.shiftTimes ?? [];
+  const profileData = profileResponse?.data as
+    | (FormValues & {
+        stateName?: string;
+        cityName?: string;
+        qualificationName?: string;
+        departmentName?: string;
+        availableDay?: string;
+        shiftTime?: string;
+      })
+    | undefined;
   const [cities, setCities] = useState<CityItem[]>([]);
   const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
   const [existingCertificate, setExistingCertificate] = useState<string | undefined>();
   const [previewUrl, setPreviewUrl] = useState<string | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const hasReset = useRef(false);
 
-  // Populate form when data arrives
+  // Populate form when profile data arrives or changes
   useEffect(() => {
-    if (profileData && !hasReset.current) {
-      hasReset.current = true;
-      setExistingProfilePic(profileData.profileImage ?? undefined);
-      setExistingCertificate(
-        typeof profileData.certificate === "string"
-          ? profileData.certificate
-          : undefined
-      );
-      const getVal = (val: any) => {
-        if (!val) return "";
-        if (typeof val === "object") return String(val.id ?? "");
-        return String(val);
-      };
-      reset({
-        ...profileData,
-        qualificationId: getVal(profileData.qualificationId),
-        departmentId: getVal(profileData.departmentId),
-        stateId: getVal(profileData.stateId),
-        cityId: getVal(profileData.cityId),
-        profilePic: undefined,
-        certificate: undefined,
-      });
-    }
-  }, [profileData, reset]);
+    if (!profileData) return;
+
+    setExistingProfilePic(profileData.profileImage ?? undefined);
+    setExistingCertificate(
+      typeof profileData.certificate === "string"
+        ? profileData.certificate
+        : undefined
+    );
+
+    const titleVal = resolveChoiceValue(profileData.title, DUMMY.titles);
+    const genderVal = resolveChoiceValue(profileData.gender, DUMMY.genders);
+    const userTypeVal = resolveUserType(profileData.userType);
+    const qualId = resolveOptionId(
+      profileData.qualificationId,
+      profileData.qualificationName,
+      qualifications,
+      ["qualification_name", "name"]
+    );
+    const deptId = resolveOptionId(
+      profileData.departmentId,
+      profileData.departmentName,
+      departments,
+      ["department_name", "name"]
+    );
+    const stId = resolveOptionId(
+      profileData.stateId,
+      profileData.stateName,
+      states,
+      ["state_name"]
+    );
+    const ctId = profileData.cityId ? String(profileData.cityId) : "";
+    const dayId = resolveOptionId(
+      profileData.availableDayId,
+      profileData.availableDay,
+      availableDays,
+      ["available_day", "name"]
+    );
+    const shId = resolveOptionId(
+      profileData.shiftTimeId,
+      profileData.shiftTime,
+      shiftTimes,
+      ["shifttime", "name"]
+    );
+
+    reset({
+      ...profileData,
+      title: titleVal,
+      gender: genderVal,
+      userType: userTypeVal,
+      qualificationId: qualId,
+      departmentId: deptId,
+      stateId: stId,
+      cityId: ctId,
+      availableDayId: dayId,
+      shiftTimeId: shId,
+      profilePic: undefined,
+      certificate: undefined,
+    });
+  }, [
+    profileData,
+    qualifications,
+    departments,
+    states,
+    availableDays,
+    shiftTimes,
+    reset,
+  ]);
 
   // Auto-calculate age from DOB
   const birthdate = watch("dateOfBirth");
@@ -186,7 +311,19 @@ export function ProfileEdit() {
     const fetchCities = async (id: number) => {
       try {
         const result = await triggerGetCities({ stateId: id }).unwrap();
-        setCities(result?.data?.cities || []);
+        const loadedCities = result?.data?.cities || [];
+        setCities(loadedCities);
+        const currentCityId = String(profileData?.cityId ?? "");
+        if (currentCityId && loadedCities.some((c) => String(c.id) === currentCityId)) {
+          setValue("cityId", currentCityId);
+        } else if (profileData?.cityName) {
+          const matchingCity = loadedCities.find(
+            (city) =>
+              city.city_name.trim().toLowerCase() ===
+              profileData.cityName?.trim().toLowerCase()
+          );
+          if (matchingCity) setValue("cityId", String(matchingCity.id));
+        }
       } catch {
         setCities([]);
       }
@@ -197,7 +334,7 @@ export function ProfileEdit() {
     } else {
       setCities([]);
     }
-  }, [stateId, triggerGetCities]);
+  }, [stateId, triggerGetCities, profileData, setValue]);
 
   /* --- File upload ------------------------------------------------- */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,12 +370,6 @@ export function ProfileEdit() {
   const currentAvatar = previewUrl ?? avatarUrl(existingProfilePic ?? userDetails?.profilePic);
 
   const isLoading = profileLoading || dropdownLoading;
-
-  const dropdowns = dropdownData?.data;
-  const qualifications = dropdowns?.qualifications ?? [];
-  const departments = dropdowns?.departments ?? [];
-  const states = dropdowns?.states ?? [];
-  const sewaLocations = dropdowns?.sewaLocations ?? [];
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                          */
@@ -353,21 +484,27 @@ export function ProfileEdit() {
                         </FormField>
 
                         <FormField label="Title" required>
-                          <Select
-                            value={watch("title") || ""}
-                            onValueChange={(v) => setValue("title", v)}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DUMMY.titles.map((t) => (
-                                <SelectItem key={t.value} value={t.value}>
-                                  {t.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Controller
+                            control={form.control}
+                            name="title"
+                            render={({ field }) => (
+                              <Select
+                                value={field.value || ""}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {DUMMY.titles.map((t) => (
+                                    <SelectItem key={t.value} value={t.value}>
+                                      {t.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </FormField>
 
                         <FormField label="Email" required>
@@ -404,21 +541,27 @@ export function ProfileEdit() {
                         </FormField>
 
                         <FormField label="Gender" required>
-                          <Select
-                            value={watch("gender") || ""}
-                            onValueChange={(v) => setValue("gender", v)}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DUMMY.genders.map((g) => (
-                                <SelectItem key={g.value} value={g.value}>
-                                  {g.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Controller
+                            control={form.control}
+                            name="gender"
+                            render={({ field }) => (
+                              <Select
+                                value={field.value || ""}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {DUMMY.genders.map((g) => (
+                                    <SelectItem key={g.value} value={g.value}>
+                                      {g.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </FormField>
                       </div>
                     </CardContent>
@@ -436,69 +579,92 @@ export function ProfileEdit() {
 
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
                       <FormField label="Role" required>
-                        <Select
-                          value={watch("departmentId") || ""}
-                          onValueChange={(v) => setValue("departmentId", v)}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {departments.map((dep: any, i: number) => {
-                              const val = String(typeof dep === "object" ? dep.id : dep);
-                              const label = typeof dep === "object" ? (dep.department_name ?? dep.name) : dep;
-                              return (
-                                <SelectItem key={val || i} value={val}>
-                                  {label}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
+                        <Controller
+                          control={form.control}
+                          name="userType"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value || ""}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ms">Medical Sewadar</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
                       </FormField>
 
                       <FormField label="Qualification" required>
-                        <Select
-                          value={String(watch("qualificationId") || "")}
-                          onValueChange={(v) => setValue("qualificationId", v)}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {qualifications.map((q: any, i: number) => {
-                              const val = String(typeof q === "object" ? q.id : q);
-                              const label = typeof q === "object" ? (q.qualification_name ?? q.name) : q;
-                              return (
-                                <SelectItem key={val || i} value={val}>
-                                  {label}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
+                        <Controller
+                          control={form.control}
+                          name="qualificationId"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value || ""}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {qualifications.map((q, i) => {
+                                  const val = String(q.id);
+                                  const label = q.qualification_name ?? q.name ?? val;
+                                  return (
+                                    <SelectItem key={val || i} value={val}>
+                                      {label}
+                                    </SelectItem>
+                                  );
+                                })}
+                                {field.value &&
+                                  !qualifications.some((q) => String(q.id) === String(field.value)) && (
+                                    <SelectItem value={String(field.value)}>
+                                      {profileData?.qualificationName || String(field.value)}
+                                    </SelectItem>
+                                  )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
                       </FormField>
 
                       <FormField label="Department" required>
-                        <Select
-                          value={String(watch("departmentId") || "")}
-                          onValueChange={(v) => setValue("departmentId", v)}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {departments.map((dep: any, i: number) => {
-                              const val = String(typeof dep === "object" ? dep.id : dep);
-                              const label = typeof dep === "object" ? (dep.department_name ?? dep.name) : dep;
-                              return (
-                                <SelectItem key={val || i} value={val}>
-                                  {label}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
+                        <Controller
+                          control={form.control}
+                          name="departmentId"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value || ""}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {departments.map((dep, i) => {
+                                  const val = String(dep.id);
+                                  const label = dep.department_name ?? dep.name ?? val;
+                                  return (
+                                    <SelectItem key={val || i} value={val}>
+                                      {label}
+                                    </SelectItem>
+                                  );
+                                })}
+                                {field.value &&
+                                  !departments.some((dep) => String(dep.id) === String(field.value)) && (
+                                    <SelectItem value={String(field.value)}>
+                                      {profileData?.departmentName || String(field.value)}
+                                    </SelectItem>
+                                  )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
                       </FormField>
 
                       <FormField label="Experience (Years)" required>
@@ -524,6 +690,80 @@ export function ProfileEdit() {
                           placeholder="Recommended By"
                         />
                       </FormField>
+
+                      <FormField label="Available Days">
+                        <Controller
+                          control={form.control}
+                          name="availableDayId"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value || ""}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {availableDays.map((day) => (
+                                  <SelectItem key={day.id} value={String(day.id)}>
+                                    {day.available_day ?? day.name ?? String(day.id)}
+                                  </SelectItem>
+                                ))}
+                                {field.value &&
+                                  !availableDays.some((day) => String(day.id) === String(field.value)) && (
+                                    <SelectItem value={String(field.value)}>
+                                      {profileData?.availableDay || String(field.value)}
+                                    </SelectItem>
+                                  )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </FormField>
+
+                      <FormField label="Preferred Shift Time">
+                        <Controller
+                          control={form.control}
+                          name="shiftTimeId"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value || ""}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {shiftTimes.map((shift) => (
+                                  <SelectItem key={shift.id} value={String(shift.id)}>
+                                    {shift.shifttime ?? shift.name ?? String(shift.id)}
+                                  </SelectItem>
+                                ))}
+                                {field.value &&
+                                  !shiftTimes.some((shift) => String(shift.id) === String(field.value)) && (
+                                    <SelectItem value={String(field.value)}>
+                                      {profileData?.shiftTime || String(field.value)}
+                                    </SelectItem>
+                                  )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </FormField>
+
+                      {existingCertificate && (
+                        <div className="sm:col-span-2 flex items-center gap-2 mt-2">
+                          <FileText className="size-4 text-primary shrink-0" />
+                          <a
+                            href={`${import.meta.env.VITE_API_BASE_URL}${existingCertificate}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[13px] text-primary font-semibold hover:underline"
+                          >
+                            View Certificate
+                          </a>
+                        </div>
+                      )}
 
                       <FileUploadField
                         label="Certificate"
@@ -565,40 +805,64 @@ export function ProfileEdit() {
 
                       <div className="space-y-3">
                         <FormField label="State" required>
-                          <Select
-                            value={watch("stateId") || ""}
-                            onValueChange={(v) => setValue("stateId", v)}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select State" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {states.map((s) => (
-                                <SelectItem key={s.id} value={String(s.id)}>
-                                  {s.state_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Controller
+                            control={form.control}
+                            name="stateId"
+                            render={({ field }) => (
+                              <Select
+                                value={field.value || ""}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select State" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {states.map((s) => (
+                                    <SelectItem key={s.id} value={String(s.id)}>
+                                      {s.state_name}
+                                    </SelectItem>
+                                  ))}
+                                  {field.value &&
+                                    !states.some((stateOption) => String(stateOption.id) === String(field.value)) && (
+                                      <SelectItem value={String(field.value)}>
+                                        {profileData?.stateName || String(field.value)}
+                                      </SelectItem>
+                                    )}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </FormField>
 
                         <FormField label="City" required>
-                          <Select
-                            value={watch("cityId") || ""}
-                            onValueChange={(v) => setValue("cityId", v)}
-                            disabled={citiesLoading || cities.length === 0}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder={citiesLoading ? "Loading…" : "Select City"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {cities.map((c) => (
-                                <SelectItem key={c.id} value={String(c.id)}>
-                                  {c.city_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Controller
+                            control={form.control}
+                            name="cityId"
+                            render={({ field }) => (
+                              <Select
+                                value={field.value || ""}
+                                onValueChange={field.onChange}
+                                disabled={citiesLoading || cities.length === 0}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder={citiesLoading ? "Loading…" : "Select City"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {cities.map((c) => (
+                                    <SelectItem key={c.id} value={String(c.id)}>
+                                      {c.city_name}
+                                    </SelectItem>
+                                  ))}
+                                  {field.value &&
+                                    !cities.some((city) => String(city.id) === String(field.value)) && (
+                                      <SelectItem value={String(field.value)}>
+                                        {profileData?.cityName || String(field.value)}
+                                      </SelectItem>
+                                    )}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
                         </FormField>
                       </div>
                     </div>
@@ -617,6 +881,47 @@ export function ProfileEdit() {
                         </a>
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+
+                {/* ─── Security Information ─── */}
+                <Card className="py-0">
+                  <CardContent className="px-5 py-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Lock className="size-4 text-primary" />
+                      <h4 className="text-sm font-semibold">Security Information</h4>
+                    </div>
+                    <Separator className="mb-4 -mt-1" />
+
+                    <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
+                      <FormField label="Favorite Food">
+                        <Input
+                          {...register("favoriteFood")}
+                          placeholder="Favorite Food"
+                        />
+                      </FormField>
+
+                      <FormField label="Hobbies">
+                        <Input
+                          {...register("hobbies")}
+                          placeholder="Hobbies"
+                        />
+                      </FormField>
+
+                      <FormField label="Nickname">
+                        <Input
+                          {...register("childhoodNickname")}
+                          placeholder="Nickname"
+                        />
+                      </FormField>
+
+                      <FormField label="Mother's Name">
+                        <Input
+                          {...register("motherMaidenName")}
+                          placeholder="Mother's Name"
+                        />
+                      </FormField>
+                    </div>
                   </CardContent>
                 </Card>
               </div>

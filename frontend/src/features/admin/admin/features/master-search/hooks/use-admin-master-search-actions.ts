@@ -20,12 +20,14 @@ type UseAdminMasterSearchActionsParams = {
   searchPayload: MasterSearchPayload;
   selectedIds: string[];
   onClearSelection: () => void;
+  skip?: boolean;
 };
 
 export function useAdminMasterSearchActions({
   searchPayload,
   selectedIds,
   onClearSelection,
+  skip = false,
 }: UseAdminMasterSearchActionsParams) {
   const {
     data: masterSearchData,
@@ -34,7 +36,7 @@ export function useAdminMasterSearchActions({
     isLoading,
     isError,
     error,
-  } = useMasterSearchQuery(searchPayload);
+  } = useMasterSearchQuery(searchPayload, { skip });
 
   const [triggerGetChangeStatus, { isLoading: isApproving }] =
     useGetChangeStatusMutation();

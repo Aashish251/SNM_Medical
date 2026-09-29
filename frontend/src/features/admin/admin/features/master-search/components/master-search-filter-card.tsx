@@ -20,13 +20,6 @@ import {
 import { Button } from "@admin/components/ui/button";
 import { Input } from "@admin/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@admin/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -37,6 +30,7 @@ import {
 import { SELECT_NONE_VALUE, YES_NO_OPTIONS } from "../constants";
 import type { MasterSearchFilterValues, SelectOption } from "../types";
 import { cn } from "@admin/lib/utils";
+import { MasterSearchSelect } from "./master-search-select";
 
 type MasterSearchFilterCardProps = {
   form: UseFormReturn<MasterSearchFilterValues>;
@@ -141,11 +135,11 @@ export function MasterSearchFilterCard({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-all dark:border-slate-800 dark:bg-slate-900">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4 sm:px-6 dark:border-slate-800/80">
+    <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-all dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
+      {/* Header with darker title bar background */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-slate-100/90 p-4 sm:px-6 dark:border-slate-700/80 dark:bg-slate-800/90">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100/80 text-blue-600 dark:bg-blue-900/60 dark:text-blue-300">
             <Filter className="h-5 w-5" />
           </div>
           <div>
@@ -165,7 +159,7 @@ export function MasterSearchFilterCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8.5 gap-1.5 rounded-lg border-slate-200 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
+                className="h-8.5 gap-1.5 rounded-lg border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
               >
                 <Bookmark className="h-3.5 w-3.5 text-blue-600" />
                 <span>Saved Filters</span>
@@ -217,7 +211,7 @@ export function MasterSearchFilterCard({
             variant="outline"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-8.5 gap-1 rounded-lg border-slate-200 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
+            className="h-8.5 gap-1 rounded-lg border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
           >
             <span>{isCollapsed ? "Show Filters" : "Hide Filters"}</span>
             {isCollapsed ? (
@@ -232,189 +226,100 @@ export function MasterSearchFilterCard({
       {/* Collapsible Body */}
       {!isCollapsed && (
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 sm:pt-5">
-          {/* 8 Field Grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* 8 Field Grid with Icons on left & no duplicate label above */}
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
             {/* 1. Search by name, contact or email */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <Search className="h-3.5 w-3.5 text-blue-500" />
-                Search by name, contact or email
-              </label>
-              <div className="relative">
-                <Input
-                  placeholder="Enter name, contact or email..."
-                  {...register("searchTerm")}
-                  className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
-                />
-              </div>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-blue-500" />
+              <Input
+                placeholder="Search by name, contact or email..."
+                {...register("searchTerm")}
+                className="h-9.5 rounded-lg border-slate-200 bg-white pl-9 text-xs shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800"
+              />
             </div>
 
             {/* 2. Department */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <Building className="h-3.5 w-3.5 text-blue-500" />
-                Department
-              </label>
-              <Select
-                value={String(currentValues.departmentId ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("departmentId", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departmentOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.departmentId ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("departmentId", val)}
+              options={departmentOptions}
+              placeholder="Select department"
+              icon={Building}
+              iconColor="text-blue-500"
+              searchable
+            />
 
             {/* 3. Qualification */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <GraduationCap className="h-3.5 w-3.5 text-blue-500" />
-                Qualification
-              </label>
-              <Select
-                value={String(currentValues.qualificationId ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("qualificationId", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select qualification" />
-                </SelectTrigger>
-                <SelectContent>
-                  {qualificationOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.qualificationId ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("qualificationId", val)}
+              options={qualificationOptions}
+              placeholder="Select qualification"
+              icon={GraduationCap}
+              iconColor="text-blue-500"
+              searchable
+            />
 
             {/* 4. Sewa Location */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <MapPin className="h-3.5 w-3.5 text-blue-500" />
-                Sewa Location
-              </label>
-              <Select
-                value={String(currentValues.sewaLocation ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("sewaLocation", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select sewa location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sewaLocationOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.sewaLocation ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("sewaLocation", val)}
+              options={sewaLocationOptions}
+              placeholder="Select sewa location"
+              icon={MapPin}
+              iconColor="text-blue-500"
+              searchable
+            />
 
             {/* 5. State */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <Map className="h-3.5 w-3.5 text-blue-500" />
-                State
-              </label>
-              <Select
-                value={String(currentValues.stateId ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("stateId", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  {stateOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.stateId ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("stateId", val)}
+              options={stateOptions}
+              placeholder="Select state"
+              icon={Map}
+              iconColor="text-blue-500"
+              searchable
+            />
 
             {/* 6. City */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <Building2 className="h-3.5 w-3.5 text-blue-500" />
-                City
-              </label>
-              <Select
-                value={String(currentValues.cityId ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("cityId", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select city" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cityOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.cityId ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("cityId", val)}
+              options={cityOptions}
+              placeholder="Select city"
+              icon={Building2}
+              iconColor="text-blue-500"
+              searchable
+            />
 
             {/* 7. Pass Entry */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <CreditCard className="h-3.5 w-3.5 text-blue-500" />
-                Pass Entry
-              </label>
-              <Select
-                value={String(currentValues.passEntry ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("passEntry", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select pass entry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SELECT_NONE_VALUE} className="text-xs">
-                    All pass entry
-                  </SelectItem>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.passEntry ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("passEntry", val)}
+              options={[
+                { label: "All pass entry", value: SELECT_NONE_VALUE },
+                ...YES_NO_OPTIONS,
+              ]}
+              placeholder="Select pass entry"
+              icon={CreditCard}
+              iconColor="text-blue-500"
+              searchable={false}
+            />
 
             {/* 8. Is Present */}
-            <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                <UserCheck className="h-3.5 w-3.5 text-blue-500" />
-                Is Present
-              </label>
-              <Select
-                value={String(currentValues.isPresent ?? SELECT_NONE_VALUE)}
-                onValueChange={(val) => setValue("isPresent", val)}
-              >
-                <SelectTrigger className="h-9.5 rounded-lg border-slate-200 bg-white text-xs shadow-none dark:border-slate-700 dark:bg-slate-800">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SELECT_NONE_VALUE} className="text-xs">
-                    All statuses
-                  </SelectItem>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <MasterSearchSelect
+              value={String(currentValues.isPresent ?? SELECT_NONE_VALUE)}
+              onChange={(val) => setValue("isPresent", val)}
+              options={[
+                { label: "All statuses", value: SELECT_NONE_VALUE },
+                ...YES_NO_OPTIONS,
+              ]}
+              placeholder="Select is present"
+              icon={UserCheck}
+              iconColor="text-blue-500"
+              searchable={false}
+            />
           </div>
 
           {/* Quick Filters Row + Search/Reset Actions */}

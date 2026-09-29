@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npm run generateDoc && node src/server.js",
     "dev": "nodemon src/server.js",
+    "build": "npm run generateDoc",
     "generateDoc": "node src/Swagger.js"
   },
   "keywords": [],

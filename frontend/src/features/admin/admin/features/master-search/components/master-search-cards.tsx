@@ -32,6 +32,7 @@ type MasterSearchCardsProps = {
   ) => void;
   onApprove: (regId: string | number) => void;
   isApproving: boolean;
+  hasSearched?: boolean;
 };
 
 export function MasterSearchCards({
@@ -40,6 +41,7 @@ export function MasterSearchCards({
   onRowSelectionChange,
   onApprove,
   isApproving,
+  hasSearched = true,
 }: MasterSearchCardsProps) {
   const currentUserId = useAppSelector((state) => state.auth.userDetails?.id);
 
@@ -53,7 +55,9 @@ export function MasterSearchCards({
   if (data.length === 0) {
     return (
       <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 dark:border-slate-800">
-        No users found matching your search.
+        {!hasSearched
+          ? "Click Search above to load records, or enter search parameters to filter."
+          : "No users found matching your search."}
       </div>
     );
   }

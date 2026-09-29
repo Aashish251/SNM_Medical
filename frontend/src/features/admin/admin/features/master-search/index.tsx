@@ -21,9 +21,13 @@ import {
   useAdminMasterSearchFilters,
   useAdminMasterSearchPagination,
 } from "./hooks/use-admin-master-search-filters";
+import { SELECT_NONE_VALUE } from "./constants";
+import { createDefaultSearchPayload } from "./lib/mappers";
+import type { MasterSearchFilterValues } from "./types";
 
 export function MasterSearch() {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const {
     sortState,
@@ -70,7 +74,47 @@ export function MasterSearch() {
     searchPayload,
     selectedIds,
     onClearSelection: () => setRowSelection({}),
+    skip: !hasSearched,
   });
+
+  const handleSearchSubmit = (values: MasterSearchFilterValues) => {
+    const hasParams = Boolean(
+      values.searchTerm?.trim() ||
+      (values.departmentId && values.departmentId !== SELECT_NONE_VALUE) ||
+      (values.qualificationId && values.qualificationId !== SELECT_NONE_VALUE) ||
+      (values.sewaLocation && values.sewaLocation !== SELECT_NONE_VALUE) ||
+      (values.stateId && values.stateId !== SELECT_NONE_VALUE) ||
+      (values.cityId && values.cityId !== SELECT_NONE_VALUE) ||
+      (values.passEntry && values.passEntry !== SELECT_NONE_VALUE) ||
+      (values.isPresent && values.isPresent !== SELECT_NONE_VALUE)
+    );
+
+    if (!hasParams) {
+      // When no search parameters entered: load new registration data to top of grid
+      setSortState({ column: "regId", direction: "DESC" });
+      setSearchPayload({
+        ...createDefaultSearchPayload(pageLimit),
+        sortBy: "regId",
+        sortOrder: "DESC",
+        page: 1,
+        limit: pageLimit,
+      });
+    } else {
+      onAdvancedSearch(values);
+    }
+
+    setHasSearched(true);
+    setCurrentPage(1);
+    setRowSelection({});
+  };
+
+  const handleResetFilters = () => {
+    resetFilters();
+    setHasSearched(false);
+    setCurrentPage(1);
+    setRowSelection({});
+    setSortState({ column: "regId", direction: "DESC" });
+  };
 
   // Calculate dynamic stat counts
   const { activeCount, pendingCount } = useMemo(() => {
@@ -96,22 +140,24 @@ export function MasterSearch() {
   }, [users, totalRecords]);
 
   useEffect(() => {
+    if (!hasSearched) return;
     setSearchPayload((prev) => ({
       ...prev,
-      sortBy: sortState.column || "fullName",
+      sortBy: sortState.column || "regId",
       sortOrder: sortState.direction,
       page: 1,
     }));
     setCurrentPage(1);
-  }, [setCurrentPage, setSearchPayload, sortState.column, sortState.direction]);
+  }, [hasSearched, setCurrentPage, setSearchPayload, sortState.column, sortState.direction]);
 
   useEffect(() => {
+    if (!hasSearched) return;
     setSearchPayload((prev) => ({
       ...prev,
       page: currentPage,
       limit: pageLimit,
     }));
-  }, [currentPage, pageLimit, setSearchPayload]);
+  }, [currentPage, hasSearched, pageLimit, setSearchPayload]);
 
   useEffect(() => {
     if (isError && error) {
@@ -180,24 +226,16 @@ export function MasterSearch() {
 
         {/* 1. Stat Summary Cards & Quote Banner */}
         <MasterSearchStats
-          totalUsers={totalRecords}
-          activeUsers={activeCount}
-          pendingUsers={pendingCount}
+          totalUsers={hasSearched ? totalRecords : 0}
+          activeUsers={hasSearched ? activeCount : 0}
+          pendingUsers={hasSearched ? pendingCount : 0}
         />
 
         {/* 2. Inline Collapsible "Filter User" Card */}
         <MasterSearchFilterCard
           form={filterForm}
-          onSubmit={(values) => {
-            onAdvancedSearch(values);
-            setCurrentPage(1);
-            setRowSelection({});
-          }}
-          onReset={() => {
-            resetFilters();
-            setCurrentPage(1);
-            setRowSelection({});
-          }}
+          onSubmit={handleSearchSubmit}
+          onReset={handleResetFilters}
           isFetching={isFetching}
           departmentOptions={departmentOptions}
           qualificationOptions={qualificationOptions}
@@ -243,6 +281,7 @@ export function MasterSearch() {
             void onExport();
           }}
           isExporting={isExporting}
+          hasSearched={hasSearched}
         />
 
         {/* Fallback dialogs for modal triggers if invoked via shortcuts */}

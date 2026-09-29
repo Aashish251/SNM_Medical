@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown, Check } from "lucide-react";
 import { Button } from "@admin/components/ui/button";
 import { Checkbox } from "@admin/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@admin/components/ui/avatar";
@@ -62,17 +62,43 @@ export function createMasterSearchColumns({
       enableHiding: false,
     },
 
-    // 2. Row index (#)
+    // 2. Action button (allow users to approve each new record individually)
     {
-      id: "index",
-      header: "#",
-      cell: ({ row, table }) => {
-        const pageIndex = table.getState().pagination.pageIndex;
-        const pageSize = table.getState().pagination.pageSize;
+      id: "action",
+      header: "Action",
+      cell: ({ row }) => {
+        const user = row.original;
+        const isApproved =
+          user.status === "approved" ||
+          user.isApproved === 1 ||
+          user.isApproved === ("1" as unknown);
+
+        if (user.isDeleted === 1 || user.isDeleted === "1") {
+          return (
+            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400">
+              Inactive
+            </span>
+          );
+        }
+
+        if (isApproved) {
+          return (
+            <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <Check className="h-3 w-3" />
+              Approved
+            </span>
+          );
+        }
+
         return (
-          <span className="text-xs text-slate-500">
-            {pageIndex * pageSize + row.index + 1}
-          </span>
+          <Button
+            size="sm"
+            onClick={() => onApprove(user.regId)}
+            disabled={isApproving}
+            className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-md shadow-xs transition-colors"
+          >
+            Approve
+          </Button>
         );
       },
       enableSorting: false,
@@ -300,7 +326,31 @@ export function createMasterSearchColumns({
       enableSorting: false,
     },
 
-    // 15. Actions
+    // 15. City
+    {
+      accessorKey: "cityName",
+      header: "City",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.cityName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 16. State
+    {
+      accessorKey: "stateName",
+      header: "State",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.stateName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 17. Actions
     {
       id: "actions",
       header: "Actions",

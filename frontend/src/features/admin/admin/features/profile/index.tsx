@@ -7,13 +7,13 @@ import { ProfileDropdown } from "@admin/components/profile-dropdown";
 import { Search } from "@admin/components/search";
 import { ThemeSwitch } from "@admin/components/theme-switch";
 import { Card, CardContent } from "@admin/components/ui/card";
-import { Button } from "@admin/components/ui/button";
 import { Separator } from "@admin/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@admin/components/ui/avatar";
 import { Skeleton } from "@admin/components/ui/skeleton";
 import { ROUTE_ADMIN_PROFILE_EDIT } from "@admin/constants/routePaths";
 import { useGetUserDetailsQueryQuery } from "@features/update-profile/services";
 import { useGetRegistrationDropdownDataQuery } from "@shared/services/commonApi";
+import { openDocumentView } from "@shared/utils/documentHelper";
 import {
   User,
   Mail,
@@ -94,10 +94,11 @@ function lookupName(
   return strVal;
 }
 
-function avatarUrl(path?: string | null): string | undefined {
+function assetUrl(path?: string | null): string | undefined {
   if (!path) return undefined;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${import.meta.env.VITE_API_BASE_URL}${path}`;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "");
+  return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -167,7 +168,7 @@ function QuickActionItem({
     return (
       <button
         onClick={onClick}
-        className="flex items-center gap-3 w-full rounded-xl p-3 text-start transition-all bg-blue-50/90 border border-blue-200/80 shadow-xs"
+        className="flex items-center gap-3 w-full rounded-xl p-3 text-start transition-all bg-blue-50/90 border border-blue-200/80 shadow-xs cursor-pointer"
       >
         <div className="flex items-center justify-center size-9 rounded-lg bg-[#0066FF] text-white shrink-0 shadow-xs">
           <Icon className="size-4" />
@@ -186,7 +187,7 @@ function QuickActionItem({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-3 w-full rounded-xl p-3 text-start transition-all bg-white border border-slate-100 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="flex items-center gap-3 w-full rounded-xl p-3 text-start transition-all bg-white border border-slate-100 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
     >
       <div className="flex items-center justify-center size-9 rounded-lg bg-slate-100 text-slate-600 shrink-0">
         <Icon className="size-4" />
@@ -307,7 +308,9 @@ export function Profile() {
   const displayName = profile?.fullName ?? userDetails?.name ?? "Purab Kanaujiya";
   const email = profile?.email ?? userDetails?.email ?? "purab.kanaujiya@gmail.com";
   const initials = displayName.slice(0, 2).toUpperCase();
-  const profileImage = avatarUrl(profile?.profileImage ?? userDetails?.profilePic);
+  const profileImage = assetUrl(profile?.profileImage ?? userDetails?.profilePic);
+  const certificatePath =
+    typeof profile?.certificate === "string" ? profile.certificate : undefined;
 
   const titleVal =
     String(profile?.title) === "1"
@@ -403,7 +406,7 @@ export function Profile() {
         <h3 className="mt-2.5 text-lg font-bold text-center text-[#0F172A] leading-tight">
           {displayName}
         </h3>
-        <p className="text-[13px] text-slate-500 font-medium mt-0.5">{role}</p>
+        <p className="text-[13px] text-slate-500 font-medium mt-0.5">{resolvedDepartment}</p>
 
         <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-[#E0F2FE] text-[#0284C7] mt-2.5">
           {resolvedQualification}
@@ -520,6 +523,8 @@ export function Profile() {
             value={d(profile?.age) !== "—" ? d(profile?.age) : "12"}
           />
           <InfoRow label="Gender" value={genderVal} />
+          <InfoRow label="State" value={stateVal} />
+          <InfoRow label="City" value={cityVal} />
         </div>
       </CardContent>
     </Card>
@@ -543,6 +548,31 @@ export function Profile() {
                 : "Pratik Ji"
             }
           />
+          <InfoRow
+            label="Available Days"
+            value={d(profile?.availableDayId)}
+          />
+          <InfoRow
+            label="Preferred Shift Time"
+            value={d(profile?.shiftTimeId)}
+          />
+        </div>
+        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
+          <span className="text-slate-400 text-[13px] font-medium w-[100px] sm:w-[110px] shrink-0">
+            View Certificate
+          </span>
+          {certificatePath && userId ? (
+            <button
+              type="button"
+              onClick={() => void openDocumentView(userId)}
+              className="inline-flex items-center gap-1.5 text-[13px] text-[#0066FF] font-semibold hover:underline"
+            >
+              <ExternalLink className="size-3" />
+              Open Certificate
+            </button>
+          ) : (
+            <span className="text-slate-800 text-[13px] font-semibold">—</span>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -604,10 +634,8 @@ export function Profile() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
           <InfoRow label="Favorite Food" value={d(profile?.favoriteFood)} />
           <InfoRow label="Hobbies" value={d(profile?.hobbies)} />
-          <InfoRow
-            label="Childhood Nickname"
-            value={d(profile?.childhoodNickname)}
-          />
+          <InfoRow label="Nickname" value={d(profile?.childhoodNickname)} />
+          <InfoRow label="Mother's Name" value={d(profile?.motherMaidenName)} />
           <InfoRow label="Password" value="••••••••" />
         </div>
       </CardContent>
@@ -756,15 +784,6 @@ export function Profile() {
                 ~ Medical Sewa 💙
               </p>
             </div>
-            {/* Primary Edit button */}
-            <Button
-              onClick={handleEditProfile}
-              disabled={!userId}
-              className="bg-[#0066FF] hover:bg-blue-700 text-white rounded-xl font-semibold px-5 py-2.5 shadow-sm gap-2 text-sm"
-            >
-              <Pencil className="size-4" />
-              Edit Profile
-            </Button>
           </div>
         </div>
 
