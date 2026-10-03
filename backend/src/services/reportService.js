@@ -210,45 +210,45 @@ exports.getRegistrationReport = async (query = {}) => {
 
     const [dbRows] = await connection.execute(
       `SELECT
-         COALESCE(department_id, 0) AS department_id,
+         COALESCE(sewa_location_id, 0) AS sewa_location_id,
          DATE_FORMAT(created_datetime, '%Y-%m-%d') AS registration_date,
          COUNT(*) AS total
        FROM registration_tbl
        WHERE is_deleted = 0
          AND created_datetime IS NOT NULL
          AND DATE(created_datetime) IN (${placeholders})
-       GROUP BY COALESCE(department_id, 0), DATE_FORMAT(created_datetime, '%Y-%m-%d')
-       ORDER BY department_id`,
+       GROUP BY COALESCE(sewa_location_id, 0), DATE_FORMAT(created_datetime, '%Y-%m-%d')
+       ORDER BY sewa_location_id`,
       dates
     );
 
     const reportRows = new Map();
     const totalsByDate = Object.fromEntries(dates.map((date) => [date, 0]));
 
-    departmentMap.forEach((departmentName, departmentId) => {
-      reportRows.set(departmentId, {
-        departmentId,
-        department: departmentName,
+    locationMap.forEach((locationName, locationId) => {
+      reportRows.set(locationId, {
+        locationId,
+        location: locationName,
         values: Object.fromEntries(dates.map((date) => [date, 0])),
         total: 0,
       });
     });
 
     dbRows.forEach((row) => {
-      const departmentId = Number(row.department_id) || 0;
+      const locationId = Number(row.sewa_location_id) || 0;
       const registrationDate = row.registration_date;
       const count = Number(row.total) || 0;
 
-      if (!reportRows.has(departmentId)) {
-        reportRows.set(departmentId, {
-          departmentId,
-          department: departmentMap.get(departmentId) || (departmentId === 0 ? 'General / Unassigned' : `Department ${departmentId}`),
+      if (!reportRows.has(locationId)) {
+        reportRows.set(locationId, {
+          locationId,
+          location: locationMap.get(locationId) || (locationId === 0 ? 'Unassigned' : `Location ${locationId}`),
           values: Object.fromEntries(dates.map((date) => [date, 0])),
           total: 0,
         });
       }
 
-      const reportRow = reportRows.get(departmentId);
+      const reportRow = reportRows.get(locationId);
       reportRow.values[registrationDate] = (reportRow.values[registrationDate] || 0) + count;
       reportRow.total += count;
       totalsByDate[registrationDate] = (totalsByDate[registrationDate] || 0) + count;
@@ -261,10 +261,10 @@ exports.getRegistrationReport = async (query = {}) => {
       patientRegistrations.forEach((record) => {
         const rDate = record.date ? String(record.date).slice(0, 10) : null;
         if (rDate && dates.includes(rDate)) {
-          const deptName = record.disease || record.department || 'General Patient Registration';
+          const locationName = record.location || record.dispensary || 'Unassigned';
           let foundRow = null;
           for (const row of reportRows.values()) {
-            if (row.department.toLowerCase() === deptName.toLowerCase()) {
+            if (row.location.toLowerCase() === locationName.toLowerCase()) {
               foundRow = row;
               break;
             }
@@ -272,8 +272,8 @@ exports.getRegistrationReport = async (query = {}) => {
           if (!foundRow) {
             const fakeId = 9000 + reportRows.size;
             foundRow = {
-              departmentId: fakeId,
-              department: deptName,
+              locationId: fakeId,
+              location: locationName,
               values: Object.fromEntries(dates.map((date) => [date, 0])),
               total: 0,
             };
@@ -288,7 +288,7 @@ exports.getRegistrationReport = async (query = {}) => {
 
     const filteredRows = Array.from(reportRows.values())
       .filter((row) => row.total > 0 || includeEmpty)
-      .sort((a, b) => b.total - a.total || a.department.localeCompare(b.department));
+      .sort((a, b) => b.total - a.total || a.location.localeCompare(b.location));
 
     const grandTotal = Object.values(totalsByDate).reduce((sum, count) => sum + count, 0);
 

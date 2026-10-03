@@ -697,4 +697,4 @@ export function DailyDatabaseAnalytics() {
   );
 }
 
-export { DailyReportBuilder as DailyReport } from "./builder";
+export { LiveDailyReport as DailyReport } from "./live-daily-report";

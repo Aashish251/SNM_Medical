@@ -687,4 +687,4 @@ export function RegistrationDatabaseAnalytics() {
   );
 }
 
-export { RegistrationReportBuilder as RegistrationReport } from "./builder";
+export { LiveRegistrationReport as RegistrationReport } from "./live-registration-report";

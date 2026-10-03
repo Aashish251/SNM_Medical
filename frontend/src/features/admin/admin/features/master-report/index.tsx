@@ -742,4 +742,4 @@ export function MasterDatabaseAnalytics() {
   );
 }
 
-export { MasterReportBuilder as MasterReport } from "./builder";
+export { LiveMasterReport as MasterReport } from "./live-master-report";

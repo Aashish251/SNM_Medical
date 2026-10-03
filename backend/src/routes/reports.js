@@ -101,7 +101,7 @@ router.get('/daily',
 router.get('/registration',
   /* #swagger.tags = ['Reports']
      #swagger.summary = 'Get registration reports'
-     #swagger.description = 'Retrieve department-wise registration counts for up to three report dates.'
+     #swagger.description = 'Retrieve location-wise registration counts for up to five report dates.'
      #swagger.parameters['dates'] = {
        in: 'query',
        type: 'string',
@@ -112,7 +112,7 @@ router.get('/registration',
      #swagger.parameters['date2'] = { in: 'query', type: 'string', required: false, description: 'Second report date in YYYY-MM-DD format' }
      #swagger.parameters['date3'] = { in: 'query', type: 'string', required: false, description: 'Third report date in YYYY-MM-DD format' }
      #swagger.parameters['title'] = { in: 'query', type: 'string', required: false, description: 'Report title' }
-     #swagger.parameters['includeEmpty'] = { in: 'query', type: 'boolean', required: false, description: 'Set true to include departments with zero registrations' }
+     #swagger.parameters['includeEmpty'] = { in: 'query', type: 'boolean', required: false, description: 'Set true to include locations with zero registrations' }
      #swagger.responses[200] = { description: 'Registration reports retrieved successfully' }
      #swagger.responses[400] = { description: 'Invalid report query' }
      #swagger.responses[500] = { description: 'Registration reports failed' }

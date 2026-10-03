@@ -39,8 +39,12 @@ export interface RegistrationReportQueryParams {
 }
 
 export interface RegistrationReportRow {
-  departmentId: number;
-  department: string;
+  locationId: number;
+  location: string;
+  /** @deprecated Registration summaries are now grouped by location. */
+  departmentId?: number;
+  /** @deprecated Registration summaries are now grouped by location. */
+  department?: string;
   values: Record<string, number>;
   total: number;
 }
