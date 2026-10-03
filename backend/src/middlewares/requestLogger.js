@@ -24,6 +24,7 @@ const requestLogger = (req, res, next) => {
     }
     return sanitized;
   };
+  const serializedBody = JSON.stringify(sanitizeBody(req.body) ?? {});
 
   // Log incoming request
   logger.info("Incoming Request", {
@@ -32,7 +33,7 @@ const requestLogger = (req, res, next) => {
     path: req.path,
     ip: req.ip,
     userAgent: req.get("user-agent"),
-    body: req.method !== "GET" ? JSON.stringify(sanitizeBody(req.body)).substring(0, 200) : "N/A",
+    body: req.method !== "GET" ? serializedBody.substring(0, 200) : "N/A",
   });
 
   // Override res.json to log response

@@ -1,24 +1,11 @@
-import { EntityListPage } from "@admin/components/entity-list";
-import { createMasterConfig } from "../shared/create-master-config";
-import { createMasterRecords } from "../shared/status";
-
-const stateConfig = createMasterConfig({
-  title: "States",
-  description: "Manage state master records for location-based workflows.",
-  nameLabel: "State Name",
-  searchPlaceholder: "Filter states...",
-  records: createMasterRecords("ST", [
-    "Maharashtra",
-    "Tamil Nadu",
-    "Karnataka",
-    "Delhi",
-    "Gujarat",
-    "Rajasthan",
-    "West Bengal",
-    "Uttar Pradesh",
-  ]),
-});
+import { MasterTablePage } from "../shared/master-table-page";
 
 export function MasterState() {
-  return <EntityListPage config={stateConfig} />;
+  return (
+    <MasterTablePage
+      module="state"
+      title="States"
+      description="States currently stored in the database."
+    />
+  );
 }

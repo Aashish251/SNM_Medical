@@ -104,9 +104,6 @@ app.use(
   })
 );
 
-// Request logging middleware (tracks request ID and response time)
-app.use(requestLogger);
-
 if (process.env.NODE_ENV === "development") {
   app.use((req, res, next) => {
     console.log(` ${req.method} ${req.path} - ${new Date().toISOString()}`);
@@ -121,6 +118,9 @@ if (process.env.NODE_ENV === "development") {
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Request logging middleware (tracks request ID and response time)
+app.use(requestLogger);
 
 // Main routes (file/form-data routes first, e.g. registration)
 try {

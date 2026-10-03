@@ -1,24 +1,11 @@
-import { EntityListPage } from "@admin/components/entity-list";
-import { createMasterConfig } from "../shared/create-master-config";
-import { createMasterRecords } from "../shared/status";
-
-const qualificationConfig = createMasterConfig({
-  title: "Qualifications",
-  description: "Manage qualification master records for staff registration.",
-  nameLabel: "Qualification Name",
-  searchPlaceholder: "Filter qualifications...",
-  records: createMasterRecords("QLF", [
-    "MBBS",
-    "MD",
-    "MS",
-    "BDS",
-    "BAMS",
-    "BHMS",
-    "BSc Nursing",
-    "DNB",
-  ]),
-});
+import { MasterTablePage } from "../shared/master-table-page";
 
 export function MasterQualification() {
-  return <EntityListPage config={qualificationConfig} />;
+  return (
+    <MasterTablePage
+      module="qualification"
+      title="Qualifications"
+      description="Qualifications currently stored in the database."
+    />
+  );
 }

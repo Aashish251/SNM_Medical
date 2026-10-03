@@ -3,14 +3,5 @@
   "healthDrives": [],
   "eligibilityChecks": [],
   "patientRegistrations": [],
-  "dutyCharts": [],
-  "masterData": {
-    "qualification": [],
-    "department": [],
-    "sewalocation": [],
-    "shifttime": [],
-    "availableday": [],
-    "state": [],
-    "city": []
-  }
+  "dutyCharts": []
 }

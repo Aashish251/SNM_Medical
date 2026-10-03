@@ -11,6 +11,7 @@ import {
   ROUTE_ADMIN_MASTER_REPORT,
   ROUTE_ADMIN_MASTER_SEARCH,
   ROUTE_ADMIN_MASTER_SHIFT_TIME,
+  ROUTE_ADMIN_MASTER_LOCATION,
   ROUTE_ADMIN_MASTER_STATE,
   ROUTE_ADMIN_PROFILE,
   ROUTE_ADMIN_REGISTRATION_REPORT,
@@ -79,6 +80,7 @@ export const routeMeta: RouteMeta[] = [
   { path: ROUTE_ADMIN_MASTER_DEPARTMENT, title: "Master — Department", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
   { path: ROUTE_ADMIN_MASTER_AVAILABILITY, title: "Master — Availability", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
   { path: ROUTE_ADMIN_MASTER_SHIFT_TIME, title: "Master — Shift Time", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
+  { path: ROUTE_ADMIN_MASTER_LOCATION, title: "Master — Location", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
 ];
 
 export function getRouteMeta(path: string) {

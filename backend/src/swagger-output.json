@@ -1732,7 +1732,7 @@
           "Masters"
         ],
         "summary": "Create master record",
-        "description": "Create a record in a supported master module. State requires countryId/extraId; city requires stateId/extraId.",
+        "description": "Insert a master record into its existing database table. State records require countryId; city records require stateId.",
         "parameters": [
           {
             "name": "module",
@@ -1750,6 +1750,16 @@
               "city"
             ],
             "example": "department"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
           },
           {
             "name": "body",
@@ -1767,6 +1777,12 @@
           "400": {
             "description": "Invalid master record data"
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "429": {
             "description": "Too Many Requests"
           },
@@ -1782,7 +1798,7 @@
           "Masters"
         ],
         "summary": "Update master record",
-        "description": "Update an active record in a supported master module.",
+        "description": "Update an active department using the existing sp_department_master stored procedure.",
         "parameters": [
           {
             "name": "module",
@@ -1808,6 +1824,16 @@
             "type": "integer",
             "description": "Master record ID",
             "example": 1
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
           },
           {
             "name": "body",
@@ -1825,8 +1851,17 @@
           "400": {
             "description": "Invalid master record data"
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Master record not found"
+          },
+          "405": {
+            "description": "Update is not supported for this master module"
           },
           "429": {
             "description": "Too Many Requests"
@@ -1841,7 +1876,7 @@
           "Masters"
         ],
         "summary": "Delete master record",
-        "description": "Soft-delete an active record in a supported master module.",
+        "description": "Delete a department using the existing sp_department_master stored procedure.",
         "parameters": [
           {
             "name": "module",
@@ -1867,6 +1902,16 @@
             "type": "integer",
             "description": "Master record ID",
             "example": 1
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
           },
           {
             "name": "body",
@@ -1887,8 +1932,17 @@
           "200": {
             "description": "Master record deleted successfully"
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Master record not found"
+          },
+          "405": {
+            "description": "Delete is not supported for this master module"
           },
           "429": {
             "description": "Too Many Requests"
@@ -2626,7 +2680,7 @@
           "Reports"
         ],
         "summary": "Get registration reports",
-        "description": "Retrieve department-wise registration counts for up to three report dates.",
+        "description": "Retrieve location-wise registration counts for up to five report dates.",
         "parameters": [
           {
             "name": "dates",
@@ -2668,7 +2722,7 @@
             "in": "query",
             "type": "boolean",
             "required": false,
-            "description": "Set true to include departments with zero registrations"
+            "description": "Set true to include locations with zero registrations"
           }
         ],
         "responses": {
@@ -3374,7 +3428,6 @@
           "type": "string",
           "example": "Cardiology"
         },
-        "extraId": {},
         "updatedBy": {
           "type": "number",
           "example": 1

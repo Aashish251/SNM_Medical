@@ -9,6 +9,7 @@ import {
   ROUTE_ADMIN_MASTER_DEPARTMENT,
   ROUTE_ADMIN_MASTER_QUALIFICATION,
   ROUTE_ADMIN_MASTER_SHIFT_TIME,
+  ROUTE_ADMIN_MASTER_LOCATION,
   ROUTE_ADMIN_MASTER_STATE,
   ROUTE_ADMIN_REGISTRATION_REPORT,
   ROUTE_ADMIN_USERS,
@@ -20,7 +21,6 @@ import {
 import { type SidebarData } from "../types";
 import {
   LayoutDashboard,
-  Users,
   UserPlus,
   AudioWaveform,
   Command,
@@ -31,6 +31,7 @@ import {
   Search,
   FileSpreadsheet,
   MapPin,
+  MapPinned,
   Map,
   GraduationCap,
   Building2,
@@ -92,7 +93,7 @@ export const sidebarData: SidebarData = {
           icon: Search,
         },
         {
-          title: "Master",
+          title: "Master Table",
           icon: Database,
           items: [
             {
@@ -124,6 +125,11 @@ export const sidebarData: SidebarData = {
               title: "Shift Time",
               url: ROUTE_ADMIN_MASTER_SHIFT_TIME,
               icon: Clock,
+            },
+            {
+              title: "Location",
+              url: ROUTE_ADMIN_MASTER_LOCATION,
+              icon: MapPinned,
             },
           ],
         },

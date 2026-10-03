@@ -13,16 +13,28 @@ exports.listItems = asyncHandler(async (req, res) => {
 });
 
 exports.createItem = asyncHandler(async (req, res) => {
-  const item = await masterDataService.createItem(req.params.module, req.body);
+  const item = await masterDataService.createItem(
+    req.params.module,
+    req.body,
+    req.user?.userId
+  );
   sendResponse(res, 201, true, "Master record created successfully", item);
 });
 
 exports.updateItem = asyncHandler(async (req, res) => {
-  const item = await masterDataService.updateItem(req.params.module, req.params.id, req.body);
+  const item = await masterDataService.updateItem(
+    req.params.module,
+    req.params.id,
+    req.body
+  );
   sendResponse(res, 200, true, "Master record updated successfully", item);
 });
 
 exports.deleteItem = asyncHandler(async (req, res) => {
-  await masterDataService.deleteItem(req.params.module, req.params.id, req.body?.updatedBy || 1);
+  await masterDataService.deleteItem(
+    req.params.module,
+    req.params.id,
+    req.body?.updatedBy || 1
+  );
   sendResponse(res, 200, true, "Master record deleted successfully");
 });

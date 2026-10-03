@@ -113,6 +113,14 @@ export const adminRouteEntries: AdminRouteEntry[] = [
       })),
   },
   {
+    path: "master/location",
+    name: "admin-master-location",
+    loader: () =>
+      import("@admin/features/master/location").then((m) => ({
+        default: m.MasterLocation,
+      })),
+  },
+  {
     path: "free-health-checkup",
     name: "admin-free-health-checkup",
     loader: () =>

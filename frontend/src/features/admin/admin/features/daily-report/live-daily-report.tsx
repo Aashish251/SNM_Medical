@@ -1,8 +1,26 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, FileSpreadsheet, Plus, Printer, RefreshCw, Trash2, Users } from "lucide-react";
+import {
+  CalendarDays,
+  Check,
+  ChevronsUpDown,
+  FileSpreadsheet,
+  Plus,
+  Printer,
+  RefreshCw,
+  Search,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { Button } from "@admin/components/ui/button";
 import { Input } from "@admin/components/ui/input";
 import { Skeleton } from "@admin/components/ui/skeleton";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@admin/components/ui/popover";
+import { cn } from "@admin/lib/utils";
 import {
   useGetDailyReportQuery,
   useGetReportMetadataQuery,
@@ -25,6 +43,113 @@ const formatDate = (date: string) => {
 };
 
 type AddedDepartmentRow = { id: number; departmentId: string };
+type DepartmentOption = { id: number; name: string };
+
+function SearchableDepartmentSelect({
+  value,
+  onChange,
+  departments,
+  placeholder = "Select Department",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  departments: DepartmentOption[];
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!searchQuery.trim()) return departments;
+    const q = searchQuery.toLowerCase().trim();
+    return departments.filter((d) => d.name.toLowerCase().includes(q));
+  }, [departments, searchQuery]);
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) setSearchQuery("");
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select department"
+          className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          <span className={cn("truncate text-left", !value && "text-slate-400 font-normal")}>
+            {value || placeholder}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-slate-400 opacity-60" />
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent
+        align="start"
+        className="w-[var(--radix-popover-trigger-width,260px)] min-w-[220px] p-1.5 shadow-lg z-50 bg-white"
+      >
+        <div className="mb-1.5 flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs">
+          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search department..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-400"
+            autoFocus
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+
+        <div className="max-h-56 overflow-y-auto space-y-0.5">
+          {filtered.map((department) => {
+            const isSelected = value.toLowerCase() === department.name.toLowerCase();
+            return (
+              <button
+                key={department.id}
+                type="button"
+                onClick={() => {
+                  onChange(department.name);
+                  setOpen(false);
+                  setSearchQuery("");
+                }}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-left transition-colors",
+                  isSelected
+                    ? "bg-blue-50 font-medium text-blue-600"
+                    : "text-slate-700 hover:bg-slate-100"
+                )}
+              >
+                <span className="truncate">{department.name}</span>
+                {isSelected && (
+                  <Check className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                )}
+              </button>
+            );
+          })}
+
+          {filtered.length === 0 && (
+            <div className="px-2 py-3 text-center text-xs text-slate-400">
+              No matching departments
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function LiveDailyReport() {
   const { data: metadataResponse, isLoading: isMetadataLoading } = useGetReportMetadataQuery();
@@ -205,18 +330,21 @@ export function LiveDailyReport() {
                     !displayRows.some((other) => other.id !== row.id && other.department.toLowerCase() === department.name.toLowerCase()),
                   );
                   const existingMasterDepartment = departmentByName.get(row.department.toLowerCase());
+                  const currentDeptName = existingMasterDepartment?.name ?? row.department ?? "";
+
+                  const rowDepartments = [...selectableDepartments];
+                  if (currentDeptName && !rowDepartments.some((d) => d.name.toLowerCase() === currentDeptName.toLowerCase())) {
+                    rowDepartments.unshift({ id: -1, name: currentDeptName });
+                  }
+
                   return (
                     <tr key={row.id} className="bg-white hover:bg-blue-50/30">
                       <td className="border-r border-slate-100 px-3 py-2">
-                        <select
-                          aria-label="Select department"
-                          className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-slate-700"
-                          value={existingMasterDepartment?.name ?? ""}
-                          onChange={(event) => setRowDepartment(row.id, event.target.value)}
-                        >
-                          <option value="">Select Department</option>
-                          {selectableDepartments.map((department) => <option key={department.id} value={department.name}>{department.name}</option>)}
-                        </select>
+                        <SearchableDepartmentSelect
+                          value={currentDeptName}
+                          onChange={(val) => setRowDepartment(row.id, val)}
+                          departments={rowDepartments}
+                        />
                       </td>
                       {locationColumns.map((column) => <td key={column.key} className="border-r border-slate-100 px-2 py-2"><Input className="mx-auto h-10 max-w-28 text-center tabular-nums" aria-label={`${row.department || "Department"}, ${column.label}`} type="number" min="0" step="1" value={row.values[column.key] ?? 0} onChange={(event) => setCellValue(row.id, column.key, event.target.value)} /></td>)}
                       <td className="px-2 py-2">
