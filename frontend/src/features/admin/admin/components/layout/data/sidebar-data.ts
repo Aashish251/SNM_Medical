@@ -93,7 +93,7 @@ export const sidebarData: SidebarData = {
           icon: Search,
         },
         {
-          title: "Master Table",
+          title: "Master Tables",
           icon: Database,
           items: [
             {
@@ -127,7 +127,7 @@ export const sidebarData: SidebarData = {
               icon: Clock,
             },
             {
-              title: "Location",
+              title: "Seva Location",
               url: ROUTE_ADMIN_MASTER_LOCATION,
               icon: MapPinned,
             },
@@ -138,17 +138,17 @@ export const sidebarData: SidebarData = {
           icon: FileSpreadsheet,
           items: [
             {
-              title: "Registration Report",
+              title: "Patient Registration Report",
               url: ROUTE_ADMIN_REGISTRATION_REPORT,
               icon: ClipboardList,
             },
             {
-              title: "Daily Report",
+              title: "Patient Daily Report",
               url: ROUTE_ADMIN_DAILY_REPORT,
               icon: CalendarDays,
             },
             {
-              title: "Master Report",
+              title: "Patient Master Report",
               url: ROUTE_ADMIN_MASTER_REPORT,
               icon: FileSpreadsheet,
             },

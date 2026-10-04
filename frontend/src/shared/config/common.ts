@@ -109,7 +109,7 @@ export const SNMSocialMedia = [
 export const STEPS = [
   { id: 1, title: "Personal" },
   { id: 2, title: "Professional" },
-  { id: 3, title: "Login" },
+  { id: 3, title: "Security" },
 ];
 
 export const DUMMY = {

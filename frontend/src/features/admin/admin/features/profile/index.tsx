@@ -259,10 +259,9 @@ function ProfileTabs({
             onClick={() => onChange(value)}
             className={`
               flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 sm:px-6 text-sm font-semibold whitespace-nowrap transition-all flex-1 min-w-[120px]
-              ${
-                isActive
-                  ? "bg-[#0066FF] text-white shadow-sm"
-                  : "text-[#64748B] hover:text-[#0F172A] hover:bg-slate-200/50 font-medium"
+              ${isActive
+                ? "bg-[#0066FF] text-white shadow-sm"
+                : "text-[#64748B] hover:text-[#0F172A] hover:bg-slate-200/50 font-medium"
               }
             `}
           >
@@ -316,17 +315,17 @@ export function Profile() {
     String(profile?.title) === "1"
       ? "Mr"
       : String(profile?.title) === "2"
-      ? "Mrs"
-      : String(profile?.title) === "3"
-      ? "Ms"
-      : d(profile?.title);
+        ? "Mrs"
+        : String(profile?.title) === "3"
+          ? "Ms"
+          : d(profile?.title);
 
   const genderVal =
     String(profile?.gender) === "1"
       ? "Male"
       : String(profile?.gender) === "2"
-      ? "Female"
-      : d(profile?.gender);
+        ? "Female"
+        : d(profile?.gender);
 
   const qualification = lookupName(
     profile?.qualificationId,
@@ -636,7 +635,6 @@ export function Profile() {
           <InfoRow label="Hobbies" value={d(profile?.hobbies)} />
           <InfoRow label="Nickname" value={d(profile?.childhoodNickname)} />
           <InfoRow label="Mother's Name" value={d(profile?.motherMaidenName)} />
-          <InfoRow label="Password" value="••••••••" />
         </div>
       </CardContent>
     </Card>
@@ -725,20 +723,28 @@ export function Profile() {
   );
 
   /* ---------------------------------------------------------------- */
-  /*  Overview tab content                                            */
+  /*  Tab layout (persistent 3-column structure)                     */
   /* ---------------------------------------------------------------- */
 
-  const overviewContent = (
+  const profileLayout = (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[270px_1fr_250px] xl:grid-cols-[280px_1fr_260px] gap-4 sm:gap-5 items-start">
       {/* Left sidebar */}
       <div className="space-y-4">{profileSidebar}</div>
 
       {/* Center main */}
       <div className="space-y-4 min-w-0">
-        {statsBar}
-        {personalInfo}
-        {professionalInfo}
-        {addressInfo}
+        {activeTab === "overview" && (
+          <>
+            {statsBar}
+            {personalInfo}
+            {professionalInfo}
+            {addressInfo}
+          </>
+        )}
+        {activeTab === "personal" && personalInfo}
+        {activeTab === "professional" && professionalInfo}
+        {activeTab === "address" && addressInfo}
+        {activeTab === "security" && securityInfo}
       </div>
 
       {/* Right sidebar */}
@@ -791,25 +797,7 @@ export function Profile() {
         <ProfileTabs active={activeTab} onChange={setActiveTab} />
 
         {/* ── Tab content ──────────────────────────────────────── */}
-        {isLoading ? (
-          <ProfileSkeleton />
-        ) : (
-          <>
-            {activeTab === "overview" && overviewContent}
-            {activeTab === "personal" && (
-              <div className="max-w-4xl">{personalInfo}</div>
-            )}
-            {activeTab === "professional" && (
-              <div className="max-w-4xl">{professionalInfo}</div>
-            )}
-            {activeTab === "address" && (
-              <div className="max-w-4xl">{addressInfo}</div>
-            )}
-            {activeTab === "security" && (
-              <div className="max-w-4xl">{securityInfo}</div>
-            )}
-          </>
-        )}
+        {isLoading ? <ProfileSkeleton /> : profileLayout}
       </Main>
     </>
   );

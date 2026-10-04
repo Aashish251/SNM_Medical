@@ -192,9 +192,7 @@ export function Users() {
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 Add New Registration
               </h1>
-              <Badge variant="secondary" className="font-medium text-xs">
-                Medical Staff
-              </Badge>
+
             </div>
             <p className="text-sm text-muted-foreground">
               Register a new medical staff member into the system with personal, professional, and login credentials.
@@ -285,10 +283,6 @@ export function Users() {
                   }
                 />
                 <div className="text-center mt-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Step {currentStep} of {STEPS.length}
-                  </div>
                   <CardTitle className="text-xl sm:text-2xl font-bold mt-2">
                     {STEPS[currentStep - 1]?.title} Details
                   </CardTitle>

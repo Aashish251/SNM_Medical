@@ -2,10 +2,11 @@ import { useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader } from "@shared/components/ui/card";
 import { Button } from "@shared/components/ui/button";
+import { Label } from "@shared/components/ui/label";
 import { TextField } from "@shared/components/FormInputs/TextField";
 import { TextareaField } from "@shared/components/FormInputs/TextareaField";
-import { SelectField } from "@shared/components/FormInputs/SelectField";
 import { DatePickerField } from "@shared/components/FormInputs/DatePickerField";
+import { RequiredMark, FieldErrorText } from "@shared/components/FormInputs/FormHelpers";
 import { validationRules } from "@shared/lib/formValidation";
 import { useRegisterPatientMutation } from "./services";
 import { normalizeApiError } from "@shared/api/errors";
@@ -56,10 +57,23 @@ export default function PatientRegistration() {
     regnCounterRef.current += 1;
     // Combine a timestamp suffix with the counter to ensure uniqueness
     const uniqueId = String(
-      Date.now() % 100000 + regnCounterRef.current
+      (Date.now() % 100000) + regnCounterRef.current
     ).padStart(3, "0");
     return `OPD-${currentYear}-${uniqueId}`;
   }, []);
+
+  const getInitialValues = (): PatientRegistrationFormValues => ({
+    regnNo: "",
+    date: new Date().toISOString(),
+    patientName: "",
+    mobileNumber: "",
+    email: "",
+    address: "",
+    fatherOrSpouseName: "",
+    age: "",
+    gender: "",
+    diseaseSymptoms: "",
+  });
 
   const {
     register,
@@ -68,18 +82,7 @@ export default function PatientRegistration() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<PatientRegistrationFormValues>({
-    defaultValues: {
-      regnNo: "",
-      date: null,
-      patientName: "",
-      mobileNumber: "",
-      email: "",
-      address: "",
-      fatherOrSpouseName: "",
-      age: "",
-      gender: "",
-      diseaseSymptoms: "",
-    },
+    defaultValues: getInitialValues(),
   });
 
   const onSubmit = async (values: PatientRegistrationFormValues) => {
@@ -125,14 +128,16 @@ export default function PatientRegistration() {
   };
 
   const onReset = () => {
-    reset();
+    reset(getInitialValues());
     setSubmittedData(null);
   };
 
   return (
     <div className="mx-auto max-w-7xl pt-[120px] md:pt-[90px] lg:pt-[100px] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Patient Registration</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+          Patient Registration
+        </h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
           Register patients quickly and accurately with the volunteer patient registration form.
         </p>
@@ -148,26 +153,9 @@ export default function PatientRegistration() {
 
         <CardContent className="px-6 py-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <TextField
-                label="Regn No"
-                register={register("regnNo")}
-                placeholder="Auto-generated on submit"
-                error={errors.regnNo ?? null}
-                disabled
-              />
-
-              <DatePickerField
-                label="Date"
-                name="date"
-                control={control}
-                placeholder="DD/MM/YYYY"
-                required={false}
-                className="w-full"
-              />
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
+            {/* Row 1: 3 equal columns */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+              {/* Name of Patient */}
               <TextField
                 label="Name of Patient"
                 register={register("patientName", {
@@ -175,8 +163,10 @@ export default function PatientRegistration() {
                 })}
                 placeholder="Enter patient name"
                 error={errors.patientName ?? null}
+                required
               />
 
+              {/* Mobile Number */}
               <TextField
                 label="Mobile Number"
                 register={register("mobileNumber", {
@@ -186,9 +176,8 @@ export default function PatientRegistration() {
                 error={errors.mobileNumber ?? null}
                 type="tel"
               />
-            </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Email */}
               <TextField
                 label="Email"
                 register={register("email", {
@@ -198,32 +187,11 @@ export default function PatientRegistration() {
                 error={errors.email ?? null}
                 type="email"
               />
-
-              <SelectField
-                label="Gender"
-                name="gender"
-                control={control}
-                options={genderOptions}
-                placeholder="Select gender"
-                required
-                className="w-full"
-              />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <TextareaField
-                label="Address"
-                register={register("address", {
-                  ...validationRules.required("Address"),
-                })}
-                placeholder="Enter patient address"
-                error={errors.address ?? null}
-                rows={4}
-                className="lg:col-span-2"
-              />
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
+            {/* Row 2: 2 equal columns */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+              {/* Father / Spouse Name */}
               <TextField
                 label="Father / Spouse Name"
                 register={register("fatherOrSpouseName")}
@@ -231,6 +199,47 @@ export default function PatientRegistration() {
                 error={errors.fatherOrSpouseName ?? null}
               />
 
+              {/* Gender (Horizontal Radio Buttons) */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">
+                  Gender <RequiredMark />
+                </Label>
+                <div className="flex items-center gap-6 pt-1.5 h-10">
+                  {genderOptions.map((opt) => (
+                    <label
+                      key={opt.id}
+                      className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 hover:text-slate-900"
+                    >
+                      <input
+                        type="radio"
+                        value={opt.id}
+                        {...register("gender", {
+                          ...validationRules.required("Gender"),
+                        })}
+                        className="size-4 border-slate-300 text-primary focus:ring-primary accent-primary cursor-pointer"
+                      />
+                      <span>{opt.title}</span>
+                    </label>
+                  ))}
+                </div>
+                <FieldErrorText message={errors.gender?.message} />
+              </div>
+            </div>
+
+            {/* Row 3: 2 equal columns */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+              {/* Date (Disabled, Current Date) */}
+              <DatePickerField
+                label="Date"
+                name="date"
+                control={control}
+                placeholder="DD/MM/YYYY"
+                disabled={true}
+                required={false}
+                className="w-full"
+              />
+
+              {/* Age */}
               <TextField
                 label="Age"
                 register={register("age", {
@@ -242,14 +251,25 @@ export default function PatientRegistration() {
               />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            {/* Row 4: 2 equal columns for Textareas */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+              <TextareaField
+                label="Address"
+                register={register("address", {
+                  ...validationRules.required("Address"),
+                })}
+                placeholder="Enter patient address"
+                error={errors.address ?? null}
+                rows={4}
+                required
+              />
+
               <TextareaField
                 label="Disease / Symptoms"
                 register={register("diseaseSymptoms")}
                 placeholder="Describe disease or symptoms"
                 error={errors.diseaseSymptoms ?? null}
                 rows={4}
-                className="lg:col-span-2"
               />
             </div>
 
