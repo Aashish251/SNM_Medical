@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from "@shared/components/ui/tooltip";
 
-import { getDocumentViewUrl } from "@shared/utils/documentHelper";
+import { openDocumentView } from "@shared/utils/documentHelper";
 
 interface FileUploadFieldProps {
   label: string;
@@ -28,7 +28,7 @@ interface FileUploadFieldProps {
   error?: FieldError | null;
   disabled?: boolean;
   existingUrl?: string;
-  selectedFile?: any;
+  selectedFile?: FileList | File | string | null;
   regId?: number | string | null;
 }
 
@@ -43,7 +43,9 @@ export const FileUploadField = ({
   selectedFile,
   regId,
 }: FileUploadFieldProps) => {
-  const fullUrl = existingUrl ? getDocumentViewUrl(regId, existingUrl) : null;
+  const localExistingUrl = existingUrl?.startsWith("blob:")
+    ? existingUrl
+    : null;
 
   // Determine effective file and preview URL
   let file: File | null = null;
@@ -67,7 +69,9 @@ export const FileUploadField = ({
     }
   }, [file]);
 
-  const displayUrl = previewUrl || fullUrl;
+  const displayUrl = previewUrl || localExistingUrl;
+  const hasExistingDocument =
+    Boolean(existingUrl && !localExistingUrl && regId);
 
   const isImage = (url: string, fileObj?: File | null) => {
     if (fileObj) {
@@ -139,6 +143,15 @@ export const FileUploadField = ({
               </a>
             )}
           </>
+        )}
+        {!displayUrl && hasExistingDocument && (
+          <button
+            type="button"
+            onClick={() => void openDocumentView(regId)}
+            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+          >
+            Preview
+          </button>
         )}
       </div>
 

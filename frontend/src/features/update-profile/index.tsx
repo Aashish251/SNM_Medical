@@ -30,8 +30,10 @@ const UpdateProfile = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
   const [disabled, setDisabled] = useState(false);
-  const userType = useSelector((state: RootState) => state.auth.userType);
-  const { state: regId } = useLocation();
+  const { userType, userDetails: authUserDetails } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const regId = useLocation().state as { userId?: string | number } | null;
 
   const {
     currentStep,
@@ -45,16 +47,17 @@ const UpdateProfile = () => {
     form,
   } = useUpdateProfileForm();
 
-  const { handleSubmit, reset, resetField } = form;
+  const { handleSubmit, reset } = form;
 
-  // 🔹 Call API as soon as we have an ID
+  const profileId = regId?.userId ?? authUserDetails?.id;
+
   const {
     data: userDetails,
     isLoading,
     isError,
     error,
-  } = useGetUserDetailsQueryQuery(regId?.userId ? Number(regId?.userId) : 0, {
-    skip: !regId?.userId, // don't call if id is missing
+  } = useGetUserDetailsQueryQuery(profileId ? Number(profileId) : 0, {
+    skip: !profileId,
   });
 
   const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
@@ -73,11 +76,13 @@ const UpdateProfile = () => {
     }
 
     if (userDetails) {
-      // Store existing file URLs
-      setExistingProfilePic(userDetails.data.profileImage);
-      setExistingCertificate(userDetails.data.certificate as string);
+      const certificate = userDetails.data.certificate;
+      setExistingProfilePic(userDetails.data.profileImage ?? undefined);
+      setExistingCertificate(
+        typeof certificate === "string" ? certificate : undefined
+      );
 
-      const formattedData: any = {
+      const formattedData: FormValues = {
         ...userDetails.data,
         profilePic: undefined,
         certificate: undefined,
@@ -131,27 +136,24 @@ const UpdateProfile = () => {
     "remark",
   ];
 
-  // Reset specific step fields to original API values (for Update Profile)
+  // Reset the step to its loaded values, retaining the saved file previews.
   const resetFields = (fields: (keyof FormValues)[]) => {
     fields.forEach((field) => {
-      if (field === "profilePic") {
-        form.setValue(field, undefined as any);
-        setExistingProfilePic(undefined);
-      } else if (field === "certificate") {
-        form.setValue(field, undefined as any);
-        setExistingCertificate(undefined);
-      } else {
-        form.setValue(field, "" as any);
-      }
+      form.resetField(field);
     });
   };
 
   const onSubmit = async (data: FormValues) => {
+    if (!profileId) {
+      toast.error("Unable to determine the profile to update.");
+      return;
+    }
+
     try {
-      const formData = createUpdateProfileFormData(data, regId?.userId as string);
+      const formData = createUpdateProfileFormData(data, profileId);
 
       await toast.promise(
-        triggerRegisterUser({ id: regId?.userId as string, formData }).unwrap(),
+        triggerRegisterUser({ id: profileId, formData }).unwrap(),
         {
           loading: "Updating Profile...",
           success: "Profile Updated successfully!",
@@ -215,7 +217,7 @@ const UpdateProfile = () => {
               prevStep={prevStep}
               reset={() => resetFields(step2Fields)}
               existingCertificate={existingCertificate}
-              regId={regId?.userId}
+              regId={profileId}
             />
           )}
 

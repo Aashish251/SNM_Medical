@@ -48,7 +48,6 @@ import {
   ExternalLink,
   Save,
   CircleCheck,
-  FileText,
   Lock,
 } from "lucide-react";
 
@@ -750,20 +749,6 @@ export function ProfileEdit() {
                           )}
                         />
                       </FormField>
-
-                      {existingCertificate && (
-                        <div className="sm:col-span-2 flex items-center gap-2 mt-2">
-                          <FileText className="size-4 text-primary shrink-0" />
-                          <a
-                            href={`${import.meta.env.VITE_API_BASE_URL}${existingCertificate}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[13px] text-primary font-semibold hover:underline"
-                          >
-                            View Certificate
-                          </a>
-                        </div>
-                      )}
 
                       <FileUploadField
                         label="Certificate"

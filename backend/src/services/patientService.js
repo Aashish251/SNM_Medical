@@ -1,137 +1,224 @@
+const { promisePool } = require("../config/database");
 const { validators } = require("../utils/validators");
-const { readData, updateData, getNextArrayId } = require("./localDataStore");
+const {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} = require("../utils/errorHandler");
+
+const PATIENT_SELECT = `
+  SELECT
+    id,
+    regn_no AS regnNo,
+    DATE_FORMAT(visit_date, '%Y-%m-%d') AS date,
+    patient_name AS patientName,
+    guardian_name AS guardianName,
+    age,
+    gender,
+    phone AS mobileNumber,
+    email,
+    address,
+    disease,
+    created_at AS createdAt,
+    updated_at AS updatedAt
+  FROM patient_registration
+`;
 
 function ensureRequired(value, label) {
-  if (!value && value !== 0) {
-    throw new Error(`${label} is required`);
+  if (value === undefined || value === null || value === "") {
+    throw new BadRequestError(`${label} is required`);
   }
 }
 
 function normalizePayload(payload = {}) {
-  const record = {
-    regnNo: payload.regn || payload.regnNo,
-    date: payload.date,
-    patientName: payload.name || payload.patientName,
-    mobileNumber: payload.mobile || payload.mobileNumber || payload.phone,
-    email: payload.email || "",
-    address: payload.address,
-    guardianName: payload.guardian || payload.guardianName || "",
-    age: payload.age ? Number(payload.age) : null,
-    gender: payload.sex || payload.gender,
-    disease: payload.disease || payload.symptoms,
+  const regnNo = payload.regnNo ?? payload.regn;
+  const rawDate = payload.date ?? payload.visitDate;
+  const patientName = payload.patientName ?? payload.name;
+  const mobileNumber =
+    payload.mobileNumber ?? payload.mobile ?? payload.phone;
+  const guardianName =
+    payload.guardianName ?? payload.guardian ?? payload.fatherOrSpouseName ?? "";
+  const genderValue = String(payload.gender ?? payload.sex ?? "").trim();
+  const gender = ["male", "female", "other"].find(
+    (value) => value === genderValue.toLowerCase()
+  );
+  const age =
+    payload.age === undefined || payload.age === null || payload.age === ""
+      ? null
+      : Number(payload.age);
+  const disease = payload.disease ?? payload.symptoms;
+
+  ensureRequired(regnNo, "Registration number");
+  ensureRequired(rawDate, "Date");
+  ensureRequired(patientName, "Patient name");
+  ensureRequired(mobileNumber, "Mobile number");
+  ensureRequired(payload.address, "Address");
+  ensureRequired(gender, "Gender");
+  ensureRequired(disease, "Disease / symptoms");
+
+  const parsedDate = new Date(rawDate);
+  if (Number.isNaN(parsedDate.getTime())) {
+    throw new BadRequestError("Date must be a valid date");
+  }
+
+  if (!validators.mobile(String(mobileNumber))) {
+    throw new BadRequestError("Mobile number must be a valid 10-digit number");
+  }
+
+  const email = String(payload.email ?? "").trim();
+  if (email && !validators.email(email)) {
+    throw new BadRequestError("Email must be a valid email address");
+  }
+
+  if (age !== null && (!Number.isInteger(age) || age < 0)) {
+    throw new BadRequestError("Age must be a non-negative whole number");
+  }
+
+  const normalizedGender = gender[0].toUpperCase() + gender.slice(1);
+
+  return {
+    regnNo: String(regnNo).trim(),
+    date: parsedDate.toISOString().slice(0, 10),
+    patientName: String(patientName).trim(),
+    guardianName: String(guardianName).trim(),
+    age,
+    gender: normalizedGender,
+    mobileNumber: String(mobileNumber).trim(),
+    email,
+    address: String(payload.address).trim(),
+    disease: String(disease).trim(),
   };
+}
 
-  ensureRequired(record.regnNo, "Registration number");
-  ensureRequired(record.date, "Date");
-  ensureRequired(record.patientName, "Patient name");
-  ensureRequired(record.mobileNumber, "Mobile number");
-  ensureRequired(record.address, "Address");
-  ensureRequired(record.gender, "Gender");
-  ensureRequired(record.disease, "Disease / symptoms");
+function mapPatientRow(row) {
+  if (!row) return null;
 
-  if (Number.isNaN(new Date(record.date).getTime())) {
-    throw new Error("Date must be a valid date");
+  return {
+    ...row,
+    createdAt:
+      row.createdAt instanceof Date
+        ? row.createdAt.toISOString()
+        : row.createdAt,
+    updatedAt:
+      row.updatedAt instanceof Date
+        ? row.updatedAt.toISOString()
+        : row.updatedAt,
+  };
+}
+
+async function findDuplicate(regnNo, date, excludedId) {
+  const query = excludedId
+    ? `SELECT id FROM patient_registration
+       WHERE regn_no = ? AND visit_date = ? AND id <> ? LIMIT 1`
+    : `SELECT id FROM patient_registration
+       WHERE regn_no = ? AND visit_date = ? LIMIT 1`;
+  const values = excludedId
+    ? [regnNo, date, excludedId]
+    : [regnNo, date];
+  const [rows] = await promisePool.execute(query, values);
+
+  if (rows.length > 0) {
+    throw new ConflictError(
+      "Patient registration already exists for this registration number and date"
+    );
   }
-
-  if (!validators.mobile(String(record.mobileNumber))) {
-    throw new Error("Mobile number must be a valid 10-digit number");
-  }
-
-  if (record.email && !validators.email(record.email)) {
-    throw new Error("Email must be a valid email address");
-  }
-
-  return record;
 }
 
 exports.createPatientRegistration = async (payload) => {
   const patient = normalizePayload(payload);
-  const timestamp = new Date().toISOString();
-  let createdRecord;
+  await findDuplicate(patient.regnNo, patient.date);
 
-  await updateData(async (data) => {
-    const duplicate = data.patientRegistrations.find(
-      (item) => item.regnNo === patient.regnNo && item.date === patient.date
-    );
+  const [result] = await promisePool.execute(
+    `INSERT INTO patient_registration (
+      regn_no, visit_date, patient_name, guardian_name, age, gender,
+      phone, email, address, disease, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+    [
+      patient.regnNo,
+      patient.date,
+      patient.patientName,
+      patient.guardianName,
+      patient.age,
+      patient.gender,
+      patient.mobileNumber,
+      patient.email,
+      patient.address,
+      patient.disease,
+    ]
+  );
 
-    if (duplicate) {
-      throw new Error("Patient registration already exists for this registration number and date");
-    }
-
-    createdRecord = {
-      id: getNextArrayId(data.patientRegistrations),
-      ...patient,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-
-    data.patientRegistrations.push(createdRecord);
-  });
-
-  return createdRecord;
+  return exports.getPatientRegistrationById(result.insertId);
 };
 
 exports.listPatientRegistrations = async () => {
-  const data = await readData();
-  return [...data.patientRegistrations].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const [rows] = await promisePool.execute(
+    `${PATIENT_SELECT} ORDER BY visit_date DESC, id DESC`
+  );
+  return rows.map(mapPatientRow);
 };
 
 exports.getPatientRegistrationById = async (id) => {
-  const data = await readData();
-  return data.patientRegistrations.find((item) => item.id === Number(id)) || null;
+  const patientId = Number(id);
+  if (!Number.isInteger(patientId) || patientId <= 0) {
+    throw new BadRequestError("Patient registration ID must be a positive integer");
+  }
+
+  const [rows] = await promisePool.execute(
+    `${PATIENT_SELECT} WHERE id = ? LIMIT 1`,
+    [patientId]
+  );
+  return mapPatientRow(rows[0]);
 };
 
 exports.updatePatientRegistration = async (id, payload) => {
+  const patientId = Number(id);
+  if (!Number.isInteger(patientId) || patientId <= 0) {
+    throw new BadRequestError("Patient registration ID must be a positive integer");
+  }
+
   const patient = normalizePayload(payload);
-  const timestamp = new Date().toISOString();
-  let updatedRecord;
+  const existing = await exports.getPatientRegistrationById(patientId);
+  if (!existing) {
+    throw new NotFoundError("Patient registration not found");
+  }
 
-  await updateData(async (data) => {
-    const index = data.patientRegistrations.findIndex((item) => item.id === Number(id));
+  await findDuplicate(patient.regnNo, patient.date, patientId);
 
-    if (index === -1) {
-      throw new Error("Patient registration not found");
-    }
+  await promisePool.execute(
+    `UPDATE patient_registration
+     SET regn_no = ?, visit_date = ?, patient_name = ?, guardian_name = ?,
+         age = ?, gender = ?, phone = ?, email = ?, address = ?, disease = ?,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [
+      patient.regnNo,
+      patient.date,
+      patient.patientName,
+      patient.guardianName,
+      patient.age,
+      patient.gender,
+      patient.mobileNumber,
+      patient.email,
+      patient.address,
+      patient.disease,
+      patientId,
+    ]
+  );
 
-    const existing = data.patientRegistrations[index];
-
-    const duplicate = data.patientRegistrations.find(
-      (item) =>
-        item.id !== Number(id) &&
-        item.regnNo === patient.regnNo &&
-        item.date === patient.date
-    );
-
-    if (duplicate) {
-      throw new Error("Patient registration already exists for this registration number and date");
-    }
-
-    updatedRecord = {
-      ...existing,
-      ...patient,
-      id: Number(id),
-      updatedAt: timestamp,
-    };
-
-    data.patientRegistrations[index] = updatedRecord;
-  });
-
-  return updatedRecord;
+  return exports.getPatientRegistrationById(patientId);
 };
 
 exports.deletePatientRegistration = async (id) => {
-  let deleted = false;
+  const patientId = Number(id);
+  if (!Number.isInteger(patientId) || patientId <= 0) {
+    throw new BadRequestError("Patient registration ID must be a positive integer");
+  }
 
-  await updateData(async (data) => {
-    const index = data.patientRegistrations.findIndex((item) => item.id === Number(id));
-
-    if (index === -1) {
-      throw new Error("Patient registration not found");
-    }
-
-    data.patientRegistrations.splice(index, 1);
-    deleted = true;
-  });
-
-  return deleted;
+  const [result] = await promisePool.execute(
+    "DELETE FROM patient_registration WHERE id = ?",
+    [patientId]
+  );
+  if (result.affectedRows === 0) {
+    throw new NotFoundError("Patient registration not found");
+  }
 };

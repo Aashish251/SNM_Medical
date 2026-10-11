@@ -14,7 +14,6 @@ export interface PatientApiItem {
   disease: string;
   createdAt?: string;
   updatedAt?: string;
-  status?: string;
 }
 
 export interface PatientListResponse {
@@ -74,7 +73,7 @@ export const patientsApi = baseApi.injectEndpoints({
       Partial<PatientApiItem>
     >({
       query: (body) => ({
-        url: "/save-patient-registration",
+        url: "/api/patients",
         method: "POST",
         body,
       }),
