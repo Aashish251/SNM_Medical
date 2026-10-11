@@ -58,6 +58,37 @@ export const masterDataApi = baseApi.injectEndpoints({
         { type: "Masters", id: module },
       ],
     }),
+    updateMasterRecord: builder.mutation<
+      MasterRecordsResponse,
+      {
+        module: MasterModule;
+        id: number | string;
+        value: string;
+        stateId?: number;
+        countryId?: number;
+      }
+    >({
+      query: ({ module, id, ...body }) => ({
+        url: `/api/masters/${module}/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { module }) => [
+        { type: "Masters", id: module },
+      ],
+    }),
+    deleteMasterRecord: builder.mutation<
+      MasterRecordsResponse,
+      { module: MasterModule; id: number | string }
+    >({
+      query: ({ module, id }) => ({
+        url: `/api/masters/${module}/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, { module }) => [
+        { type: "Masters", id: module },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -65,4 +96,6 @@ export const masterDataApi = baseApi.injectEndpoints({
 export const {
   useCreateMasterRecordMutation,
   useGetMasterRecordsQuery,
+  useUpdateMasterRecordMutation,
+  useDeleteMasterRecordMutation,
 } = masterDataApi;

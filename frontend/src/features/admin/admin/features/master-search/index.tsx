@@ -172,18 +172,6 @@ export function MasterSearch() {
         <Search className="me-auto max-w-md" />
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Notification Bell with Red Badge */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative h-9 w-9 rounded-full text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-            aria-label="Notifications"
-          >
-            <Bell className="h-4.5 w-4.5" />
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-xs">
-              3
-            </span>
-          </Button>
 
           {/* Theme Switcher */}
           <ThemeSwitch />

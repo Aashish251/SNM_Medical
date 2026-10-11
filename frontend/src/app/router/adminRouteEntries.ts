@@ -121,6 +121,30 @@ export const adminRouteEntries: AdminRouteEntry[] = [
       })),
   },
   {
+    path: "master/availableday",
+    name: "admin-master-availableday",
+    loader: () =>
+      import("@admin/features/master/availability").then((m) => ({
+        default: m.MasterAvailability,
+      })),
+  },
+  {
+    path: "master/shifttime",
+    name: "admin-master-shifttime",
+    loader: () =>
+      import("@admin/features/master/shift-time").then((m) => ({
+        default: m.MasterShiftTime,
+      })),
+  },
+  {
+    path: "master/sewalocation",
+    name: "admin-master-sewalocation",
+    loader: () =>
+      import("@admin/features/master/location").then((m) => ({
+        default: m.MasterLocation,
+      })),
+  },
+  {
     path: "free-health-checkup",
     name: "admin-free-health-checkup",
     loader: () =>

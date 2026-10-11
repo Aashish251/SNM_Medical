@@ -1,35 +1,30 @@
-import { useState, type FormEvent } from "react";
-import { Plus, RefreshCw, Search } from "lucide-react";
-import { Header } from "@admin/components/layout/header";
-import { Main } from "@admin/components/layout/main";
-import { ProfileDropdown } from "@admin/components/profile-dropdown";
-import { Search as HeaderSearch } from "@admin/components/search";
-import { ThemeSwitch } from "@admin/components/theme-switch";
-import { Button } from "@admin/components/ui/button";
-import { Input } from "@admin/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@admin/components/ui/dialog";
-import { normalizeApiError } from "@shared/api/errors";
+import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { Database } from "lucide-react";
+import { EntityListPage } from "@admin/components/entity-list";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@admin/components/ui/table";
+  createSelectColumn,
+  createTextColumn,
+} from "@admin/components/entity-list";
+import { normalizeApiError } from "@shared/api/errors";
+import { DataTableColumnHeader } from "@admin/components/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { EntityListModuleConfig, EntityFormField } from "@admin/components/entity-list";
 import {
   type MasterModule,
-  useCreateMasterRecordMutation,
   useGetMasterRecordsQuery,
+  useCreateMasterRecordMutation,
+  useUpdateMasterRecordMutation,
+  useDeleteMasterRecordMutation,
 } from "../services/masterDataApi";
+
+/** Normalised row type required by EntityListPage (id must be string). */
+export interface MasterRow {
+  id: string;
+  value: string;
+  state_id?: number;
+  country_id?: number;
+}
 
 type MasterTablePageProps = {
   module: MasterModule;
@@ -37,267 +32,258 @@ type MasterTablePageProps = {
   description: string;
 };
 
+/** Singular record label lookup. */
+const SINGULAR_TITLE: Record<MasterModule, string> = {
+  city: "City",
+  state: "State",
+  qualification: "Qualification",
+  department: "Department",
+  sewalocation: "Location",
+  availableday: "Availability",
+  shifttime: "Shift Time",
+};
+
+/** Build the column definitions for a master table. */
+function buildColumns(
+  module: MasterModule,
+  recordTitle: string
+): ColumnDef<MasterRow>[] {
+  const cols: ColumnDef<MasterRow>[] = [
+    createSelectColumn<MasterRow>(),
+    {
+      accessorKey: "id",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="ID" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          {row.getValue("id")}
+        </span>
+      ),
+      enableSorting: true,
+      meta: { className: "w-20" },
+    },
+    createTextColumn<MasterRow>("value", `${recordTitle} Name`),
+  ];
+
+  if (module === "city") {
+    cols.push({
+      accessorKey: "state_id",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="State ID" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          {String(row.getValue("state_id") ?? "-")}
+        </span>
+      ),
+      enableSorting: true,
+      filterFn: (row, id, value) => value.includes(String(row.getValue(id))),
+      meta: { className: "w-28" },
+    });
+  }
+
+  if (module === "state") {
+    cols.push({
+      accessorKey: "country_id",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Country ID" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          {String(row.getValue("country_id") ?? "-")}
+        </span>
+      ),
+      enableSorting: true,
+      meta: { className: "w-28" },
+    });
+  }
+
+  return cols;
+}
+
+/** Build form fields for the add/edit dialog. */
+function buildFormFields(
+  module: MasterModule,
+  recordTitle: string,
+  stateOptions: { label: string; value: string }[]
+): EntityFormField[] {
+  const fields: EntityFormField[] = [
+    {
+      name: "value",
+      label: `${recordTitle} Name`,
+      placeholder: `Enter ${recordTitle.toLowerCase()} name`,
+      rules: { required: "This field is required", maxLength: { value: 100, message: "Max 100 characters" } },
+    },
+  ];
+
+  if (module === "state") {
+    fields.push({
+      name: "countryId",
+      label: "Country ID",
+      type: "number",
+      placeholder: "e.g. 1",
+      rules: { required: "Country ID is required", min: { value: 1, message: "Must be ≥ 1" } },
+    });
+  }
+
+  if (module === "city") {
+    fields.push({
+      name: "stateId",
+      label: "State",
+      type: "searchable-select",
+      options: stateOptions,
+      rules: { required: "State is required" },
+    });
+  }
+
+  return fields;
+}
+
 export function MasterTablePage({
   module,
   title,
   description,
 }: MasterTablePageProps) {
-  const [search, setSearch] = useState("");
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [value, setValue] = useState("");
-  const [countryId, setCountryId] = useState("");
-  const [stateId, setStateId] = useState("");
-  const [createMasterRecord, { isLoading: isCreating }] =
-    useCreateMasterRecordMutation();
-  const {
-    data,
-    error,
-    isError,
-    isFetching,
-    isLoading,
-    refetch,
-  } = useGetMasterRecordsQuery({ module, search });
+  const recordTitle = SINGULAR_TITLE[module];
+
+  const { data, isLoading, isFetching, isError, error } =
+    useGetMasterRecordsQuery({ module, search: "" });
+
+  /* Fetch state list only when module is "city" (needed for the state dropdown). */
   const { data: statesData, isLoading: areStatesLoading } =
     useGetMasterRecordsQuery(
       { module: "state", search: "" },
       { skip: module !== "city" }
     );
-  const records = data?.data?.items ?? [];
-  const states = statesData?.data?.items ?? [];
-  const singularTitle: Record<MasterModule, string> = {
-    city: "City",
-    state: "State",
-    qualification: "Qualification",
-    department: "Department",
-    sewalocation: "Location",
-    availableday: "Availability",
-    shifttime: "Shift Time",
-  };
-  const recordTitle = singularTitle[module];
-  const errorMessage = isError
-    ? normalizeApiError(error).message
-    : "";
 
-  const closeAddDialog = (open: boolean) => {
-    setAddDialogOpen(open);
-    if (!open) {
-      setValue("");
-      setCountryId("");
-      setStateId("");
+  const [createMasterRecord] = useCreateMasterRecordMutation();
+  const [updateMasterRecord] = useUpdateMasterRecordMutation();
+  const [deleteMasterRecord] = useDeleteMasterRecordMutation();
+
+  useEffect(() => {
+    if (isError && error) {
+      toast.error(normalizeApiError(error).message);
     }
-  };
+  }, [error, isError]);
 
-  const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    try {
-      await createMasterRecord({
-        module,
-        value: value.trim(),
-        ...(module === "state" ? { countryId: Number(countryId) } : {}),
-        ...(module === "city" ? { stateId: Number(stateId) } : {}),
-      }).unwrap();
-      toast.success(`${recordTitle} added successfully.`);
-      closeAddDialog(false);
-    } catch (createError) {
-      toast.error(normalizeApiError(createError).message);
-    }
-  };
+  /** Normalise raw records: stringify id so EntityListPage is happy. */
+  const rows = useMemo<MasterRow[]>(() => {
+    const raw = data?.data?.items ?? [];
+    return raw.map((r) => ({
+      ...r,
+      id: String(r.id),
+    }));
+  }, [data]);
 
-  return (
-    <>
-      <Header fixed>
-        <HeaderSearch className="me-auto" />
-        <ThemeSwitch />
-        <ProfileDropdown />
-      </Header>
-      <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-            <p className="text-muted-foreground">{description}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button type="button" onClick={() => setAddDialogOpen(true)}>
-              <Plus className="me-2 h-4 w-4" />
-              Add {recordTitle}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void refetch()}
-              disabled={isFetching}
-            >
-              <RefreshCw
-                className={`me-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </Button>
-          </div>
-        </div>
+  /** State options for city "stateId" select field. */
+  const stateOptions = useMemo(() => {
+    if (areStatesLoading) return [{ label: "Loading states…", value: "" }];
+    const items = statesData?.data?.items ?? [];
+    return items.map((s) => ({ label: s.value, value: String(s.id) }));
+  }, [statesData, areStatesLoading]);
 
-        <div className="relative max-w-sm">
-          <Search className="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-          <Input
-            aria-label={`Search ${title.toLowerCase()}`}
-            className="ps-9"
-            placeholder={`Search ${title.toLowerCase()}...`}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-
-        <div className="admin-surface">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-24">ID</TableHead>
-                <TableHead>{recordTitle} Name</TableHead>
-                {(module === "city" || module === "state") && (
-                  <TableHead>
-                    {module === "city" ? "State ID" : "Country ID"}
-                  </TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={module === "city" || module === "state" ? 3 : 2}
-                    className="h-24 text-center"
-                  >
-                    Loading {title.toLowerCase()}...
-                  </TableCell>
-                </TableRow>
-              ) : isError ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={module === "city" || module === "state" ? 3 : 2}
-                    className="h-24 text-center text-destructive"
-                  >
-                    Could not load {title.toLowerCase()}: {errorMessage}
-                  </TableCell>
-                </TableRow>
-              ) : records.length ? (
-                records.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-mono">{record.id}</TableCell>
-                    <TableCell>{record.value}</TableCell>
-                    {(module === "city" || module === "state") && (
-                      <TableCell className="font-mono">
-                        {module === "city" ? record.state_id : record.country_id}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={module === "city" || module === "state" ? 3 : 2}
-                    className="text-muted-foreground h-24 text-center"
-                  >
-                    No {title.toLowerCase()} found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </Main>
-      <Dialog open={addDialogOpen} onOpenChange={closeAddDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add {recordTitle}</DialogTitle>
-            <DialogDescription>
-              Save this value directly to the database master table.
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            className="space-y-4"
-            onSubmit={(event) => {
-              void handleCreate(event);
-            }}
-          >
-            <div className="space-y-2">
-              <label htmlFor="master-value" className="text-sm font-medium">
-                {recordTitle} name
-              </label>
-              <Input
-                id="master-value"
-                maxLength={100}
-                required
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-                placeholder={`Enter ${recordTitle.toLowerCase()} name`}
-              />
-            </div>
-            {module === "state" && (
-              <div className="space-y-2">
-                <label htmlFor="master-country-id" className="text-sm font-medium">
-                  Country ID
-                </label>
-                <Input
-                  id="master-country-id"
-                  type="number"
-                  min={1}
-                  step={1}
-                  required
-                  value={countryId}
-                  onChange={(event) => setCountryId(event.target.value)}
-                />
-                <p className="text-muted-foreground text-xs">
-                  Use the country ID configured in the database.
-                </p>
-              </div>
-            )}
-            {module === "city" && (
-              <div className="space-y-2">
-                <label htmlFor="master-state-id" className="text-sm font-medium">
-                  State
-                </label>
-                <select
-                  id="master-state-id"
-                  required
-                  value={stateId}
-                  onChange={(event) => setStateId(event.target.value)}
-                  disabled={areStatesLoading || states.length === 0}
-                  className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">
-                    {areStatesLoading ? "Loading states..." : "Select a state"}
-                  </option>
-                  {states.map((state) => (
-                    <option key={state.id} value={state.id}>
-                      {state.value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => closeAddDialog(false)}
-                disabled={isCreating}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  isCreating ||
-                  !value.trim() ||
-                  (module === "state" && !countryId) ||
-                  (module === "city" && !stateId)
-                }
-              >
-                {isCreating ? "Saving..." : "Save"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </>
+  const formFields = useMemo(
+    () => buildFormFields(module, recordTitle, stateOptions),
+    [module, recordTitle, stateOptions]
   );
+
+  const columns = useMemo(
+    () => buildColumns(module, recordTitle),
+    [module, recordTitle]
+  );
+
+  const handleCreate = useCallback(
+    async (values: Record<string, string>) => {
+      try {
+        await createMasterRecord({
+          module,
+          value: values.value.trim(),
+          ...(module === "state" && values.countryId
+            ? { countryId: Number(values.countryId) }
+            : {}),
+          ...(module === "city" && values.stateId
+            ? { stateId: Number(values.stateId) }
+            : {}),
+        }).unwrap();
+        toast.success(`${recordTitle} added successfully.`);
+      } catch (err) {
+        toast.error(normalizeApiError(err).message);
+      }
+    },
+    [createMasterRecord, module, recordTitle]
+  );
+
+  const handleUpdate = useCallback(
+    async (row: MasterRow, values: Record<string, string>) => {
+      try {
+        await updateMasterRecord({
+          module,
+          id: row.id,
+          value: values.value.trim(),
+          ...(module === "state" && values.countryId
+            ? { countryId: Number(values.countryId) }
+            : {}),
+          ...(module === "city" && values.stateId
+            ? { stateId: Number(values.stateId) }
+            : {}),
+        }).unwrap();
+        toast.success(`${recordTitle} updated successfully.`);
+      } catch (err) {
+        toast.error(normalizeApiError(err).message);
+      }
+    },
+    [updateMasterRecord, module, recordTitle]
+  );
+
+  const handleDelete = useCallback(
+    async (row: MasterRow) => {
+      try {
+        await deleteMasterRecord({ module, id: row.id }).unwrap();
+        toast.success(`${recordTitle} deleted successfully.`);
+      } catch (err) {
+        toast.error(normalizeApiError(err).message);
+      }
+    },
+    [deleteMasterRecord, module, recordTitle]
+  );
+
+  if (isLoading || isFetching) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  const config: EntityListModuleConfig<MasterRow> = {
+    title,
+    description,
+    searchPlaceholder: `Filter ${title.toLowerCase()} by name…`,
+    searchKey: "value",
+    primaryAction: { label: `Add ${recordTitle}`, icon: Database },
+    rowActions: "default",
+    deleteConfirmKey: "value",
+    deleteConfirmMessage: (row) =>
+      `This will permanently delete "${row.value}" from the ${title.toLowerCase()} master table.`,
+    statusBadgeMap: new Map(),
+    filters:
+      module === "city" && stateOptions.length > 0 && stateOptions[0].value !== ""
+        ? [
+            {
+              columnId: "state_id",
+              title: "State",
+              options: stateOptions,
+            },
+          ]
+        : [],
+    formFields,
+    columns,
+    data: rows,
+    onCreate: handleCreate,
+    onUpdate: handleUpdate,
+    onDelete: handleDelete,
+  };
+
+  return <EntityListPage config={config} />;
 }

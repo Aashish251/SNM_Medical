@@ -34,9 +34,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@admin/components/ui/dropdown-menu";
+import { DataTablePagination } from "@admin/components/data-table";
+import { DataTableViewOptions } from "@admin/components/data-table/view-options";
 import { createMasterSearchColumns } from "./master-search-columns";
 import { MasterSearchCards } from "./master-search-cards";
-import { MasterSearchPagination } from "./master-search-pagination";
 import { MasterSearchBulkActions } from "./master-search-bulk-actions";
 import type { MasterSearchSortState, MasterSearchUser } from "../types";
 
@@ -170,7 +171,7 @@ export function MasterSearchTable({
 
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
-      {/* Table Header with darker title bar background */}
+      {/* Table Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-slate-100/90 p-4 sm:px-6 dark:border-slate-700/80 dark:bg-slate-800/90">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100/80 text-blue-600 dark:bg-blue-900/60 dark:text-blue-300">
@@ -243,6 +244,9 @@ export function MasterSearchTable({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Standard View (Column Visibility) Options */}
+          <DataTableViewOptions table={table} />
         </div>
       </div>
 
@@ -343,14 +347,8 @@ export function MasterSearchTable({
         )}
       </div>
 
-      {/* Pagination Footer */}
-      <MasterSearchPagination
-        totalRecords={totalRecords}
-        currentPage={currentPage}
-        pageLimit={pageLimit}
-        onPageChange={onPageChange}
-        onPageLimitChange={onPageLimitChange}
-      />
+      {/* Standard DataTable Pagination */}
+      <DataTablePagination table={table} className="border-t border-slate-100 px-4 py-3 sm:px-6 dark:border-slate-800" />
 
       {/* Bulk actions sticky toolbar if items selected */}
       <MasterSearchBulkActions table={table} />

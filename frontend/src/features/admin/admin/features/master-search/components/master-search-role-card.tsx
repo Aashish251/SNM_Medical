@@ -68,20 +68,20 @@ export function MasterSearchRoleCard({
   };
 
   return (
-    <div className="rounded-2xl border border-rose-200/80 bg-rose-50/20 shadow-xs transition-all dark:border-rose-900/40 dark:bg-rose-950/20 overflow-hidden">
-      {/* Header with darker title bar background */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rose-200/80 bg-rose-100/70 p-4 sm:px-6 dark:border-rose-900/50 dark:bg-rose-950/50">
+    <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/20 shadow-xs transition-all dark:border-emerald-900/40 dark:bg-emerald-950/20 overflow-hidden">
+      {/* Header with light green title bar background */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-200/80 bg-emerald-100/70 p-4 sm:px-6 dark:border-emerald-900/50 dark:bg-emerald-950/50">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-200/80 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-200/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
             <UserPlus className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-rose-900 dark:text-rose-200">
+              <h3 className="text-base font-semibold text-emerald-950 dark:text-emerald-200">
                 Add User Role
               </h3>
               {selectedCount > 0 && (
-                <span className="rounded-full bg-rose-200 px-2 py-0.5 text-[11px] font-bold text-rose-800 dark:bg-rose-900/80 dark:text-rose-200">
+                <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200">
                   {selectedCount} selected
                 </span>
               )}
@@ -97,7 +97,7 @@ export function MasterSearchRoleCard({
           variant="outline"
           size="sm"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="h-8.5 gap-1 rounded-lg border-rose-200/80 bg-white px-3 text-xs font-medium text-rose-800 hover:bg-rose-100/50 dark:border-rose-800 dark:bg-slate-900 dark:text-rose-300"
+          className="h-8.5 gap-1 rounded-lg border-emerald-200/80 bg-white px-3 text-xs font-medium text-emerald-800 hover:bg-emerald-100/50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/50"
         >
           <span>{isCollapsed ? "Show" : "Hide"}</span>
           {isCollapsed ? (
@@ -211,7 +211,7 @@ export function MasterSearchRoleCard({
                 variant="outline"
                 size="sm"
                 onClick={handleReset}
-                className="h-9.5 flex-1 gap-1.5 rounded-lg border-rose-200 bg-white px-3 text-xs font-medium text-rose-700 hover:bg-rose-50 dark:border-rose-900/60 dark:bg-slate-900 dark:text-rose-300"
+                className="h-9.5 flex-1 gap-1.5 rounded-lg border-emerald-200 bg-white px-3 text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900/60 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/50"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Reset</span>
