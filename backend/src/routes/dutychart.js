@@ -17,8 +17,9 @@ router.get("/departments",
 router.get("/staff",
   /* #swagger.tags = ['DutyChart']
      #swagger.summary = 'List registered staff for duty assignment'
-     #swagger.description = 'Fetch staff names from registration_tbl for duty chart assignment.'
+     #swagger.description = 'Fetch staff names from registration_tbl for duty chart assignment with optional department filter.'
      #swagger.parameters['search'] = { in: 'query', type: 'string', required: false, example: 'Pratik' }
+     #swagger.parameters['department'] = { in: 'query', type: 'string', required: false, example: 'Dispansary' }
      #swagger.responses[200] = { description: 'Staff fetched successfully' }
      #swagger.responses[500] = { description: 'Failed to fetch staff' }
   */

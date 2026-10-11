@@ -2,9 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { cn } from "@admin/lib/utils";
 import { Checkbox } from "@admin/components/ui/checkbox";
 import { DataTableColumnHeader } from "@admin/components/data-table";
-import { renderStatusBadge } from "@admin/components/entity-list";
 import { LongText } from "@admin/components/long-text";
-import { patientStatusBadgeStyles } from "../data/data";
 import { type Patient } from "../data/schema";
 import { DataTableRowActions } from "./data-table-row-actions";
 
@@ -112,9 +110,9 @@ export const patientsColumns: ColumnDef<Patient>[] = [
     cell: ({ row }) => (
       <span className="capitalize">{row.getValue("gender")}</span>
     ),
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
+    filterFn: (row, id, value: unknown) =>
+      Array.isArray(value) &&
+      value.some((selectedValue: unknown) => selectedValue === row.getValue(id)),
   },
   {
     accessorKey: "disease",
@@ -131,25 +129,6 @@ export const patientsColumns: ColumnDef<Patient>[] = [
       <DataTableColumnHeader column={column} title="Reg. Date" />
     ),
     cell: ({ row }) => <div>{row.getValue("registrationDate")}</div>,
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
-    ),
-    cell: ({ row }) => {
-      const { status } = row.original;
-      return (
-        <div className="flex space-x-2">
-          {renderStatusBadge(status, patientStatusBadgeStyles)}
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    enableHiding: false,
-    enableSorting: false,
   },
   {
     id: "actions",

@@ -33,7 +33,7 @@ export function useDutyDepartmentOptions(): DutyDepartmentOption[] {
 /**
  * Hook to retrieve staff options from registration_tbl.
  */
-export function useDutyStaffOptions(): DutyStaffOption[] {
-  const { data = [] } = useGetDutyStaffQuery();
+export function useDutyStaffOptions(department?: string): DutyStaffOption[] {
+  const { data = [] } = useGetDutyStaffQuery(department);
   return data;
 }

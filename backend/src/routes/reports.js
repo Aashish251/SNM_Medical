@@ -2,6 +2,28 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const reportService = require('../services/reportService');
+const reportBuilderService = require('../services/reportBuilderService');
+const authenticateToken = require('../middlewares/auth');
+const { isAdmin } = require('../middlewares/role');
+
+router.get('/builder/:type', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const data = await reportBuilderService.getReportBuilder(req.params.type);
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+});
+
+router.put('/builder/:type', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const data = await reportBuilderService.saveReportBuilder(req.params.type, req.body);
+    res.json({ success: true, message: 'Report saved successfully', data });
+  } catch (error) {
+    logger.warn('Report builder save failed', { type: req.params.type, error: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+});
 
 // Report metadata (active dates, departments, locations)
 router.get('/metadata',
@@ -79,7 +101,7 @@ router.get('/daily',
 router.get('/registration',
   /* #swagger.tags = ['Reports']
      #swagger.summary = 'Get registration reports'
-     #swagger.description = 'Retrieve department-wise registration counts for up to three report dates.'
+     #swagger.description = 'Retrieve location-wise registration counts for up to five report dates.'
      #swagger.parameters['dates'] = {
        in: 'query',
        type: 'string',
@@ -90,7 +112,7 @@ router.get('/registration',
      #swagger.parameters['date2'] = { in: 'query', type: 'string', required: false, description: 'Second report date in YYYY-MM-DD format' }
      #swagger.parameters['date3'] = { in: 'query', type: 'string', required: false, description: 'Third report date in YYYY-MM-DD format' }
      #swagger.parameters['title'] = { in: 'query', type: 'string', required: false, description: 'Report title' }
-     #swagger.parameters['includeEmpty'] = { in: 'query', type: 'boolean', required: false, description: 'Set true to include departments with zero registrations' }
+     #swagger.parameters['includeEmpty'] = { in: 'query', type: 'boolean', required: false, description: 'Set true to include locations with zero registrations' }
      #swagger.responses[200] = { description: 'Registration reports retrieved successfully' }
      #swagger.responses[400] = { description: 'Invalid report query' }
      #swagger.responses[500] = { description: 'Registration reports failed' }

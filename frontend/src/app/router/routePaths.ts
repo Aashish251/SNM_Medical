@@ -47,6 +47,7 @@ export const ROUTE_ADMIN_MASTER_QUALIFICATION = `${ROUTE_ADMIN_MASTER_BASE}/qual
 export const ROUTE_ADMIN_MASTER_DEPARTMENT = `${ROUTE_ADMIN_MASTER_BASE}/department`;
 export const ROUTE_ADMIN_MASTER_AVAILABILITY = `${ROUTE_ADMIN_MASTER_BASE}/availability`;
 export const ROUTE_ADMIN_MASTER_SHIFT_TIME = `${ROUTE_ADMIN_MASTER_BASE}/shift-time`;
+export const ROUTE_ADMIN_MASTER_LOCATION = `${ROUTE_ADMIN_MASTER_BASE}/location`;
 
 // ── Legacy path redirects (backward compatibility) ────────────────────────────
 /** @deprecated Use ROUTE_MS_ADMIN_* — redirects handled in legacyRedirectRoutes */

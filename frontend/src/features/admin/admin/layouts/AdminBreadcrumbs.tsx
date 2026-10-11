@@ -5,7 +5,7 @@ import { cn } from "@admin/lib/utils";
 
 const LABELS: Record<string, string> = {
   dashboard: "Dashboard",
-  users: "Users",
+  users: "Add New Registration",
   "registration-report": "Registration Report",
   "daily-report": "Daily Report",
   "duty-chart": "Duty Chart",

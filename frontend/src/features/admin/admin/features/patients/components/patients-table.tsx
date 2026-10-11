@@ -28,7 +28,7 @@ import {
   DataTablePagination,
   DataTableToolbar,
 } from "@admin/components/data-table";
-import { patientGenderOptions, patientStatusOptions } from "../data/data";
+import { patientGenderOptions } from "../data/data";
 import { type Patient } from "../data/schema";
 import { patientsColumns as columns } from "./patients-columns";
 
@@ -59,7 +59,6 @@ export function PatientsTable({ data, search, navigate, isLoading }: DataTablePr
     globalFilter: { enabled: false },
     columnFilters: [
       { columnId: "patientName", searchKey: "patientName", type: "string" },
-      { columnId: "status", searchKey: "status", type: "array" },
       { columnId: "gender", searchKey: "gender", type: "array" },
     ],
   });
@@ -104,11 +103,6 @@ export function PatientsTable({ data, search, navigate, isLoading }: DataTablePr
         searchPlaceholder="Filter patients..."
         searchKey="patientName"
         filters={[
-          {
-            columnId: "status",
-            title: "Status",
-            options: patientStatusOptions.map((opt) => ({ ...opt })),
-          },
           {
             columnId: "gender",
             title: "Gender",

@@ -1,6 +1,7 @@
 import { baseApi } from "@shared/api/baseApi";
 
-// Metadata types
+// ── Metadata types
+
 export interface AvailableDate {
   date: string;
   count: number;
@@ -27,7 +28,82 @@ export interface ReportMetadataResponse {
   timestamp?: string;
 }
 
-// Registration Report API types
+// ── Report Builder Types
+
+export interface CustomField {
+  key: string;
+  label: string;
+  type: "text" | "number" | "date" | "select";
+  options?: string[]; // for select type
+  description?: string;
+}
+
+export interface ReportColumn {
+  key: string;
+  label: string;
+  type?: "metric" | "custom" | "date" | "location" | "department";
+  customFieldKey?: string; // if derived from a custom field
+  align?: "left" | "center" | "right";
+  width?: number;
+}
+
+export type ReportBuilderType = "registration" | "daily" | "master";
+
+export interface RegistrationBuilderData {
+  title: string;
+  dates: string[];
+  rows: Array<{ id: string; department: string; values: Record<string, number> }>;
+  columns?: ReportColumn[];
+  customFields?: CustomField[];
+}
+
+export interface DailyBuilderData {
+  title: string;
+  date: string;
+  rows: Array<{ id: string; department: string; values: Record<string, number> }>;
+  columns?: ReportColumn[];
+  customFields?: CustomField[];
+}
+
+export interface MasterBuilderData {
+  title: string;
+  dates: string[];
+  locations: string[];
+  values: Record<string, Record<string, { opd: number; ipd: number }>>;
+  columns?: ReportColumn[];
+  customFields?: CustomField[];
+}
+
+/** Fully flexible report builder data allowing any combination of fields */
+export interface FlexibleReportBuilderData {
+  /** Optional title of the report */
+  title?: string;
+  /** Optional array of dates for multi‑day reports */
+  dates?: string[];
+  /** Optional single date for daily reports */
+  date?: string;
+  /** Optional list of locations */
+  locations?: string[];
+  /** Optional list of departments */
+  departments?: string[];
+  /** Rows of data – can include department and/or location identifiers */
+  rows?: Array<{ id: string; department?: string; location?: string; values: Record<string, number> }>;
+  /** Column definitions for display */
+  columns?: ReportColumn[];
+  /** Custom fields defined by the user */
+  customFields?: CustomField[];
+}
+/** Alias for backward compatibility */
+export type ReportBuilderData = FlexibleReportBuilderData;
+
+export interface ReportBuilderResponse {
+  success: boolean;
+  message?: string;
+  data: ReportBuilderData;
+}
+
+// ── Registration Report API types
+
 export interface RegistrationReportQueryParams {
   dates?: string;
   date1?: string;
@@ -39,8 +115,12 @@ export interface RegistrationReportQueryParams {
 }
 
 export interface RegistrationReportRow {
-  departmentId: number;
-  department: string;
+  locationId: number;
+  location: string;
+  /** @deprecated Registration summaries are now grouped by location. */
+  departmentId?: number;
+  /** @deprecated Registration summaries are now grouped by location. */
+  department?: string;
   values: Record<string, number>;
   total: number;
 }
@@ -72,10 +152,10 @@ export interface RegistrationReportResponse {
   success: boolean;
   message: string;
   data: RegistrationReportData;
-  timestamp?: string;
 }
 
-// Daily Report API types
+// ── Daily Report API types
+
 export interface DailyReportQueryParams {
   date?: string;
   title?: string;
@@ -108,10 +188,10 @@ export interface DailyReportResponse {
   success: boolean;
   message: string;
   data: DailyReportData;
-  timestamp?: string;
 }
 
-// Master Report API types
+// ── Master Report API types
+
 export interface MasterReportQueryParams {
   dates?: string;
   date1?: string;
@@ -150,11 +230,26 @@ export interface MasterReportResponse {
   success: boolean;
   message: string;
   data: MasterReportData;
-  timestamp?: string;
 }
+
+// ── Report Builder API endpoints
 
 export const reportsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getReportBuilder: builder.query<ReportBuilderResponse, ReportBuilderType>({
+      query: (type) => `/api/reports/builder/${type}`,
+      providesTags: (_result, _error, type) => [{ type: "Reports", id: `BUILDER_${type}` }],
+    }),
+
+    saveReportBuilder: builder.mutation<ReportBuilderResponse, { type: ReportBuilderType; data: ReportBuilderData }>({
+      query: ({ type, data }) => ({
+        url: `/api/reports/builder/${type}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { type }) => [{ type: "Reports", id: `BUILDER_${type}` }],
+    }),
+
     getReportMetadata: builder.query<ReportMetadataResponse, void>({
       query: () => ({
         url: "/api/reports/metadata",
@@ -247,6 +342,8 @@ export const reportsApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetReportBuilderQuery,
+  useSaveReportBuilderMutation,
   useGetReportMetadataQuery,
   useGetRegistrationReportQuery,
   useGetDailyReportQuery,

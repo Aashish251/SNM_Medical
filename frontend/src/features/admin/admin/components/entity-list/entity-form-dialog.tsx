@@ -45,16 +45,22 @@ type EntityFormDialogProps<T extends { id: string }> = {
  * Searchable dropdown built without Popover/Portal so it works
  * reliably inside a Radix Dialog. Uses plain DOM positioning.
  */
-function SearchableSelect({
+export function SearchableSelect({
   options = [],
   value,
   placeholder,
   onChange,
+  disabled = false,
+  className,
+  id,
 }: {
   options: { label: string; value: string }[];
   value: string;
   placeholder?: string;
   onChange: (val: string) => void;
+  disabled?: boolean;
+  className?: string;
+  id?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -123,12 +129,14 @@ function SearchableSelect({
   return (
     <div ref={containerRef} className="relative" onKeyDown={handleKeyDown}>
       <Button
+        id={id}
         type="button"
         variant="outline"
         role="combobox"
         aria-expanded={open}
-        className="w-full justify-between font-normal text-left"
-        onClick={() => setOpen((prev) => !prev)}
+        disabled={disabled}
+        className={cn("w-full justify-between font-normal text-left", className)}
+        onClick={() => !disabled && setOpen((prev) => !prev)}
       >
         <span className={cn("truncate", !selectedLabel && "text-muted-foreground")}>
           {selectedLabel || placeholder || "Select..."}
@@ -245,7 +253,7 @@ export function EntityFormDialog<T extends { id: string }>({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto">
         <DialogHeader className="text-start">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

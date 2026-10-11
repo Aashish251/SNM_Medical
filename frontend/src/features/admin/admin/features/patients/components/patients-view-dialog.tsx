@@ -5,8 +5,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@admin/components/ui/dialog";
-import { renderStatusBadge } from "@admin/components/entity-list";
-import { patientStatusBadgeStyles } from "../data/data";
 import { mapApiPatientToPatient, type Patient } from "../data/schema";
 import { useGetPatientByIdQuery } from "../services/patientsApi";
 
@@ -38,10 +36,7 @@ export function PatientsViewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between pe-6">
-            <span>Patient Record</span>
-            {renderStatusBadge(patient.status, patientStatusBadgeStyles)}
-          </DialogTitle>
+          <DialogTitle>Patient Record</DialogTitle>
         </DialogHeader>
 
         {isBusy ? (

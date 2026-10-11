@@ -163,7 +163,6 @@ const doc = {
     },
     MasterDataRequest: {
       $value: 'Cardiology',
-      extraId: null,
       updatedBy: 1
     }
   }

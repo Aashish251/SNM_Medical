@@ -1,209 +1,257 @@
-const { readData, updateData, getNextArrayId } = require("./localDataStore");
+const { AppError } = require("../utils/errorHandler");
 const { promisePool } = require("../config/database");
 
 const MODULES = {
-  qualification: { extraFieldLabel: null },
-  department: { extraFieldLabel: null },
-  sewalocation: { extraFieldLabel: null },
-  shifttime: { extraFieldLabel: null },
-  availableday: { extraFieldLabel: null },
-  state: { extraFieldLabel: "countryId" },
-  city: { extraFieldLabel: "stateId" },
+  qualification: {
+    label: "Qualifications",
+    singularLabel: "Qualification",
+    table: "qualification_tbl",
+    valueColumn: "qualification_name",
+    procedure: "CALL sp_get_qualification_by_id(?)",
+    params: [0],
+    idFields: ["id", "qualification_id"],
+    valueFields: ["qualification_name", "name"],
+  },
+  department: {
+    label: "Departments",
+    singularLabel: "Department",
+    table: "department_tbl",
+    valueColumn: "department_name",
+    procedure: "CALL sp_department_master(?, ?, ?, ?, ?)",
+    params: ["GET", null, null, null, null],
+    idFields: ["id", "department_id"],
+    valueFields: ["department_name", "name"],
+  },
+  sewalocation: {
+    label: "Sewa Locations",
+    singularLabel: "Sewa Location",
+    table: "sewalocation_tbl",
+    valueColumn: "sewalocation_name",
+    procedure: "CALL sp_get_sewalocation_by_id(?)",
+    params: [0],
+    idFields: ["id", "sewalocation_id"],
+    valueFields: ["sewalocation_name", "name", "location_name"],
+  },
+  shifttime: {
+    label: "Shift Times",
+    singularLabel: "Shift Time",
+    table: "shifttime_tbl",
+    valueColumn: "shifttime",
+    procedure: "CALL sp_get_shifttime_by_id(?)",
+    params: [0],
+    idFields: ["id", "shifttime_id"],
+    valueFields: ["shifttime", "shifttime_name", "name"],
+  },
+  availableday: {
+    label: "Availability",
+    singularLabel: "Availability",
+    table: "available_day_tbl",
+    valueColumn: "available_day",
+    procedure: "CALL sp_get_available_day_by_id(?)",
+    params: [0],
+    idFields: ["id", "available_day_id"],
+    valueFields: ["available_day", "available_day_name", "name"],
+  },
+  state: {
+    label: "States",
+    singularLabel: "State",
+    table: "state_tbl",
+    valueColumn: "state_name",
+    procedure: "CALL sp_get_state_details(?)",
+    params: [null],
+    idFields: ["id", "state_id"],
+    valueFields: ["state_name", "name"],
+  },
+  city: {
+    label: "Cities",
+    singularLabel: "City",
+    table: "city_tbl",
+    valueColumn: "city_name",
+    procedure: "CALL sp_get_city_details(?)",
+    params: [null],
+    idFields: ["id", "city_id"],
+    valueFields: ["city_name", "name"],
+  },
 };
 
-function validateModule(moduleName) {
-  if (!MODULES[moduleName]) {
-    throw new Error(`Unsupported master module: ${moduleName}`);
+function getModule(moduleName) {
+  const module = MODULES[moduleName];
+  if (!module) {
+    throw new AppError(`Unsupported master module: ${moduleName}`, 400);
   }
+  return module;
 }
 
-function normalizePayload(moduleName, payload = {}) {
-  const value = (payload.value || payload.name || "").trim();
-  const extraId = payload.extra_id ?? payload.extraId ?? payload.countryId ?? payload.stateId ?? null;
-
-  if (!value) {
-    throw new Error("Value is required");
+function getField(row, fields) {
+  for (const field of fields) {
+    if (row[field] !== undefined && row[field] !== null) {
+      return row[field];
+    }
   }
-
-  if ((moduleName === "state" || moduleName === "city") && (extraId === null || extraId === "")) {
-    throw new Error(`${MODULES[moduleName].extraFieldLabel} is required`);
-  }
-
-  return {
-    value,
-    extraId: extraId === "" ? null : extraId,
-    updatedBy: payload.updated_by || payload.updatedBy || 1,
-  };
+  return null;
 }
 
-exports.listModules = async () => {
-  const data = await readData();
-
-  return Object.keys(MODULES).map((key) => ({
-    module: key,
-    extraFieldLabel: MODULES[key].extraFieldLabel,
-    count: (data.masterData[key] || []).filter((item) => !item.isDeleted).length,
-  }));
-};
-
-exports.listItems = async (moduleName, search = "") => {
-  validateModule(moduleName);
-
-  if (moduleName === "department") {
-    const [rows] = await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
-      "GET",
-      null,
-      null,
-      null,
-      search ? search.trim() : null,
-    ]);
-    const items = rows[0] || [];
-    return items.map((row) => ({
-      id: row.id,
-      value: row.department_name,
-      department_name: row.department_name,
-      createdAt: row.created_datetime,
-      updatedAt: row.updated_datetime,
-      isDeleted: false,
+async function getRows(moduleName, search = "") {
+  const module = getModule(moduleName);
+  if (moduleName === "city") {
+    const [rows] = await promisePool.execute(
+      `SELECT id, city_name, state_id
+       FROM city_tbl
+       WHERE is_deleted = 0
+         AND (? = '' OR city_name LIKE CONCAT('%', ?, '%'))
+       ORDER BY city_name`,
+      [search.trim(), search.trim()]
+    );
+    return rows.map((row) => ({
+      ...row,
+      value: row.city_name,
     }));
   }
 
-  const data = await readData();
+  const params =
+    moduleName === "department" && search.trim()
+      ? ["GET", null, null, null, search.trim()]
+      : module.params;
+  const [resultSets] = await promisePool.execute(module.procedure, params);
+  const rows = resultSets[0] || [];
   const normalizedSearch = search.trim().toLowerCase();
 
-  return (data.masterData[moduleName] || [])
-    .filter((item) => !item.isDeleted)
-    .filter((item) => !normalizedSearch || item.value.toLowerCase().includes(normalizedSearch))
-    .sort((a, b) => a.value.localeCompare(b.value));
-};
+  return rows
+    .map((row) => ({
+      ...row,
+      id: getField(row, module.idFields),
+      value: getField(row, module.valueFields),
+    }))
+    .filter((row) => row.id !== null && row.value !== null)
+    .filter(
+      (row) =>
+        !normalizedSearch ||
+        String(row.value).toLowerCase().includes(normalizedSearch)
+    );
+}
 
-exports.createItem = async (moduleName, payload) => {
-  validateModule(moduleName);
-  const item = normalizePayload(moduleName, payload);
+exports.listModules = async () =>
+  Promise.all(
+    Object.entries(MODULES).map(async ([module, config]) => ({
+      module,
+      label: config.label,
+      count: (await getRows(module)).length,
+    }))
+  );
 
-  if (moduleName === "department") {
-    await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
-      "INSERT",
-      null,
-      item.value,
-      item.updatedBy || 1,
-      null,
-    ]);
-    return {
-      value: item.value,
-      updatedBy: item.updatedBy,
-    };
+exports.listItems = async (moduleName, search = "") =>
+  getRows(moduleName, search);
+
+exports.createItem = async (moduleName, payload, userId) => {
+  const module = getModule(moduleName);
+  const value = String(payload.value || payload.name || "").trim();
+  if (!value || value.length > 100) {
+    throw new AppError("Value is required and must be 100 characters or fewer", 400);
   }
 
-  const timestamp = new Date().toISOString();
-  let createdRecord;
+  const updatedBy = Number(userId);
+  if (!Number.isInteger(updatedBy) || updatedBy < 1) {
+    throw new AppError("A valid signed-in user is required", 401);
+  }
 
-  await updateData(async (data) => {
-    const items = data.masterData[moduleName];
-    const duplicate = items.find(
-      (existing) => !existing.isDeleted && existing.value.toLowerCase() === item.value.toLowerCase()
-    );
+  const columns = [module.valueColumn];
+  const values = [value];
+  const placeholders = ["?"];
+  const extraConditions = [];
 
-    if (duplicate) {
-      throw new Error(`${moduleName} already exists`);
+  if (moduleName === "state") {
+    const countryId = Number(payload.countryId);
+    if (!Number.isInteger(countryId) || countryId < 1) {
+      throw new AppError("A valid country ID is required for a state", 400);
     }
+    columns.push("country_id");
+    values.push(countryId);
+    placeholders.push("?");
+    extraConditions.push("country_id = ?");
+  }
 
-    createdRecord = {
-      id: getNextArrayId(items),
-      value: item.value,
-      extraId: item.extraId,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      updatedBy: item.updatedBy,
-      isDeleted: false,
-    };
+  if (moduleName === "city") {
+    const stateId = Number(payload.stateId);
+    if (!Number.isInteger(stateId) || stateId < 1) {
+      throw new AppError("A valid state is required for a city", 400);
+    }
+    const [states] = await promisePool.execute(
+      "SELECT id FROM state_tbl WHERE id = ? AND is_deleted = 0 LIMIT 1",
+      [stateId]
+    );
+    if (!states.length) {
+      throw new AppError("Selected state was not found", 400);
+    }
+    columns.push("state_id");
+    values.push(stateId);
+    placeholders.push("?");
+    extraConditions.push("state_id = ?");
+  }
 
-    items.push(createdRecord);
-  });
+  const duplicateSql = `SELECT id FROM ${module.table}
+    WHERE ${module.valueColumn} = ? AND is_deleted = 0
+    ${extraConditions.length ? `AND ${extraConditions.join(" AND ")}` : ""}
+    LIMIT 1`;
+  const [duplicates] = await promisePool.execute(duplicateSql, [
+    value,
+    ...values.slice(1),
+  ]);
+  if (duplicates.length) {
+    throw new AppError(`${module.singularLabel} already exists`, 409);
+  }
 
-  return createdRecord;
+  if (["qualification", "department", "sewalocation", "shifttime", "availableday"].includes(moduleName)) {
+    columns.push("created_datetime", "updated_datetime", "updated_by");
+    values.push(updatedBy);
+    placeholders.push("NOW()", "NOW()", "?");
+  }
+
+  columns.push("is_deleted");
+  values.push(0);
+  placeholders.push("?");
+
+  const [result] = await promisePool.execute(
+    `INSERT INTO ${module.table} (${columns.join(", ")})
+     VALUES (${placeholders.join(", ")})`,
+    values
+  );
+
+  return {
+    id: result.insertId,
+    value,
+    ...(moduleName === "city" ? { stateId: Number(payload.stateId) } : {}),
+    ...(moduleName === "state" ? { countryId: Number(payload.countryId) } : {}),
+  };
 };
 
 exports.updateItem = async (moduleName, id, payload) => {
-  validateModule(moduleName);
-  const updates = normalizePayload(moduleName, payload);
-
-  if (moduleName === "department") {
-    await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
-      "UPDATE",
-      Number(id),
-      updates.value,
-      updates.updatedBy || 1,
-      null,
-    ]);
-    return {
-      id: Number(id),
-      value: updates.value,
-      updatedBy: updates.updatedBy,
-    };
+  if (moduleName !== "department") {
+    throw new AppError("Update is not supported for this master module", 405);
   }
-
-  const timestamp = new Date().toISOString();
-  let updatedRecord = null;
-
-  await updateData(async (data) => {
-    const items = data.masterData[moduleName];
-    const item = items.find((entry) => entry.id === Number(id) && !entry.isDeleted);
-
-    if (!item) {
-      throw new Error(`${moduleName} record not found`);
-    }
-
-    const duplicate = items.find(
-      (entry) =>
-        entry.id !== Number(id) &&
-        !entry.isDeleted &&
-        entry.value.toLowerCase() === updates.value.toLowerCase()
-    );
-
-    if (duplicate) {
-      throw new Error(`${moduleName} already exists`);
-    }
-
-    item.value = updates.value;
-    item.extraId = updates.extraId;
-    item.updatedBy = updates.updatedBy;
-    item.updatedAt = timestamp;
-    updatedRecord = { ...item };
-  });
-
-  return updatedRecord;
+  const value = String(payload.value || payload.name || "").trim();
+  if (!value || value.length > 100) {
+    throw new AppError("Value is required and must be 100 characters or fewer", 400);
+  }
+  await promisePool.execute(MODULES.department.procedure, [
+    "UPDATE",
+    Number(id),
+    value,
+    Number(payload.updatedBy) || 1,
+    null,
+  ]);
+  return { id: Number(id), value };
 };
 
 exports.deleteItem = async (moduleName, id, deletedBy = 1) => {
-  validateModule(moduleName);
-
-  if (moduleName === "department") {
-    await promisePool.execute("CALL sp_department_master(?, ?, ?, ?, ?)", [
-      "DELETE",
-      Number(id),
-      null,
-      Number(deletedBy) || 1,
-      null,
-    ]);
-    return { id: Number(id), isDeleted: true };
+  if (moduleName !== "department") {
+    throw new AppError("Delete is not supported for this master module", 405);
   }
-
-  let deletedRecord = null;
-
-  await updateData(async (data) => {
-    const items = data.masterData[moduleName];
-    const item = items.find((entry) => entry.id === Number(id) && !entry.isDeleted);
-
-    if (!item) {
-      throw new Error(`${moduleName} record not found`);
-    }
-
-    item.isDeleted = true;
-    item.updatedBy = deletedBy;
-    item.updatedAt = new Date().toISOString();
-    deletedRecord = { ...item };
-  });
-
-  return deletedRecord;
+  await promisePool.execute(MODULES.department.procedure, [
+    "DELETE",
+    Number(id),
+    null,
+    Number(deletedBy) || 1,
+    null,
+  ]);
+  return { id: Number(id), isDeleted: true };
 };

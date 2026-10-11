@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { type Patient, type PatientGender, type PatientStatus } from "./schema";
+import { type Patient, type PatientGender } from "./schema";
 
 faker.seed(54321);
 
@@ -18,7 +18,6 @@ const commonDiseases = [
   "Dental Pain",
 ];
 
-const statuses: PatientStatus[] = ["active", "outpatient", "discharged", "follow-up"];
 const genders: PatientGender[] = ["Male", "Female", "Other"];
 
 const currentYear = new Date().getFullYear();
@@ -48,7 +47,6 @@ export const patients: Patient[] = Array.from({ length: 150 }, (_, index) => {
     gender,
     disease: faker.helpers.arrayElement(commonDiseases),
     registrationDate,
-    status: faker.helpers.arrayElement(statuses),
     createdAt: regDate,
     updatedAt: faker.date.recent(),
   };

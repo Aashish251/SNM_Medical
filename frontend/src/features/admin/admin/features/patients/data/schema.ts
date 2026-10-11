@@ -1,7 +1,5 @@
 import type { PatientApiItem } from "../services/patientsApi";
 
-export type PatientStatus = "active" | "outpatient" | "discharged" | "follow-up";
-
 export type PatientGender = "Male" | "Female" | "Other";
 
 export type Patient = {
@@ -16,7 +14,6 @@ export type Patient = {
   gender: PatientGender;
   disease: string;
   registrationDate: string;
-  status: PatientStatus;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -43,9 +40,7 @@ export function mapApiPatientToPatient(item: PatientApiItem): Patient {
     gender: genderMap[item.gender] || (item.gender as PatientGender) || "Male",
     disease: item.disease || "",
     registrationDate: item.date || (item.createdAt ? item.createdAt.split("T")[0] : ""),
-    status: (item.status as PatientStatus) || "active",
     createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
   };
 }
-

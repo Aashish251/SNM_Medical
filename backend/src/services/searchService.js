@@ -165,8 +165,15 @@ exports.masterSearch = async ({
 
     //  Optional: apply frontend sorting (if MySQL doesn’t do it)
     formattedResults.sort((a, b) => {
-      const fieldA = (a?.[sortBy] ?? '').toString().toLowerCase();
-      const fieldB = (b?.[sortBy] ?? '').toString().toLowerCase();
+      const rawA = a?.[sortBy];
+      const rawB = b?.[sortBy];
+      const numA = Number(rawA);
+      const numB = Number(rawB);
+      if (!isNaN(numA) && !isNaN(numB) && rawA !== '' && rawB !== '' && rawA !== null && rawB !== null) {
+        return sortOrder === 'ASC' ? numA - numB : numB - numA;
+      }
+      const fieldA = (rawA ?? '').toString().toLowerCase();
+      const fieldB = (rawB ?? '').toString().toLowerCase();
       if (!fieldA && !fieldB) return 0;
       if (!fieldA) return 1;
       if (!fieldB) return -1;

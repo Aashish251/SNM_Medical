@@ -22,7 +22,7 @@ import {
 import { Input } from "@admin/components/ui/input";
 import { SelectDropdown } from "@admin/components/select-dropdown";
 import { normalizeApiError } from "@shared/api/errors";
-import { patientGenderOptions, patientStatusOptions } from "../data/data";
+import { patientGenderOptions } from "../data/data";
 import { mapApiPatientToPatient, type Patient } from "../data/schema";
 import {
   useGetPatientByIdQuery,
@@ -39,7 +39,6 @@ type PatientForm = {
   age: number | string;
   gender: string;
   disease: string;
-  status: string;
 };
 
 type PatientActionDialogProps = {
@@ -81,7 +80,6 @@ export function PatientsActionDialog({
       age: "",
       gender: "Male",
       disease: "",
-      status: "active",
     },
   });
 
@@ -100,7 +98,6 @@ export function PatientsActionDialog({
             age: mapped.age,
             gender: mapped.gender,
             disease: mapped.disease,
-            status: mapped.status,
           });
         } else if (currentRow) {
           form.reset({
@@ -112,7 +109,6 @@ export function PatientsActionDialog({
             age: currentRow.age,
             gender: currentRow.gender,
             disease: currentRow.disease,
-            status: currentRow.status,
           });
         }
       } else {
@@ -125,7 +121,6 @@ export function PatientsActionDialog({
           age: "",
           gender: "Male",
           disease: "",
-          status: "active",
         });
       }
     }
@@ -156,7 +151,6 @@ export function PatientsActionDialog({
           age: Number(values.age),
           gender: values.gender,
           disease: values.disease,
-          status: values.status,
         }).unwrap();
         toast.success(res.message || "Patient updated successfully");
       } else {
@@ -171,7 +165,6 @@ export function PatientsActionDialog({
           age: Number(values.age),
           gender: values.gender,
           disease: values.disease,
-          status: values.status,
         }).unwrap();
         toast.success(res.message || "Patient created successfully");
       }
@@ -216,7 +209,9 @@ export function PatientsActionDialog({
             <Form {...form}>
               <form
                 id="patient-form"
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={(event) => {
+                  void form.handleSubmit(onSubmit)(event);
+                }}
                 className="space-y-4 px-0.5"
               >
                 <FormField
@@ -374,28 +369,6 @@ export function PatientsActionDialog({
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage className="col-span-4 col-start-3" />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  rules={{ required: "Status is required." }}
-                  render={({ field }) => (
-                    <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
-                      <FormLabel className="col-span-2 text-end">Status</FormLabel>
-                      <SelectDropdown
-                        defaultValue={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Select status"
-                        className="col-span-4"
-                        disabled={isSubmitting}
-                        items={patientStatusOptions.map(({ label, value }) => ({
-                          label,
-                          value,
-                        }))}
-                      />
                       <FormMessage className="col-span-4 col-start-3" />
                     </FormItem>
                   )}

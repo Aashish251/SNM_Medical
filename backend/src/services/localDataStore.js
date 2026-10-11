@@ -9,15 +9,7 @@ const DEFAULT_DATA = Object.freeze({
   eligibilityChecks: [],
   patientRegistrations: [],
   dutyCharts: [],
-  masterData: {
-    qualification: [],
-    department: [],
-    sewalocation: [],
-    shifttime: [],
-    availableday: [],
-    state: [],
-    city: [],
-  },
+  reportBuilders: {},
 });
 
 let writeQueue = Promise.resolve();
@@ -32,10 +24,6 @@ function mergeWithDefaults(data = {}) {
   return {
     ...merged,
     ...data,
-    masterData: {
-      ...merged.masterData,
-      ...(data.masterData || {}),
-    },
   };
 }
 

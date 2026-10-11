@@ -11,6 +11,7 @@ import {
   ROUTE_ADMIN_MASTER_REPORT,
   ROUTE_ADMIN_MASTER_SEARCH,
   ROUTE_ADMIN_MASTER_SHIFT_TIME,
+  ROUTE_ADMIN_MASTER_LOCATION,
   ROUTE_ADMIN_MASTER_STATE,
   ROUTE_ADMIN_PROFILE,
   ROUTE_ADMIN_REGISTRATION_REPORT,
@@ -64,7 +65,7 @@ export const routeMeta: RouteMeta[] = [
   { path: ROUTE_MS_ADMIN_MASTER_REPORT, title: "Master Report", access: "protected", requiredRoles: ["ms"], layout: "dashboard" },
   // Administrator Portal (/admin/*)
   { path: ROUTE_ADMIN_DASHBOARD, title: "Administrator Dashboard", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
-  { path: ROUTE_ADMIN_USERS, title: "Users", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
+  { path: ROUTE_ADMIN_USERS, title: "Add New Registration", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
   { path: ROUTE_ADMIN_DUTY_CHART, title: "Duty Chart", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
   { path: ROUTE_ADMIN_MASTER_SEARCH, title: "Master Search", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
   { path: ROUTE_ADMIN_DAILY_REPORT, title: "Daily Report", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
@@ -79,6 +80,7 @@ export const routeMeta: RouteMeta[] = [
   { path: ROUTE_ADMIN_MASTER_DEPARTMENT, title: "Master — Department", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
   { path: ROUTE_ADMIN_MASTER_AVAILABILITY, title: "Master — Availability", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
   { path: ROUTE_ADMIN_MASTER_SHIFT_TIME, title: "Master — Shift Time", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
+  { path: ROUTE_ADMIN_MASTER_LOCATION, title: "Master — Location", access: "protected", requiredRoles: ["admin"], layout: "dashboard" },
 ];
 
 export function getRouteMeta(path: string) {

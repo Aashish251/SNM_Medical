@@ -9,6 +9,7 @@ import {
   ROUTE_ADMIN_MASTER_DEPARTMENT,
   ROUTE_ADMIN_MASTER_QUALIFICATION,
   ROUTE_ADMIN_MASTER_SHIFT_TIME,
+  ROUTE_ADMIN_MASTER_LOCATION,
   ROUTE_ADMIN_MASTER_STATE,
   ROUTE_ADMIN_REGISTRATION_REPORT,
   ROUTE_ADMIN_USERS,
@@ -20,7 +21,7 @@ import {
 import { type SidebarData } from "../types";
 import {
   LayoutDashboard,
-  Users,
+  UserPlus,
   AudioWaveform,
   Command,
   GalleryVerticalEnd,
@@ -30,6 +31,7 @@ import {
   Search,
   FileSpreadsheet,
   MapPin,
+  MapPinned,
   Map,
   GraduationCap,
   Building2,
@@ -76,9 +78,9 @@ export const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: "Users",
+          title: "Add New Registration",
           url: ROUTE_ADMIN_USERS,
-          icon: Users,
+          icon: UserPlus,
         },
         {
           title: "Duty Chart",
@@ -91,7 +93,7 @@ export const sidebarData: SidebarData = {
           icon: Search,
         },
         {
-          title: "Master",
+          title: "Master Tables",
           icon: Database,
           items: [
             {
@@ -124,6 +126,11 @@ export const sidebarData: SidebarData = {
               url: ROUTE_ADMIN_MASTER_SHIFT_TIME,
               icon: Clock,
             },
+            {
+              title: "Seva Location",
+              url: ROUTE_ADMIN_MASTER_LOCATION,
+              icon: MapPinned,
+            },
           ],
         },
         {
@@ -131,17 +138,17 @@ export const sidebarData: SidebarData = {
           icon: FileSpreadsheet,
           items: [
             {
-              title: "Registration Report",
+              title: "Patient Registration Report",
               url: ROUTE_ADMIN_REGISTRATION_REPORT,
               icon: ClipboardList,
             },
             {
-              title: "Daily Report",
+              title: "Patient Daily Report",
               url: ROUTE_ADMIN_DAILY_REPORT,
               icon: CalendarDays,
             },
             {
-              title: "Master Report",
+              title: "Patient Master Report",
               url: ROUTE_ADMIN_MASTER_REPORT,
               icon: FileSpreadsheet,
             },

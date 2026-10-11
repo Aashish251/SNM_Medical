@@ -53,6 +53,7 @@ export const baseApi = createApi({
     "DutyChart",
     "Login",
     "MasterSearch",
+    "Masters",
     "Patients",
     "RegistrationDropdown",
     "Reports",

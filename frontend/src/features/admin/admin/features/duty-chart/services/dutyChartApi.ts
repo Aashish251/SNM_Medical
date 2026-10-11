@@ -53,6 +53,8 @@ export interface DutyStaffOption {
   label: string;
   value: string;
   contact?: string;
+  departmentId?: number | null;
+  department?: string;
 }
 
 export interface DutyDepartmentsResponse {
@@ -68,7 +70,16 @@ export interface DutyStaffResponse {
   success?: boolean;
   message?: string;
   data?: {
-    items?: Array<{ id?: number; label?: string; value?: string; contact?: string; full_name?: string }>;
+    items?: Array<{
+      id?: number;
+      label?: string;
+      value?: string;
+      contact?: string;
+      full_name?: string;
+      departmentId?: number | null;
+      department_id?: number | null;
+      department?: string;
+    }>;
     count?: number;
   };
 }
@@ -102,10 +113,11 @@ export const dutyChartApi = baseApi.injectEndpoints({
       providesTags: [{ type: "DutyChart", id: "DEPARTMENTS" }],
     }),
 
-    getDutyStaff: builder.query<DutyStaffOption[], void>({
-      query: () => ({
+    getDutyStaff: builder.query<DutyStaffOption[], string | void>({
+      query: (department) => ({
         url: "/api/dutychart/staff",
         method: "GET",
+        params: department ? { department } : undefined,
       }),
       transformResponse: (response: DutyStaffResponse) => {
         const rawItems = response?.data?.items || [];
@@ -114,6 +126,8 @@ export const dutyChartApi = baseApi.injectEndpoints({
           label: item.label || item.full_name || item.value || "",
           value: item.label || item.full_name || item.value || "",
           contact: item.contact || "",
+          departmentId: item.departmentId ?? item.department_id ?? null,
+          department: item.department || "",
         }));
       },
       providesTags: [{ type: "DutyChart", id: "STAFF" }],
