@@ -132,7 +132,7 @@ module.exports = (err, req, res, next) => {
     });
   }
 
-  if (/required|invalid|valid|unsupported|file upload failed|must be|too low|minimum|maximum/i.test(message)) {
+  if (/required|invalid|valid|unsupported|file upload failed|must be|too low|minimum|maximum|password|weak|mismatch|match/i.test(message)) {
     logger.warn(`Bad Request Error: ${message}`, errorMeta);
     return res.status(400).json({
       success: false,

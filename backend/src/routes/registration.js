@@ -59,7 +59,7 @@ router.post('/register',
      #swagger.parameters['firstName'] = { in: 'formData', type: 'string', required: true, description: 'First name', example: 'John' }
      #swagger.parameters['lastName'] = { in: 'formData', type: 'string', required: true, description: 'Last name', example: 'Doe' }
      #swagger.parameters['email'] = { in: 'formData', type: 'string', required: true, description: 'Email address', example: 'john.doe@example.com' }
-     #swagger.parameters['password'] = { in: 'formData', type: 'string', required: true, description: 'Password (min 8 chars)', example: 'Password123!' }
+     #swagger.parameters['password'] = { in: 'formData', type: 'string', required: true, description: 'Password (min 6 chars)', example: 'Pass123' }
      #swagger.parameters['mobileNumber'] = { in: 'formData', type: 'string', required: true, description: '10-digit mobile number', example: '9876543210' }
      #swagger.parameters['role'] = { in: 'formData', type: 'string', required: true, enum: ['user', 'admin', 'medical_staff'], description: 'User role', example: 'medical_staff' }
      #swagger.parameters['gender'] = { in: 'formData', type: 'string', enum: ['Male', 'Female', 'Other'], description: 'Gender' }
