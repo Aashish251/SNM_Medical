@@ -58,20 +58,23 @@ exports.registerUser = async (req, res, next) => {
       });
     }
 
-    // Upload files to local storage if present
+    // Upload files in parallel if present
     let profileImagePath = null;
     let certificatePath = null;
 
     try {
-      if (files?.profilePic?.[0]) {
-        profileImagePath = await uploadFileToLocal(files.profilePic[0], 'profile');
-        logger.info("Profile image uploaded", { path: profileImagePath });
-      }
-
-      if (files?.certificate?.[0]) {
-        certificatePath = await uploadFileToLocal(files.certificate[0], 'certificates');
-        logger.info("Certificate uploaded", { path: certificatePath });
-      }
+      const [profileResult, certificateResult] = await Promise.all([
+        files?.profilePic?.[0]
+          ? uploadFileToLocal(files.profilePic[0], 'profile')
+          : Promise.resolve(null),
+        files?.certificate?.[0]
+          ? uploadFileToLocal(files.certificate[0], 'certificates')
+          : Promise.resolve(null),
+      ]);
+      profileImagePath = profileResult;
+      certificatePath = certificateResult;
+      if (profileImagePath) logger.info("Profile image uploaded", { path: profileImagePath });
+      if (certificatePath) logger.info("Certificate uploaded", { path: certificatePath });
     } catch (uploadError) {
       logger.error("File upload failed", { error: uploadError.message });
       return res.status(400).json({

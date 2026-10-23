@@ -53,69 +53,76 @@ exports.checkEmailExists = async (email) => {
 };
 
 exports.createUser = async (data = {}, filePaths = {}) => {
-  const connection = await promisePool.getConnection();
+  const {
+    fullName,
+    email,
+    password,
+    confirmPassword,
+    mobileNo,
+    dateOfBirth,
+    gender,
+    address = "",
+    stateId,
+    cityId,
+    departmentId,
+    qualificationId,
+    availableDayId,
+    shiftTimeId,
+    isPresent = 0,
+    passEntry = 0,
+    sewaLocationId = 0,
+    experience = 0,
+    lastSewa = "",
+    recommendedBy = "",
+    samagamHeldIn = "",
+    favoriteFood = "",
+    childhoodNickname = "",
+    motherMaidenName = "",
+    hobbies = "",
+    userType = "ms",
+    title = "Mr",
+    isAaproved = 0
+  } = data;
+
+  const cleanEmail = sanitizeInput(email?.toLowerCase());
+  const cleanMobile = sanitizeInput(mobileNo);
+  const cleanName = sanitizeInput(fullName);
+
+  /* --------------------------------------------------------
+     1️⃣ Validation (Fail-fast before opening DB connection)
+  -------------------------------------------------------- */
+  if (!cleanName || !cleanEmail || !password || !confirmPassword || !cleanMobile || !dateOfBirth) {
+    throw new Error("Required fields are missing");
+  }
+
+  if (!validators.email(cleanEmail)) throw new Error("Invalid email address");
+  if (!validators.mobile(cleanMobile)) throw new Error("Invalid mobile number");
+  if (!validators.password(password)) throw new Error("Password must be at least 6 characters");
+  if (password !== confirmPassword) throw new Error("Passwords do not match");
+
+  let connection = null;
 
   try {
-    const {
-      fullName,
-      email,
-      password,
-      confirmPassword,
-      mobileNo,
-      dateOfBirth,
-      gender,
-      address = "",
-      stateId,
-      cityId,
-      departmentId,
-      qualificationId,
-      availableDayId,
-      shiftTimeId,
-      isPresent = 0,
-      passEntry = 0,
-      sewaLocationId = 0,
-      experience = 0,
-      lastSewa = "",
-      recommendedBy = "",
-      samagamHeldIn = "",
-      favoriteFood = "",
-      childhoodNickname = "",
-      motherMaidenName = "",
-      hobbies = "",
-      userType = "ms",
-      title = "Mr",
-      isAaproved = 0
-    } = data;
-
-    const cleanEmail = sanitizeInput(email?.toLowerCase());
-    const cleanMobile = sanitizeInput(mobileNo);
-    const cleanName = sanitizeInput(fullName);
+    connection = await promisePool.getConnection();
 
     /* --------------------------------------------------------
-       2️⃣ Validation
+       2️⃣ Duplicate Check (Single round-trip O(1) query)
     -------------------------------------------------------- */
-    if (!cleanName || !cleanEmail || !password || !confirmPassword || !cleanMobile || !dateOfBirth)
-      throw new Error("Required fields are missing");
-
-    if (!validators.email(cleanEmail)) throw new Error("Invalid email");
-    if (!validators.mobile(cleanMobile)) throw new Error("Invalid mobile number");
-    if (!validators.password(password)) throw new Error("Weak password");
-    if (password !== confirmPassword) throw new Error("Passwords do not match");
-
-    /* --------------------------------------------------------
-       3️⃣ Duplicate Check (O(1) with indexes)
-    -------------------------------------------------------- */
-    const [[emailExists]] = await connection.execute(
-      "SELECT 1 FROM registration_tbl WHERE email = ? AND is_deleted = 0 LIMIT 1",
-      [cleanEmail]
+    const [existingUsers] = await connection.execute(
+      "SELECT email, mobile_no FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND is_deleted = 0 LIMIT 2",
+      [cleanEmail, cleanMobile]
     );
-    if (emailExists) throw new Error("Email already registered");
 
-    const [[mobileExists]] = await connection.execute(
-      "SELECT 1 FROM registration_tbl WHERE mobile_no = ? AND is_deleted = 0 LIMIT 1",
-      [cleanMobile]
-    );
-    if (mobileExists) throw new Error("Mobile number already registered");
+    if (existingUsers && existingUsers.length > 0) {
+      for (const user of existingUsers) {
+        if (user.email && user.email.toLowerCase() === cleanEmail) {
+          throw new Error("Email already registered");
+        }
+        if (user.mobile_no && user.mobile_no === cleanMobile) {
+          throw new Error("Mobile number already registered");
+        }
+      }
+    }
 
     /* --------------------------------------------------------
        4️⃣ Normalize Gender (Dynamic)
@@ -199,6 +206,6 @@ exports.createUser = async (data = {}, filePaths = {}) => {
     logger.error("Registration Error", { error: error.message, stack: error.stack });
     throw error;
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 };
