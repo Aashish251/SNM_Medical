@@ -88,17 +88,20 @@ exports.createUser = async (data = {}, filePaths = {}) => {
   const cleanMobile = sanitizeInput(mobileNo);
   const cleanName = sanitizeInput(fullName);
 
+  const strPassword = String(password ?? "").trim();
+  const strConfirmPassword = String(confirmPassword ?? "").trim();
+
   /* --------------------------------------------------------
      1️⃣ Validation (Fail-fast before opening DB connection)
   -------------------------------------------------------- */
-  if (!cleanName || !cleanEmail || !password || !confirmPassword || !cleanMobile || !dateOfBirth) {
+  if (!cleanName || !cleanEmail || !strPassword || !strConfirmPassword || !cleanMobile || !dateOfBirth) {
     throw new Error("Required fields are missing");
   }
 
   if (!validators.email(cleanEmail)) throw new Error("Invalid email address");
   if (!validators.mobile(cleanMobile)) throw new Error("Invalid mobile number");
-  if (!validators.password(password)) throw new Error("Password must be at least 6 characters");
-  if (password !== confirmPassword) throw new Error("Passwords do not match");
+  if (!validators.password(strPassword)) throw new Error("Password must be at least 6 characters");
+  if (strPassword !== strConfirmPassword) throw new Error("Passwords do not match");
 
   let connection = null;
 
@@ -147,7 +150,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
     /* --------------------------------------------------------
        Hash Password + Login ID 
     -------------------------------------------------------- */
-    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS); // hash password securely with bcrypt 
+    const hashedPassword = await bcrypt.hash(strPassword, BCRYPT_ROUNDS); // hash password securely with bcrypt 
     const loginId = `${userType}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const paramArr = [
       "insert",

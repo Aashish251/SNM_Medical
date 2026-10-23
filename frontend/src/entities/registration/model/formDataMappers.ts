@@ -12,7 +12,7 @@ export function createRegistrationFormData(
 ) {
   return createProfileFormData(data, {
     includeCredentials: true,
-    includeRemark: options?.includeRemark ?? Boolean(data.remark),
+    includeRemark: options?.includeRemark ?? false,
   });
 }
 
