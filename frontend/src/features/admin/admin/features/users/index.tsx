@@ -60,55 +60,13 @@ export function Users() {
     setCurrentStep,
     nextStep,
     prevStep,
+    resetStep,
     dropdownOption,
     dropdownLoading,
     cities,
     citiesLoading,
     form,
   } = useRegistrationForm();
-
-  // Field definitions for resetting individual steps
-  const step1Fields: (keyof FormValues)[] = [
-    "title",
-    "fullName",
-    "mobileNo",
-    "gender",
-    "email",
-    "dateOfBirth",
-    "age",
-    "stateId",
-    "cityId",
-    "profilePic",
-    "address",
-  ];
-
-  const step2Fields: (keyof FormValues)[] = [
-    "qualificationId",
-    "departmentId",
-    "availableDayId",
-    "shiftTimeId",
-    "experience",
-    "samagamHeldIn",
-    "lastSewa",
-    "recommendedBy",
-    "certificate",
-  ];
-
-  const step3Fields: (keyof FormValues)[] = [
-    "password",
-    "confirmPassword",
-    "favoriteFood",
-    "childhoodNickname",
-    "motherMaidenName",
-    "hobbies",
-    "remark",
-  ];
-
-  const resetFields = (fields: (keyof FormValues)[]) => {
-    fields.forEach((field) => {
-      form.resetField(field);
-    });
-  };
 
   const handleFullReset = () => {
     form.reset();
@@ -306,7 +264,7 @@ export function Users() {
                     cities={cities}
                     citiesLoading={citiesLoading}
                     nextStep={nextStep}
-                    reset={() => resetFields(step1Fields)}
+                    reset={() => resetStep(1)}
                   />
                 )}
 
@@ -316,7 +274,7 @@ export function Users() {
                     dropdownOption={dropdownOption}
                     nextStep={nextStep}
                     prevStep={prevStep}
-                    reset={() => resetFields(step2Fields)}
+                    reset={() => resetStep(2)}
                   />
                 )}
 
@@ -327,7 +285,7 @@ export function Users() {
                       prevStep={prevStep}
                       disabled={disabled}
                       setDisabled={setDisabled}
-                      reset={() => resetFields(step3Fields)}
+                      reset={() => resetStep(3)}
                     />
                   </div>
                 )}

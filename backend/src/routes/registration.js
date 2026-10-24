@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
 const registrationController = require('../controllers/registration');
-const { uploadFileToLocal } = require('../utils/filePathHelper');
 
 router.get('/dropdown-data',
   /* #swagger.tags = ['Registration']
@@ -51,6 +50,8 @@ router.post('/check-email',
   registrationController.checkEmail
 );
 
+router.post('/check-availability', registrationController.checkAvailability);
+
 router.post('/register',
   /* #swagger.tags = ['Registration']
      #swagger.summary = 'Register new user'
@@ -93,25 +94,8 @@ router.post('/upload-profile',
      #swagger.responses[200] = { description: 'Profile image uploaded successfully' }
      #swagger.responses[400] = { description: 'No profile image uploaded' }
   */
-  upload.single('profileImage'), async (req, res, next) => {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No profile image uploaded',
-      });
-    }
-
-    try {
-      const filePath = await uploadFileToLocal(req.file, 'profile');
-      res.json({
-        success: true,
-        message: 'Profile image uploaded successfully',
-        filePath,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  upload.single('profileImage'),
+  registrationController.uploadProfileImage
 );
 
 router.post('/upload-certificate',
@@ -123,25 +107,8 @@ router.post('/upload-certificate',
      #swagger.responses[200] = { description: 'Certificate uploaded successfully' }
      #swagger.responses[400] = { description: 'No certificate uploaded' }
   */
-  upload.single('certificate'), async (req, res, next) => {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No certificate uploaded',
-      });
-    }
-
-    try {
-      const filePath = await uploadFileToLocal(req.file, 'certificates');
-      res.json({
-        success: true,
-        message: 'Certificate uploaded successfully',
-        filePath,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  upload.single('certificate'),
+  registrationController.uploadCertificate
 );
 
 module.exports = router;

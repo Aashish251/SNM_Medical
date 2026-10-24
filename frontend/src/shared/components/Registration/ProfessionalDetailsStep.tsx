@@ -10,6 +10,7 @@ import {
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
 import { handleAlphabeticInput } from "@shared/lib/utils";
+import { createFileValidation, validationRules } from "@shared/lib/formValidation";
 
 export const ProfessionalDetailsStep = ({
   form,
@@ -100,11 +101,7 @@ export const ProfessionalDetailsStep = ({
         <TextField
           label="Samagam Held In"
           register={register("samagamHeldIn", {
-            pattern: {
-              value: /^[A-Za-z\s]+$/,
-              message:
-                "Samagam Held In should contain only alphabets and spaces (no numbers or symbols)",
-            },
+            ...validationRules.alphabetic("Samagam Held In"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "samagamHeldIn", form.setValue),
           })}
@@ -115,11 +112,7 @@ export const ProfessionalDetailsStep = ({
         <TextField
           label="Sewa Performed During Last Samagam"
           register={register("lastSewa", {
-            pattern: {
-              value: /^[A-Za-z\s]+$/,
-              message:
-                "Last Sewa should contain only alphabets and spaces (no numbers or symbols)",
-            },
+            ...validationRules.alphabetic("Last Sewa"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "lastSewa", form.setValue),
           })}
@@ -130,11 +123,7 @@ export const ProfessionalDetailsStep = ({
         <TextField
           label="Recommended By"
           register={register("recommendedBy", {
-            pattern: {
-              value: /^[A-Za-z\s]+$/,
-              message:
-                "Recommended By should contain only alphabets and spaces (no numbers or symbols)",
-            },
+            ...validationRules.alphabetic("Recommended By"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "recommendedBy", form.setValue),
           })}
@@ -150,42 +139,12 @@ export const ProfessionalDetailsStep = ({
           required
           selectedFile={watch("certificate")}
           register={register("certificate", {
-            validate: {
-              fileType: (fileList) => {
-                if (!fileList || (fileList instanceof FileList && fileList.length === 0)) {
-                  if (existingCertificate) return true;
-                  return "Please upload a certificate";
-                }
-
-                const allowedExtensions = [
-                  "jpg",
-                  "jpeg",
-                  "png",
-                  "pdf",
-                ];
-                const file = fileList[0];
-                const ext = file.name.split(".").pop()?.toLowerCase();
-
-                return (
-                  allowedExtensions.includes(ext || "") ||
-                  "File type not supported. Please upload an image (jpg, png, etc)"
-                );
-              },
-              fileSize: (fileList) => {
-                if (!fileList || fileList.length === 0) return true;
-                const file = fileList[0];
-                const MAX_SIZE = 2 * 1024 * 1024; // 5MB
-
-                return (
-                  file.size <= MAX_SIZE ||
-                  `File size must be under 2MB (current size: ${(
-                    file.size /
-                    1024 /
-                    1024
-                  ).toFixed(2)}MB)`
-                );
-              },
-            },
+            validate: createFileValidation({
+              allowedExtensions: ["jpg", "jpeg", "png", "pdf"],
+              maxSizeMB: 2,
+              requiredMessage: "Please upload a certificate",
+              existingUrl: existingCertificate,
+            }),
           })}
           error={errors.certificate}
         />
@@ -193,6 +152,7 @@ export const ProfessionalDetailsStep = ({
 
       <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
         <Button
+          type="button"
           size="lg"
           className="bg-primary rounded-2xl font-bold text-white w-full sm:w-auto"
           onClick={prevStep}
@@ -209,6 +169,7 @@ export const ProfessionalDetailsStep = ({
             Reset
           </Button>
           <Button
+            type="button"
             size="lg"
             onClick={nextStep}
             className="bg-primary rounded-2xl font-bold text-white w-full sm:w-auto"

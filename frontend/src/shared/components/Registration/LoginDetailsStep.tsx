@@ -6,6 +6,7 @@ import { RootState } from "@app/store";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { handleAlphabeticInput } from "@shared/lib/utils";
+import { validationRules } from "@shared/lib/formValidation";
 
 export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled }: any) => {
   const {
@@ -53,11 +54,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register("favoriteFood", {
             required: "Favorite food is required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
-              message:
-                "Favorite food should contain only alphabets and spaces (no numbers or symbols)",
-            },
+            ...validationRules.alphabetic("Favorite food"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "favoriteFood", form.setValue),
           })}
@@ -70,11 +67,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register("childhoodNickname", {
             required: "Childhood nickname is required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
-              message:
-                "Childhood nickname should contain only alphabets and spaces (no numbers or symbols)",
-            },
+            ...validationRules.alphabetic("Childhood nickname"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "childhoodNickname", form.setValue),
           })}
@@ -87,11 +80,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register("motherMaidenName", {
             required: "Mother's maiden name is required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
-              message:
-                "Mother's maiden name should contain only alphabets and spaces (no numbers or symbols)",
-            },
+            ...validationRules.alphabetic("Mother's maiden name"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "motherMaidenName", form.setValue),
           })}
@@ -104,11 +93,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register("hobbies", {
             required: "Hobbies are required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/, //  Only letters and spaces allowed
-              message:
-                "Hobbies should contain only alphabets and spaces (no numbers or symbols)",
-            },
+            ...validationRules.alphabetic("Hobbies"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "hobbies", form.setValue),
           })}
@@ -136,6 +121,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
       {/* Buttons */}
       <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4 w-full">
         <Button
+          type="button"
           size="lg"
           onClick={prevStep}
           className="w-full sm:w-auto px-6 py-2 bg-primary rounded-2xl font-bold text-white"

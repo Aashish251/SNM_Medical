@@ -6,6 +6,12 @@ type RegisterUserResponse = {
   data?: unknown;
 };
 
+type AvailabilityResponse = {
+  success?: boolean;
+  message?: string;
+  data?: { emailExists: boolean; mobileExists: boolean; available: boolean };
+};
+
 export const RegisterApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     registerUser: builder.mutation<RegisterUserResponse, FormData>({
@@ -18,10 +24,18 @@ export const RegisterApi = baseApi.injectEndpoints({
         },
       }),
     }),
+    checkRegistrationAvailability: builder.mutation<AvailabilityResponse, { email: string; mobileNo: string }>({
+      query: (body) => ({
+        url: "/api/registration/check-availability",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
   overrideExisting: false,
 });
 
 export const {
   useRegisterUserMutation,
+  useCheckRegistrationAvailabilityMutation,
 } = RegisterApi;
