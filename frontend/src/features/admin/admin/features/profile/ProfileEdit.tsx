@@ -8,6 +8,7 @@ import { ProfileDropdown } from "@admin/components/profile-dropdown";
 import { Search } from "@admin/components/search";
 import { ThemeSwitch } from "@admin/components/theme-switch";
 import { Card, CardContent } from "@admin/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@shared/components/ui/dialog";
 import { Button } from "@admin/components/ui/button";
 import { Input } from "@admin/components/ui/input";
 import { Label } from "@admin/components/ui/label";
@@ -226,6 +227,7 @@ export function ProfileEdit() {
   const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
   const [existingCertificate, setExistingCertificate] = useState<string | undefined>();
   const [previewUrl, setPreviewUrl] = useState<string | undefined>();
+  const [saveMessage, setSaveMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Populate form when profile data arrives or changes
@@ -349,15 +351,8 @@ export function ProfileEdit() {
     if (!userId) return;
     try {
       const formData = createUpdateProfileFormData(data, String(userId));
-      await toast.promise(
-        triggerUpdate({ id: String(userId), formData }).unwrap(),
-        {
-          loading: "Updating profile…",
-          success: "Profile updated successfully!",
-          error: "Failed to update profile",
-        }
-      );
-      navigate(ROUTE_ADMIN_PROFILE);
+      await triggerUpdate({ id: String(userId), formData }).unwrap();
+      setSaveMessage("Records updated successfully !");
     } catch (error) {
       toast.error(normalizeApiError(error).message);
     }
@@ -476,7 +471,7 @@ export function ProfileEdit() {
                       <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
                         <FormField label="Full Name" required>
                           <Input
-                            {...register("fullName", { required: true })}
+                            {...register("fullName", { required: "Full name is required", validate: (value) => !!value.trim() || "Full name is required" })}
                             placeholder="Full Name"
                             aria-invalid={!!errors.fullName}
                           />
@@ -527,6 +522,7 @@ export function ProfileEdit() {
                           <Input
                             {...register("dateOfBirth", { required: true })}
                             type="date"
+                            max={new Date().toISOString().slice(0, 10)}
                             aria-invalid={!!errors.dateOfBirth}
                           />
                         </FormField>
@@ -906,6 +902,9 @@ export function ProfileEdit() {
                           placeholder="Mother's Name"
                         />
                       </FormField>
+                      <FormField label="Remark">
+                        <Textarea {...register("remark")} placeholder="Remark" />
+                      </FormField>
                     </div>
                   </CardContent>
                 </Card>
@@ -979,6 +978,17 @@ export function ProfileEdit() {
           </form>
         )}
       </Main>
+      <Dialog open={!!saveMessage} onOpenChange={(open) => { if (!open) { setSaveMessage(""); navigate(ROUTE_ADMIN_PROFILE); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update complete</DialogTitle>
+            <DialogDescription>{saveMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => { setSaveMessage(""); navigate(ROUTE_ADMIN_PROFILE); }}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

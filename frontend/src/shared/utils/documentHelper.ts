@@ -21,7 +21,7 @@ export const openDocumentView = async (regId?: number | string | null): Promise<
   const documentUrl = getDocumentViewUrl(regId);
   if (!documentUrl) return;
 
-  const documentWindow = window.open("about:blank", "_blank");
+  const documentWindow = window.open("about:blank", "certificatePreview", "popup=yes,width=1000,height=800,resizable=yes,scrollbars=yes");
 
   try {
     const persistedState = localStorage.getItem("persist:root");

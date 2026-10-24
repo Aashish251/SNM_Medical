@@ -8,18 +8,30 @@ export type ApiError = {
 
 type ErrorPayload = {
   message?: string;
-  error?: string;
+  error?: unknown;
+  stack?: string;
+  data?: ErrorPayload;
 };
+
+function readableMessage(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const firstLine = value.split("\n").map((line) => line.trim()).find(Boolean);
+  return firstLine?.replace(/^Error:\s*/, "").replace(/^\w+Error:\s*/, "");
+}
 
 export function normalizeApiError(error: unknown): ApiError {
   if (isFetchBaseQueryError(error)) {
     const data = error.data as ErrorPayload | undefined;
+    const nestedData = data?.data;
 
     return {
       status: error.status,
       message:
-        data?.message ||
-        data?.error ||
+        readableMessage(data?.message) ||
+        readableMessage(data?.error) ||
+        readableMessage(data?.stack) ||
+        readableMessage(nestedData?.message) ||
+        readableMessage(nestedData?.error) ||
         (error.status === "FETCH_ERROR"
           ? "Network error. Please check your connection."
           : "Something went wrong. Please try again."),
@@ -32,6 +44,12 @@ export function normalizeApiError(error: unknown): ApiError {
       message: error.message,
       details: error,
     };
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const payload = error as ErrorPayload;
+    const message = readableMessage(payload.message) || readableMessage(payload.error) || readableMessage(payload.stack);
+    if (message) return { message, details: error };
   }
 
   return {
