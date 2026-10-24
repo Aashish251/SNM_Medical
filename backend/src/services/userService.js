@@ -194,6 +194,10 @@ exports.getUserProfile = async (userId) => {
   }
 };
 exports.updateUserProfile = async (regId, data) => {
+  data = Object.fromEntries(Object.entries(data || {}).map(([key, value]) => [
+    key,
+    typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : value,
+  ]));
   let connection;
   try {
     if (!regId || isNaN(regId)) {
@@ -236,6 +240,26 @@ exports.updateUserProfile = async (regId, data) => {
     const existingUser = existingUserResult?.[0]?.[0];
     if (!existingUser) {
       throw new Error('User not found');
+    }
+
+    for (const [label, value] of Object.entries({
+      'Full name': fullName, 'Address': address, 'Last sewa': lastSewa,
+      'Recommended by': recommendedBy, 'Samagam held in': samagamHeldIn,
+      'Favorite food': favoriteFood, 'Childhood nickname': childhoodNickname,
+      "Mother's name": motherMaidenName, 'Hobbies': hobbies, 'Remark': remark,
+    })) {
+      if (value && !/[A-Za-z]/.test(String(value))) throw new Error(`${label} must contain at least one letter`);
+    }
+
+    if (mobileNo) {
+      const [duplicates] = await promisePool.execute(
+        'SELECT reg_id FROM registration_tbl WHERE mobile_no = ? AND reg_id <> ? AND is_deleted = 0 LIMIT 1',
+        [mobileNo, regId]
+      );
+      if (duplicates.length) throw new Error('Mobile number already registered');
+    }
+    if (dateOfBirth && new Date(dateOfBirth) > new Date(new Date().toDateString())) {
+      throw new Error('Birthdate cannot be in the future');
     }
 
     /* --------------------------------------------------------

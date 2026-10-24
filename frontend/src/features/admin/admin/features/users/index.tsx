@@ -33,6 +33,7 @@ import { FormValues } from "@shared/types/CommonType";
 import { normalizeApiError } from "@shared/api/errors";
 import { reportError } from "@shared/lib/monitoring";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
+import { ApiErrorDialog } from "@shared/components/ApiErrorDialog";
 import { toast as hotToast } from "react-hot-toast";
 import { toast as sonnerToast } from "sonner";
 import {
@@ -48,6 +49,7 @@ export function Users() {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
   const [disabled, setDisabled] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [successInfo, setSuccessInfo] = useState<{
     name: string;
     email: string;
@@ -132,8 +134,7 @@ export function Users() {
 
       if (missingFields.length > 0) {
         const errorMsg = `Missing required fields: ${missingFields.join(", ")}`;
-        hotToast.error(errorMsg);
-        sonnerToast.error(errorMsg);
+        setSubmitError(errorMsg);
         setDisabled(false);
         return;
       }
@@ -146,13 +147,8 @@ export function Users() {
 
       const formData = createRegistrationFormData(registrationData);
 
-      const promise = triggerRegisterUser(formData).unwrap();
-
-      await hotToast.promise(promise, {
-        loading: "Registering medical staff member...",
-        success: "Medical staff member registered successfully!",
-        error: "Failed to register medical staff member",
-      });
+      await triggerRegisterUser(formData).unwrap();
+      hotToast.success("Medical staff member registered successfully!");
       sonnerToast.success("Medical staff member registered successfully!");
 
       setSuccessInfo({
@@ -168,8 +164,7 @@ export function Users() {
       setDisabled(false);
       reportError(error, { source: "admin-registration" });
       const message = normalizeApiError(error).message;
-      hotToast.error(message);
-      sonnerToast.error(message);
+      setSubmitError(message);
     }
   };
 
@@ -341,6 +336,7 @@ export function Users() {
           </Card>
         )}
       </Main>
+      <ApiErrorDialog message={submitError} onClose={() => setSubmitError("")} />
     </>
   );
 }

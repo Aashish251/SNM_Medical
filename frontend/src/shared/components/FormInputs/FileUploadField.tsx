@@ -137,6 +137,12 @@ export const FileUploadField = ({
                 href={displayUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(event) => {
+                  if (displayUrl.toLowerCase().split("?")[0].endsWith(".pdf")) {
+                    event.preventDefault();
+                    window.open(displayUrl, "certificatePreview", "popup=yes,width=1000,height=800,resizable=yes,scrollbars=yes");
+                  }
+                }}
                 className="text-xs text-blue-600 hover:underline flex items-center gap-1"
               >
                 Preview

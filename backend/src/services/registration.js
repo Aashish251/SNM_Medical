@@ -53,6 +53,11 @@ exports.checkEmailExists = async (email) => {
 };
 
 exports.createUser = async (data = {}, filePaths = {}) => {
+  // Trim outer whitespace and collapse runs of spaces for every text value.
+  data = Object.fromEntries(Object.entries(data).map(([key, value]) => [
+    key,
+    typeof value === "string" ? value.trim().replace(/\s+/g, " ") : value,
+  ]));
   const {
     fullName,
     email,
@@ -87,6 +92,15 @@ exports.createUser = async (data = {}, filePaths = {}) => {
   const cleanEmail = sanitizeInput(email?.toLowerCase());
   const cleanMobile = sanitizeInput(mobileNo);
   const cleanName = sanitizeInput(fullName);
+  for (const [label, value] of Object.entries({
+    "Full name": cleanName, "Address": address, "Last sewa": lastSewa,
+    "Recommended by": recommendedBy, "Samagam held in": samagamHeldIn,
+    "Favorite food": favoriteFood, "Childhood nickname": childhoodNickname,
+    "Mother's name": motherMaidenName, "Hobbies": hobbies,
+  })) {
+    if (value && !/[A-Za-z]/.test(String(value))) throw new Error(`${label} must contain at least one letter`);
+  }
+  if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(cleanName)) throw new Error("Full name should contain letters with single spaces between words");
 
   const strPassword = String(password ?? "").trim();
   const strConfirmPassword = String(confirmPassword ?? "").trim();
@@ -100,6 +114,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
 
   if (!validators.email(cleanEmail)) throw new Error("Invalid email address");
   if (!validators.mobile(cleanMobile)) throw new Error("Invalid mobile number");
+  if (new Date(dateOfBirth) > new Date(new Date().toDateString())) throw new Error("Birthdate cannot be in the future");
   if (!validators.password(strPassword)) throw new Error("Password must be at least 6 characters");
   if (strPassword !== strConfirmPassword) throw new Error("Passwords do not match");
 
@@ -112,7 +127,7 @@ exports.createUser = async (data = {}, filePaths = {}) => {
        2️⃣ Duplicate Check (Single round-trip O(1) query)
     -------------------------------------------------------- */
     const [existingUsers] = await connection.execute(
-      "SELECT email, mobile_no FROM registration_tbl WHERE (email = ? OR mobile_no = ?) AND is_deleted = 0 LIMIT 2",
+      "SELECT email, mobile_no FROM registration_tbl WHERE (LOWER(email) = ? OR mobile_no = ?) AND is_deleted = 0 LIMIT 2",
       [cleanEmail, cleanMobile]
     );
 

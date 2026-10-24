@@ -130,6 +130,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           <TextField
             label="Birthdate"
             type="date"
+            max={new Date().toISOString().slice(0, 10)}
             required
             register={register("dateOfBirth", {
               required: "Birthdate is required",
@@ -146,16 +147,6 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             error={errors.age}
           />
         </div>
-
-        {/* <DatePickerField
-          label="Birthdate"
-          name="dateOfBirth"
-          control={control}
-          required
-          placeholder="DD/MM/YYYY"
-          toYear={new Date().getFullYear()}
-          disabledDates={{ after: new Date() }}
-        /> */}
 
         {/* State */}
         <SearchableSelect

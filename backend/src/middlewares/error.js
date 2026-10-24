@@ -123,7 +123,7 @@ module.exports = (err, req, res, next) => {
     });
   }
 
-  if (/already exists|duplicate/i.test(message)) {
+  if (/already exists|already registered|duplicate/i.test(message)) {
     logger.warn(`Conflict Error: ${message}`, errorMeta);
     return res.status(409).json({
       success: false,

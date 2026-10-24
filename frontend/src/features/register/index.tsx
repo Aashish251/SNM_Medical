@@ -16,11 +16,13 @@ import { normalizeApiError } from "@shared/api/errors";
 import { reportError } from "@shared/lib/monitoring";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
 import { createRegistrationFormData } from "@entities/registration";
+import { ApiErrorDialog } from "@shared/components/ApiErrorDialog";
 
 const Register = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
   const navigate = useNavigate();
   const [disabled, setDisabled] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const {
     currentStep,
     setCurrentStep,
@@ -101,28 +103,27 @@ const Register = () => {
       );
 
       if (missingFields.length > 0) {
-        toast.error(`Missing required fields: ${missingFields.join(", ")}`);
+        setSubmitError(`Missing required fields: ${missingFields.join(", ")}`);
+        setDisabled(false);
         return;
       }
 
       const formData = createRegistrationFormData(data);
 
-      await toast.promise(triggerRegisterUser(formData).unwrap(), {
-        loading: "Registering...",
-        success: "Registered successfully!",
-        error: "Failed to register",
-      });
+      await triggerRegisterUser(formData).unwrap();
+      toast.success("Registered successfully!");
       setDisabled(false);
       navigate("/login"); // redirect on success
     } catch (error) {
       setDisabled(false);
       reportError(error, { source: "registration" });
-      toast.error(normalizeApiError(error).message);
+      setSubmitError(normalizeApiError(error).message);
     }
   };
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col items-center font-sans pt-[120px] md:pt-[90px] lg:pt-[100px]">
+      <ApiErrorDialog message={submitError} onClose={() => setSubmitError("")} />
       <div className="max-w-6xl w-full p-8">
         <Stepper
           steps={STEPS}

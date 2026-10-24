@@ -25,16 +25,17 @@ export function createUpdateProfileFormData(
 
 function createProfileFormData(data: FormValues, options: ProfileFormDataOptions) {
   const formData = new FormData();
+  const clean = (value: unknown) => String(value ?? "").trim().replace(/\s+/g, " ");
 
   if (options.id !== undefined) {
     formData.append("id", String(options.id));
   }
 
-  formData.append("fullName", data.fullName);
-  formData.append("email", data.email);
-  formData.append("mobileNo", data.mobileNo);
-  formData.append("dateOfBirth", data.dateOfBirth);
-  formData.append("address", data.address || "");
+  formData.append("fullName", clean(data.fullName));
+  formData.append("email", clean(data.email).toLowerCase());
+  formData.append("mobileNo", clean(data.mobileNo));
+  formData.append("dateOfBirth", clean(data.dateOfBirth));
+  formData.append("address", clean(data.address));
   formData.append("stateId", String(data.stateId || ""));
   formData.append("cityId", String(data.cityId || ""));
   formData.append("departmentId", String(data.departmentId || ""));
@@ -46,13 +47,13 @@ function createProfileFormData(data: FormValues, options: ProfileFormDataOptions
   formData.append("gender", data.gender || "Male");
   formData.append("userType", data.userType || "ms");
   formData.append("experience", String(data.experience || 0));
-  formData.append("lastSewa", data.lastSewa || "");
-  formData.append("recommendedBy", data.recommendedBy || "");
-  formData.append("samagamHeldIn", data.samagamHeldIn || "");
-  formData.append("favoriteFood", data.favoriteFood || "");
-  formData.append("childhoodNickname", data.childhoodNickname || "");
-  formData.append("motherMaidenName", data.motherMaidenName || "");
-  formData.append("hobbies", data.hobbies || "");
+  formData.append("lastSewa", clean(data.lastSewa));
+  formData.append("recommendedBy", clean(data.recommendedBy));
+  formData.append("samagamHeldIn", clean(data.samagamHeldIn));
+  formData.append("favoriteFood", clean(data.favoriteFood));
+  formData.append("childhoodNickname", clean(data.childhoodNickname));
+  formData.append("motherMaidenName", clean(data.motherMaidenName));
+  formData.append("hobbies", clean(data.hobbies));
 
   if (options.includeCredentials) {
     formData.append("password", data.password);
@@ -60,7 +61,7 @@ function createProfileFormData(data: FormValues, options: ProfileFormDataOptions
   }
 
   if (options.includeRemark) {
-    formData.append("remark", data.remark || "");
+    formData.append("remark", clean(data.remark));
   }
 
   appendFileListValue(formData, "profilePic", data.profilePic);

@@ -16,6 +16,7 @@ interface TextFieldProps {
   className?: string;
   disabled?: boolean;
   maxLength?: number;
+  max?: string | number;
 }
 
 export const TextField = ({
@@ -30,6 +31,7 @@ export const TextField = ({
   readOnly = false,
   disabled = false,
   className = "",
+  max,
 }: TextFieldProps) => {
   const inputProps = value ? { defaultValue: value } : {};
   const localRef = useRef<HTMLInputElement>(null);
@@ -49,6 +51,7 @@ export const TextField = ({
       <div className="relative">
         <Input
           type={type}
+          max={max}
           placeholder={placeholder}
           readOnly={readOnly}
           disabled={disabled}
