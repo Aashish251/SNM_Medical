@@ -85,12 +85,17 @@ export function useProfileWizardForm(mode: ProfileWizardMode) {
     }
   }, [stateId, setValue, triggerGetCitiesByState]);
 
-  const nextStep = async () => {
+  const nextStep = async (skipValidation = false) => {
+    if (skipValidation) {
+      setCurrentStep((step) => step + 1);
+      return true;
+    }
     const valid = await trigger(requiredFields[currentStep]);
     if (valid) {
       setCurrentStep((step) => step + 1);
       return true;
     }
+    toast.error("Please fill all required fields correctly before proceeding.");
     return false;
   };
 

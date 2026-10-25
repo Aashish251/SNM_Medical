@@ -12,18 +12,19 @@ import {
   TextareaField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
-import { handleAlphabeticInput } from "@shared/lib/utils";
+import { handleAlphabeticInput, isValidBirthdate } from "@shared/lib/utils";
 import { useCheckRegistrationAvailabilityMutation } from "@features/register/services";
 import { normalizeApiError } from "@shared/api/errors";
 import { requiredFields } from "@shared/config/common";
 import { createFileValidation, validationRules } from "@shared/lib/formValidation";
+import { toast } from "@shared/lib/toast";
 
 interface PersonalDetailsStepProps {
   form: UseFormReturn<FormValues>;
   dropdownOption?: any;
   cities: CityItem[];
   citiesLoading: boolean;
-  nextStep: () => Promise<boolean>;
+  nextStep: (skipValidation?: boolean) => Promise<boolean>;
   reset: () => void;
   existingProfilePic?: string;
   checkDuplicates?: boolean;
@@ -53,32 +54,59 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
     : [];
 
   const handleNext = async () => {
+    form.clearErrors("root");
     const valid = await form.trigger(requiredFields[1]);
-    if (!valid || !(await form.trigger(["email", "mobileNo"]))) return;
-    if (!checkDuplicates) {
-      await nextStep();
+    if (!valid) {
+      toast.error("Please fill all required fields correctly before proceeding.");
       return;
     }
-    form.clearErrors("root");
+
+    if (!checkDuplicates) {
+      await nextStep(true);
+      return;
+    }
 
     try {
+      const emailVal = String(form.getValues("email") || "").trim();
+      const mobileVal = String(form.getValues("mobileNo") || "").trim();
+
       const result = await checkAvailability({
-        email: String(form.getValues("email") || "").trim(),
-        mobileNo: String(form.getValues("mobileNo") || "").trim(),
+        email: emailVal,
+        mobileNo: mobileVal,
       }).unwrap();
+
       const availability = result.data;
+      let hasDuplicate = false;
+      const duplicateMessages: string[] = [];
+
       if (availability?.emailExists) {
         form.setError("email", { type: "server", message: "This email is already registered" });
+        duplicateMessages.push("This email is already registered");
+        hasDuplicate = true;
+      } else {
+        form.clearErrors("email");
       }
+
       if (availability?.mobileExists) {
         form.setError("mobileNo", { type: "server", message: "This phone number is already registered" });
+        duplicateMessages.push("This phone number is already registered");
+        hasDuplicate = true;
+      } else {
+        form.clearErrors("mobileNo");
       }
-      if (availability?.available) {
-        form.clearErrors(["email", "mobileNo"]);
-        await nextStep();
+
+      if (hasDuplicate || !availability?.available) {
+        toast.error(duplicateMessages.join(". ") || "Email or mobile number is already registered");
+        return;
       }
+
+      form.clearErrors(["email", "mobileNo"]);
+      form.clearErrors("root");
+      await nextStep(true);
     } catch (error) {
-      form.setError("root", { type: "server", message: normalizeApiError(error).message });
+      const errorMsg = normalizeApiError(error).message;
+      form.setError("root", { type: "server", message: errorMsg });
+      toast.error(errorMsg || "Failed to validate email and mobile number");
     }
   };
 
@@ -107,7 +135,10 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               value: 2,
               message: "Full name must be at least 2 characters long",
             },
-            ...validationRules.alphabetic("Full name"),
+            pattern: {
+              value: /^[A-Za-z]+(?: [A-Za-z]+)*$/,
+              message: "Full name should contain only letters with single spaces between words",
+            },
             onChange: (e: any) =>
               handleAlphabeticInput(e, "fullName", form.setValue),
           })}
@@ -123,8 +154,21 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           register={register("mobileNo", {
             required: "Contact number is required",
             pattern: {
-              value: /^(?:\+91|91|0)?[-\s]?[6-9]\d{9}$/, // must start with 6–9 and be 10 digits
-              message: "Enter a valid 10-digit mobile number",
+              value: /^[6-9]\d{9}$/,
+              message: "Enter a valid 10-digit mobile number starting with 6-9",
+            },
+            minLength: {
+              value: 10,
+              message: "Mobile number must be 10 digits",
+            },
+            maxLength: {
+              value: 10,
+              message: "Mobile number must be 10 digits",
+            },
+            onChange: () => {
+              if (errors.mobileNo) {
+                form.clearErrors("mobileNo");
+              }
             },
           })}
           placeholder="Enter 10-digit mobile number"
@@ -153,6 +197,11 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
               value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
               message: "Enter a valid email",
             },
+            onChange: () => {
+              if (errors.email) {
+                form.clearErrors("email");
+              }
+            },
           })}
           placeholder="Enter email address"
           error={errors.email}
@@ -167,6 +216,13 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             required
             register={register("dateOfBirth", {
               required: "Birthdate is required",
+              validate: {
+                validDate: (value) => {
+                  if (!value) return true;
+                  return isValidBirthdate(value)
+                    || "Enter a valid birthdate no more than 120 years ago";
+                },
+              },
             })}
             placeholder="DD/MM/YYYY"
             error={errors.dateOfBirth}
@@ -209,16 +265,16 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <FileUploadField
           label="Profile Picture"
           existingUrl={existingProfilePic}
-          accept=".jpg,.jpeg,.png,"
+          accept=".jpg,.jpeg,.png"
           selectedFile={watch("profilePic")}
           register={register("profilePic", {
             validate: createFileValidation({
               allowedExtensions: ["jpg", "jpeg", "png"],
               maxSizeMB: 2,
-              requiredMessage: "Please upload a profile picture",
               existingUrl: existingProfilePic,
             }),
           })}
+          error={errors.profilePic}
         />
 
         {/* Address */}

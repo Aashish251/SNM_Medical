@@ -5,6 +5,41 @@ const { validators } = require("../utils/validators");
 const logger = require("../utils/logger");
 
 const BCRYPT_ROUNDS = 12;
+const MAX_REGISTRATION_AGE = 120;
+
+const isDatabaseFlagSet = (value) => value === true || value === 1 || value === "1";
+
+const getAgeFromDateOfBirth = (dateOfBirth) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateOfBirth || ""));
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]) {
+    return null;
+  }
+
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+  if (
+    year > currentYear ||
+    (year === currentYear && month > currentMonth) ||
+    (year === currentYear && month === currentMonth && day > currentDay)
+  ) {
+    return null;
+  }
+
+  let age = currentYear - year;
+  if (currentMonth < month || (currentMonth === month && currentDay < day)) age--;
+
+  return age <= MAX_REGISTRATION_AGE ? age : null;
+};
 
 const GENDER_MAP = {
   male: 1,
@@ -33,14 +68,14 @@ const findExistingUser = async ({ email = "", mobileNo = "" } = {}) => {
   }
 
   const [rows] = await promisePool.execute(
-    `SELECT email, mobile_no FROM registration_tbl
-     WHERE is_deleted = 0 AND ((? <> '' AND LOWER(email) = ?) OR (? <> '' AND mobile_no = ?))
-     LIMIT 2`,
+    `SELECT
+      (SELECT COUNT(1) FROM registration_tbl WHERE is_deleted = 0 AND ? <> '' AND LOWER(email) = ?) > 0 AS email_exists,
+      (SELECT COUNT(1) FROM registration_tbl WHERE is_deleted = 0 AND ? <> '' AND mobile_no = ?) > 0 AS mobile_exists`,
     [cleanEmail, cleanEmail, cleanMobile, cleanMobile]
   );
 
-  const emailExists = Boolean(cleanEmail && rows.some((row) => row.email && row.email.toLowerCase() === cleanEmail));
-  const mobileExists = Boolean(cleanMobile && rows.some((row) => row.mobile_no && String(row.mobile_no) === cleanMobile));
+  const emailExists = isDatabaseFlagSet(rows[0]?.email_exists);
+  const mobileExists = isDatabaseFlagSet(rows[0]?.mobile_exists);
 
   return {
     emailExists,
@@ -105,15 +140,14 @@ const validateUserData = (data) => {
 
   if (!validators.email(email)) throw new Error("Invalid email address");
   if (!validators.mobile(mobileNo)) throw new Error("Invalid mobile number");
-  if (new Date(dateOfBirth) > new Date(new Date().toDateString())) {
-    throw new Error("Birthdate cannot be in the future");
+  if (getAgeFromDateOfBirth(dateOfBirth) === null) {
+    throw new Error("Birthdate must be valid and no more than 120 years ago");
   }
   if (!validators.password(password)) throw new Error("Password must be at least 6 characters");
   if (password !== confirmPassword) throw new Error("Passwords do not match");
 
   const textFieldsToCheck = {
     "Full name": fullName,
-    "Address": data.address,
     "Last sewa": data.lastSewa,
     "Recommended by": data.recommendedBy,
     "Samagam held in": data.samagamHeldIn,
@@ -124,9 +158,13 @@ const validateUserData = (data) => {
   };
 
   for (const [label, val] of Object.entries(textFieldsToCheck)) {
-    if (val && !/[A-Za-z]/.test(String(val))) {
-      throw new Error(`${label} must contain at least one letter`);
+    if (val && !/^[A-Za-z\s]+$/.test(String(val))) {
+      throw new Error(`${label} must contain only letters and spaces`);
     }
+  }
+
+  if (data.address && !/[A-Za-z]/.test(String(data.address))) {
+    throw new Error("Address must contain at least one letter");
   }
 };
 
