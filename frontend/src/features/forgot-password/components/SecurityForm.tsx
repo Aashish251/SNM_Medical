@@ -15,6 +15,7 @@ import { useForgotPasswordMutation } from "@features/forgot-password/service/For
 import { toast } from "@shared/lib/toast";
 import { normalizeApiError } from "@shared/api/errors";
 import { handleAlphabeticInput } from "@shared/lib/utils";
+import { validationRules } from "@shared/lib/formValidation";
 
 interface Props {
   onSuccess: (data: SecurityQuestions) => void;
@@ -102,16 +103,15 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
         <TextField
           label="What is your favorite food?"
           required
-          register={register("favoriteFood", {
-            required: "Favorite food is required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/,
-              message:
-                "Favorite food should contain only alphabets and spaces (no numbers or symbols)",
-            },
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "favoriteFood", setValue),
-          })}
+          register={register(
+            "favoriteFood",
+            validationRules.trimmedAlphabetic(
+              "Favorite food",
+              "favoriteFood",
+              setValue,
+              { required: true }
+            )
+          )}
           placeholder="Enter favorite food"
           error={errors.favoriteFood}
         />
@@ -119,16 +119,15 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
         <TextField
           label="What was your childhood nickname?"
           required
-          register={register("childhoodNickname", {
-            required: "Childhood nickname is required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/,
-              message:
-                "Childhood nickname should contain only alphabets and spaces (no numbers or symbols)",
-            },
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "childhoodNickname", setValue),
-          })}
+          register={register(
+            "childhoodNickname",
+            validationRules.trimmedAlphabetic(
+              "Childhood nickname",
+              "childhoodNickname",
+              setValue,
+              { required: true }
+            )
+          )}
           placeholder="Enter childhood nickname"
           error={errors.childhoodNickname}
         />
@@ -136,16 +135,15 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
         <TextField
           label="What is your mother's maiden name?"
           required
-          register={register("motherMaidenName", {
-            required: "Mother's maiden name is required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/,
-              message:
-                "Mother's maiden name should contain only alphabets and spaces (no numbers or symbols)",
-            },
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "motherMaidenName", setValue),
-          })}
+          register={register(
+            "motherMaidenName",
+            validationRules.trimmedAlphabetic(
+              "Mother's maiden name",
+              "motherMaidenName",
+              setValue,
+              { required: true }
+            )
+          )}
           placeholder="Enter mother's maiden name"
           error={errors.motherMaidenName}
         />
@@ -153,16 +151,15 @@ const SecurityForm: React.FC<Props> = ({ onSuccess, setUserRegIDObj }) => {
         <TextField
           label="What are your hobbies?"
           required
-          register={register("hobbies", {
-            required: "Hobbies are required",
-            pattern: {
-              value: /^[A-Za-z\s]+$/,
-              message:
-                "Hobbies should contain only alphabets and spaces (no numbers or symbols)",
-            },
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "hobbies", setValue),
-          })}
+          register={register(
+            "hobbies",
+            validationRules.trimmedAlphabetic(
+              "Hobbies",
+              "hobbies",
+              setValue,
+              { required: true }
+            )
+          )}
           placeholder="Enter hobbies"
           error={errors.hobbies}
         />

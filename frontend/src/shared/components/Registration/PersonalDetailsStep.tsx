@@ -130,17 +130,18 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           label="Full Name"
           required
           register={register("fullName", {
-            required: "Full name is required",
-            minLength: {
-              value: 2,
-              message: "Full name must be at least 2 characters long",
-            },
-            pattern: {
-              value: /^[A-Za-z]+(?: [A-Za-z]+)*$/,
-              message: "Full name should contain only letters with single spaces between words",
-            },
+            ...validationRules.fullName("Full name"),
             onChange: (e: any) =>
               handleAlphabeticInput(e, "fullName", form.setValue),
+            onBlur: (e: any) => {
+              const raw = e?.target?.value;
+              if (typeof raw === "string") {
+                const trimmed = raw.trim().replace(/\s+/g, " ");
+                if (trimmed && trimmed !== raw) {
+                  form.setValue("fullName", trimmed, { shouldValidate: true });
+                }
+              }
+            },
           })}
           placeholder="Enter full name"
           error={errors.fullName}
@@ -152,19 +153,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           required
           maxLength={10}
           register={register("mobileNo", {
-            required: "Contact number is required",
-            pattern: {
-              value: /^[6-9]\d{9}$/,
-              message: "Enter a valid 10-digit mobile number starting with 6-9",
-            },
-            minLength: {
-              value: 10,
-              message: "Mobile number must be 10 digits",
-            },
-            maxLength: {
-              value: 10,
-              message: "Mobile number must be 10 digits",
-            },
+            ...validationRules.mobileNumber,
             onChange: () => {
               if (errors.mobileNo) {
                 form.clearErrors("mobileNo");
@@ -192,11 +181,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           label="Email"
           required
           register={register("email", {
-            required: "Email address is required",
-            pattern: {
-              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-              message: "Enter a valid email",
-            },
+            ...validationRules.requiredEmail("Email address"),
             onChange: () => {
               if (errors.email) {
                 form.clearErrors("email");
@@ -283,9 +268,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             label="Address"
             placeholder="Enter address"
             required
-            register={register("address", {
-              required: "Address is required",
-            })}
+            register={register("address", validationRules.required("Address"))}
             error={errors.address}
           />
         </div>

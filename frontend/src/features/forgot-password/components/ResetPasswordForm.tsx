@@ -10,6 +10,7 @@ import { useResetPasswordMutation } from "../service/ForgotPasswordApi";
 import { toast } from "@shared/lib/toast";
 import { normalizeApiError } from "@shared/api/errors";
 import { SNM_NAV_LOGIN_LINK } from "@shared/constants";
+import { validationRules } from "@shared/lib/formValidation";
 interface Props {
   onReset: () => void;
   userRegIdObj: UserRegIdObj;
@@ -64,13 +65,7 @@ const ResetPasswordForm: React.FC<Props> = ({ onReset, userRegIdObj }) => {
           required
           autoComplete="new-password"
           placeholder="Enter your password"
-          register={register("newPassword", {
-            required: "Password is required",
-            minLength: {
-              value: 6,
-              message: "Password must be at least 6 characters",
-            },
-          })}
+          register={register("newPassword", validationRules.password({ minLength: 6 }))}
           error={errors.newPassword}
         />
 
@@ -79,11 +74,10 @@ const ResetPasswordForm: React.FC<Props> = ({ onReset, userRegIdObj }) => {
           required
           autoComplete="confirm-password"
           placeholder="Re-enter password"
-          register={register("confirmPassword", {
-            required: "Confirm password",
-            validate: (value) =>
-              value === passwordValue || "Passwords do not match",
-          })}
+          register={register(
+            "confirmPassword",
+            validationRules.confirmPassword(() => passwordValue)
+          )}
           error={errors.confirmPassword}
         />
 

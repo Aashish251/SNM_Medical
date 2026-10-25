@@ -37,6 +37,7 @@ import { calculateAge } from "@shared/lib/utils";
 import { DUMMY } from "@shared/config/common";
 import { normalizeApiError } from "@shared/api/errors";
 import { ROUTE_ADMIN_PROFILE } from "@admin/constants/routePaths";
+import { validationRules, trimFormValues } from "@shared/lib/formValidation";
 import toast from "react-hot-toast";
 import type { FormValues, CityItem } from "@shared/types/CommonType";
 import {
@@ -135,11 +136,13 @@ function resolveUserType(value: unknown): "admin" | "ms" {
 function FormField({
   label,
   required,
+  error,
   children,
   className,
 }: {
   label: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -150,6 +153,7 @@ function FormField({
         {required && <span className="text-destructive ml-0.5">*</span>}
       </Label>
       {children}
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   );
 }
@@ -350,7 +354,8 @@ export function ProfileEdit() {
   const onSubmit = async (data: FormValues) => {
     if (!userId) return;
     try {
-      const formData = createUpdateProfileFormData(data, String(userId));
+      const trimmedData = trimFormValues(data);
+      const formData = createUpdateProfileFormData(trimmedData, String(userId));
       await triggerUpdate({ id: String(userId), formData }).unwrap();
       setSaveMessage("Records updated successfully !");
     } catch (error) {
@@ -469,18 +474,19 @@ export function ProfileEdit() {
                       </div>
 
                       <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                        <FormField label="Full Name" required>
+                        <FormField label="Full Name" required error={errors.fullName?.message}>
                           <Input
-                            {...register("fullName", { required: "Full name is required", validate: (value) => !!value.trim() || "Full name is required" })}
+                            {...register("fullName", validationRules.fullName("Full name"))}
                             placeholder="Full Name"
                             aria-invalid={!!errors.fullName}
                           />
                         </FormField>
 
-                        <FormField label="Title" required>
+                        <FormField label="Title" required error={errors.title?.message}>
                           <Controller
                             control={form.control}
                             name="title"
+                            rules={validationRules.required("Title")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
@@ -501,26 +507,26 @@ export function ProfileEdit() {
                           />
                         </FormField>
 
-                        <FormField label="Email" required>
+                        <FormField label="Email" required error={errors.email?.message}>
                           <Input
-                            {...register("email", { required: true })}
+                            {...register("email", validationRules.requiredEmail("Email"))}
                             type="email"
                             placeholder="Email"
                             aria-invalid={!!errors.email}
                           />
                         </FormField>
 
-                        <FormField label="Mobile" required>
+                        <FormField label="Mobile" required error={errors.mobileNo?.message}>
                           <Input
-                            {...register("mobileNo", { required: true })}
+                            {...register("mobileNo", validationRules.mobileNumber)}
                             placeholder="Mobile"
                             aria-invalid={!!errors.mobileNo}
                           />
                         </FormField>
 
-                        <FormField label="Date of Birth" required>
+                        <FormField label="Date of Birth" required error={errors.dateOfBirth?.message}>
                           <Input
-                            {...register("dateOfBirth", { required: true })}
+                            {...register("dateOfBirth", validationRules.required("Date of Birth"))}
                             type="date"
                             max={new Date().toISOString().slice(0, 10)}
                             aria-invalid={!!errors.dateOfBirth}
@@ -535,10 +541,11 @@ export function ProfileEdit() {
                           />
                         </FormField>
 
-                        <FormField label="Gender" required>
+                        <FormField label="Gender" required error={errors.gender?.message}>
                           <Controller
                             control={form.control}
                             name="gender"
+                            rules={validationRules.required("Gender")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
@@ -573,10 +580,11 @@ export function ProfileEdit() {
                     <Separator className="mb-4 -mt-1" />
 
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                      <FormField label="Role" required>
+                      <FormField label="Role" required error={errors.userType?.message}>
                         <Controller
                           control={form.control}
                           name="userType"
+                          rules={validationRules.required("Role")}
                           render={({ field }) => (
                             <Select
                               value={field.value || ""}
@@ -594,10 +602,11 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Qualification" required>
+                      <FormField label="Qualification" required error={errors.qualificationId?.message}>
                         <Controller
                           control={form.control}
                           name="qualificationId"
+                          rules={validationRules.required("Qualification")}
                           render={({ field }) => (
                             <Select
                               value={field.value || ""}
@@ -628,10 +637,11 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Department" required>
+                      <FormField label="Department" required error={errors.departmentId?.message}>
                         <Controller
                           control={form.control}
                           name="departmentId"
+                          rules={validationRules.required("Department")}
                           render={({ field }) => (
                             <Select
                               value={field.value || ""}
@@ -662,9 +672,9 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Experience (Years)" required>
+                      <FormField label="Experience (Years)" required error={errors.experience?.message}>
                         <Input
-                          {...register("experience", { required: true })}
+                          {...register("experience", validationRules.required("Experience"))}
                           type="number"
                           step="0.01"
                           placeholder="0.00"
@@ -672,16 +682,16 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Previous Sewa">
+                      <FormField label="Previous Sewa" error={errors.lastSewa?.message}>
                         <Input
-                          {...register("lastSewa")}
+                          {...register("lastSewa", validationRules.noWhitespaceOnly("Previous Sewa"))}
                           placeholder="Previous Sewa"
                         />
                       </FormField>
 
-                      <FormField label="Recommended By">
+                      <FormField label="Recommended By" error={errors.recommendedBy?.message}>
                         <Input
-                          {...register("recommendedBy")}
+                          {...register("recommendedBy", validationRules.noWhitespaceOnly("Recommended By"))}
                           placeholder="Recommended By"
                         />
                       </FormField>
@@ -775,9 +785,9 @@ export function ProfileEdit() {
                     <Separator className="mb-4 -mt-1" />
 
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                      <FormField label="Address" required>
+                      <FormField label="Address" required error={errors.address?.message}>
                         <Textarea
-                          {...register("address", { required: true })}
+                          {...register("address", validationRules.required("Address"))}
                           placeholder="Address"
                           rows={3}
                           aria-invalid={!!errors.address}
@@ -785,10 +795,11 @@ export function ProfileEdit() {
                       </FormField>
 
                       <div className="space-y-3">
-                        <FormField label="State" required>
+                        <FormField label="State" required error={errors.stateId?.message}>
                           <Controller
                             control={form.control}
                             name="stateId"
+                            rules={validationRules.required("State")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
@@ -815,10 +826,11 @@ export function ProfileEdit() {
                           />
                         </FormField>
 
-                        <FormField label="City" required>
+                        <FormField label="City" required error={errors.cityId?.message}>
                           <Controller
                             control={form.control}
                             name="cityId"
+                            rules={validationRules.required("City")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
@@ -875,35 +887,38 @@ export function ProfileEdit() {
                     <Separator className="mb-4 -mt-1" />
 
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                      <FormField label="Favorite Food">
+                      <FormField label="Favorite Food" error={errors.favoriteFood?.message}>
                         <Input
-                          {...register("favoriteFood")}
+                          {...register("favoriteFood", validationRules.noWhitespaceOnly("Favorite food"))}
                           placeholder="Favorite Food"
                         />
                       </FormField>
 
-                      <FormField label="Hobbies">
+                      <FormField label="Hobbies" error={errors.hobbies?.message}>
                         <Input
-                          {...register("hobbies")}
+                          {...register("hobbies", validationRules.noWhitespaceOnly("Hobbies"))}
                           placeholder="Hobbies"
                         />
                       </FormField>
 
-                      <FormField label="Nickname">
+                      <FormField label="Nickname" error={errors.childhoodNickname?.message}>
                         <Input
-                          {...register("childhoodNickname")}
+                          {...register("childhoodNickname", validationRules.noWhitespaceOnly("Nickname"))}
                           placeholder="Nickname"
                         />
                       </FormField>
 
-                      <FormField label="Mother's Name">
+                      <FormField label="Mother's Name" error={errors.motherMaidenName?.message}>
                         <Input
-                          {...register("motherMaidenName")}
+                          {...register("motherMaidenName", validationRules.noWhitespaceOnly("Mother's Name"))}
                           placeholder="Mother's Name"
                         />
                       </FormField>
-                      <FormField label="Remark">
-                        <Textarea {...register("remark")} placeholder="Remark" />
+                      <FormField label="Remark" error={errors.remark?.message}>
+                        <Textarea
+                          {...register("remark", validationRules.noWhitespaceOnly("Remark"))}
+                          placeholder="Remark"
+                        />
                       </FormField>
                     </div>
                   </CardContent>

@@ -16,6 +16,7 @@ import {
 } from "@shared/components/ui/command";
 import { RequiredMark } from "./FormHelpers";
 import { ChevronDown } from "lucide-react";
+import { validationRules } from "@shared/lib/formValidation";
 
 interface Option {
   id: number;
@@ -67,7 +68,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         name={name}
         control={control}
         defaultValue={value ?? ""}
-        rules={required ? { required: `${label} is required`, ...rules } : rules}
+        rules={required ? { ...validationRules.required(label), ...rules } : rules}
         render={({ field, fieldState }) => {
           // safe effect for controlled prefill
           useEffect(() => {

@@ -173,7 +173,7 @@ export const requiredFields: Record<number, (keyof FormValues)[]> = {
     "stateId",
     "cityId",
   ],
-  2: ["qualificationId", "departmentId", "availableDayId", "shiftTimeId", "certificate"],
+  2: ["qualificationId", "departmentId", "availableDayId", "shiftTimeId"],
   3: ["password", "confirmPassword", "favoriteFood", "childhoodNickname", "motherMaidenName", "hobbies"],
 };
 

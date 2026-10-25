@@ -12,6 +12,7 @@ import {
 } from "@shared/constants";
 import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import { Link } from "react-router-dom";
+import { validationRules } from "@shared/lib/formValidation";
 
 interface LoginFormProps {
   form: UseFormReturn<FormData>;
@@ -60,18 +61,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         placeholder="Enter your email or mobile number"
         required
         autoComplete="off"
-        register={register("identifier", {
-          required: "Email or Contact Number is required",
-          validate: (value) => {
-            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-            const isPhone = /^[6-9]\d{9}$/.test(value);
-            return (
-              isEmail ||
-              isPhone ||
-              "Enter a valid email or 10-digit mobile number"
-            );
-          },
-        })}
+        register={register(
+          "identifier",
+          validationRules.identifier("Email or Contact Number")
+        )}
         error={errors.identifier}
       />
 
@@ -81,13 +74,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         required
         autoComplete="off"
         placeholder="Enter your password"
-        register={register("password", {
-          required: "Password is required",
-          minLength: {
-            value: 6,
-            message: "Password must be at least 6 characters",
-          },
-        })}
+        register={register("password", validationRules.password({ minLength: 6 }))}
         error={errors.password}
       />
 

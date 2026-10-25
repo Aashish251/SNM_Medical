@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { showSubmittedData } from "@admin/lib/show-submitted-data";
+import { validationRules, trimFormValues } from "@admin/lib/form-validation";
 import { cn } from "@admin/lib/utils";
 import { Button } from "@admin/components/ui/button";
 import {
@@ -262,10 +263,11 @@ export function EntityFormDialog<T extends { id: string }>({
           <form
             id="entity-form"
             onSubmit={form.handleSubmit((values) => {
+              const trimmed = trimFormValues(values);
               if (onSubmit) {
-                onSubmit(values);
+                onSubmit(trimmed);
               } else {
-                showSubmittedData(values);
+                showSubmittedData(trimmed);
               }
               handleOpenChange(false);
             })}
@@ -276,7 +278,7 @@ export function EntityFormDialog<T extends { id: string }>({
                 key={field.name}
                 control={form.control}
                 name={field.name}
-                rules={field.rules ?? { required: `${field.label} is required.` }}
+                rules={field.rules ?? validationRules.required(field.label)}
                 render={({ field: formField }) => (
                   <FormItem>
                     <FormLabel>{field.label}</FormLabel>

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { showSubmittedData } from "@admin/lib/show-submitted-data";
-import { isValidEmail, validatePassword } from "@admin/lib/form-validation";
+import { isValidEmail, validatePassword, validationRules, trimFormValues } from "@admin/lib/form-validation";
 import { Button } from "@admin/components/ui/button";
 import {
   Dialog,
@@ -71,7 +71,7 @@ export function UsersActionDialog({
 
   const onSubmit = (values: UserForm) => {
     form.reset();
-    showSubmittedData(values);
+    showSubmittedData(trimFormValues(values));
     onOpenChange(false);
   };
 
@@ -103,7 +103,7 @@ export function UsersActionDialog({
               <FormField
                 control={form.control}
                 name="firstName"
-                rules={{ required: "First Name is required." }}
+                rules={validationRules.required("First Name")}
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                     <FormLabel className="col-span-2 text-end">First Name</FormLabel>
@@ -117,7 +117,7 @@ export function UsersActionDialog({
               <FormField
                 control={form.control}
                 name="lastName"
-                rules={{ required: "Last Name is required." }}
+                rules={validationRules.required("Last Name")}
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                     <FormLabel className="col-span-2 text-end">Last Name</FormLabel>
@@ -131,7 +131,7 @@ export function UsersActionDialog({
               <FormField
                 control={form.control}
                 name="username"
-                rules={{ required: "Username is required." }}
+                rules={validationRules.required("Username")}
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                     <FormLabel className="col-span-2 text-end">Username</FormLabel>
@@ -145,10 +145,7 @@ export function UsersActionDialog({
               <FormField
                 control={form.control}
                 name="email"
-                rules={{
-                  required: "Email is required.",
-                  validate: (value) => isValidEmail(value) || "Please enter a valid email.",
-                }}
+                rules={validationRules.requiredEmail("Email")}
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                     <FormLabel className="col-span-2 text-end">Email</FormLabel>
@@ -162,7 +159,7 @@ export function UsersActionDialog({
               <FormField
                 control={form.control}
                 name="phoneNumber"
-                rules={{ required: "Phone number is required." }}
+                rules={validationRules.required("Phone number")}
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                     <FormLabel className="col-span-2 text-end">Phone Number</FormLabel>
@@ -176,7 +173,7 @@ export function UsersActionDialog({
               <FormField
                 control={form.control}
                 name="role"
-                rules={{ required: "Role is required." }}
+                rules={validationRules.required("Role")}
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                     <FormLabel className="col-span-2 text-end">Role</FormLabel>

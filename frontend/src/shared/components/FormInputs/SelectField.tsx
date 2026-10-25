@@ -9,6 +9,7 @@ import {
 import { Label } from "@shared/components/ui/label";
 import { RequiredMark, FieldErrorText } from "./FormHelpers";
 import { Controller, Control, FieldValues, Path } from "react-hook-form";
+import { validationRules } from "@shared/lib/formValidation";
 
 interface SelectOption {
   id: number | string;
@@ -24,6 +25,7 @@ interface SelectFieldProps<T extends FieldValues> {
   labelKey?: keyof SelectOption; // e.g. "label" or "title"
   placeholder?: string;
   required?: boolean;
+  rules?: any;
   readOnly?: boolean;
   disabled?: boolean;
   className?: string;
@@ -39,6 +41,7 @@ export const SelectField = <T extends FieldValues>({
   labelKey = "title",
   placeholder = "Select",
   required = false,
+  rules,
   readOnly = false,
   defaultValue = null,
   disabled = false,
@@ -55,9 +58,12 @@ export const SelectField = <T extends FieldValues>({
       <Controller
         name={name}
         control={control}
-        rules={{ required: required ? `${label} is required` : false }}
+        rules={required ? { ...validationRules.required(label), ...rules } : rules}
         render={({ field, fieldState }) => {
-          const currentValue = field.value ? String(field.value) : "";
+          const currentValue =
+            field.value !== undefined && field.value !== null
+              ? String(field.value)
+              : "";
           const hasValue = Boolean(currentValue);
 
           const resetSelection = () => {

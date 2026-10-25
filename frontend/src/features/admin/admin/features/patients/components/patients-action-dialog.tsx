@@ -22,6 +22,7 @@ import {
 import { Input } from "@admin/components/ui/input";
 import { SelectDropdown } from "@admin/components/select-dropdown";
 import { normalizeApiError } from "@shared/api/errors";
+import { validationRules, trimFormValues } from "@admin/lib/form-validation";
 import { patientGenderOptions } from "../data/data";
 import { mapApiPatientToPatient, type Patient } from "../data/schema";
 import {
@@ -132,8 +133,9 @@ export function PatientsActionDialog({
     }
   }, [open, isEdit, isDetailsError, detailsError]);
 
-  const onSubmit = async (values: PatientForm) => {
+  const onSubmit = async (rawValues: PatientForm) => {
     try {
+      const values = trimFormValues(rawValues);
       const fetchedItem = detailResponse?.data;
       const currentYear = new Date().getFullYear();
       const randomSuffix = Math.floor(100 + Math.random() * 900);
@@ -217,7 +219,7 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="patientName"
-                  rules={{ required: "Patient Name is required." }}
+                  rules={validationRules.required("Patient Name")}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Patient Name</FormLabel>
@@ -237,7 +239,7 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="mobileNumber"
-                  rules={{ required: "Mobile Number is required." }}
+                  rules={validationRules.mobileNumber}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Mobile Number</FormLabel>
@@ -256,9 +258,7 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="email"
-                  rules={{
-                    required: "Email is required.",
-                  }}
+                  rules={validationRules.requiredEmail("Email")}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Email</FormLabel>
@@ -277,7 +277,7 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="guardianName"
-                  rules={{ required: "Father / Spouse Name is required." }}
+                  rules={validationRules.required("Father / Spouse Name")}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Father/Spouse</FormLabel>
@@ -296,7 +296,10 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="age"
-                  rules={{ required: "Age is required." }}
+                  rules={{
+                    ...validationRules.required("Age"),
+                    ...validationRules.age,
+                  }}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Age</FormLabel>
@@ -316,7 +319,7 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="gender"
-                  rules={{ required: "Gender is required." }}
+                  rules={validationRules.required("Gender")}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Gender</FormLabel>
@@ -338,7 +341,7 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="address"
-                  rules={{ required: "Address is required." }}
+                  rules={validationRules.required("Address")}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Address</FormLabel>
@@ -357,7 +360,7 @@ export function PatientsActionDialog({
                 <FormField
                   control={form.control}
                   name="disease"
-                  rules={{ required: "Disease / Reason is required." }}
+                  rules={validationRules.required("Disease / Reason")}
                   render={({ field }) => (
                     <FormItem className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                       <FormLabel className="col-span-2 text-end">Disease</FormLabel>
