@@ -28,6 +28,7 @@ const Register = () => {
     setCurrentStep,
     nextStep,
     prevStep,
+    resetStep,
     dropdownOption,
     dropdownLoading,
     cities,
@@ -40,54 +41,10 @@ const Register = () => {
     return <LoadingSpinner />;
   }
 
-  const { handleSubmit, reset, resetField } = form;
-
-  // Field definitions for each step
-  const step1Fields: (keyof FormValues)[] = [
-    "title",
-    "fullName",
-    "mobileNo",
-    "gender",
-    "email",
-    "dateOfBirth",
-    "age",
-    "stateId",
-    "cityId",
-    "profilePic",
-    "address",
-  ];
-
-  const step2Fields: (keyof FormValues)[] = [
-    "qualificationId",
-    "departmentId",
-    "availableDayId",
-    "shiftTimeId",
-    "experience",
-    "samagamHeldIn",
-    "lastSewa",
-    "recommendedBy",
-    "certificate",
-  ];
-
-  const step3Fields: (keyof FormValues)[] = [
-    "password",
-    "confirmPassword",
-    "favoriteFood",
-    "childhoodNickname",
-    "motherMaidenName",
-    "hobbies",
-    "remark",
-  ];
-
-  const resetFields = (fields: (keyof FormValues)[]) => {
-    fields.forEach((field) => {
-      resetField(field);
-    });
-  };
+  const { handleSubmit } = form;
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // console.log("Form submission data:", data);
       setDisabled(true);
 
       // Validate required fields
@@ -153,7 +110,7 @@ const Register = () => {
               cities={cities}
               citiesLoading={citiesLoading}
               nextStep={nextStep}
-              reset={() => resetFields(step1Fields)}
+              reset={() => resetStep(1)}
             />
           )}
 
@@ -163,7 +120,7 @@ const Register = () => {
               dropdownOption={dropdownOption}
               nextStep={nextStep}
               prevStep={prevStep}
-              reset={() => resetFields(step2Fields)}
+              reset={() => resetStep(2)}
             />
           )}
 
@@ -173,7 +130,7 @@ const Register = () => {
               prevStep={prevStep}
               disabled={disabled}
               setDisabled={setDisabled}
-              reset={() => resetFields(step3Fields)}
+              reset={() => resetStep(3)}
             />
           )}
         </motion.form>

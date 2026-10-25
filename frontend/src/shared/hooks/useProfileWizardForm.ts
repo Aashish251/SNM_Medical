@@ -8,7 +8,7 @@ import {
   useGetRegistrationDropdownDataQuery,
 } from "@shared/services/commonApi";
 import { FormValues, CityItem } from "@shared/types/CommonType";
-import { requiredFields } from "@shared/config/common";
+import { requiredFields, STEP_FIELDS } from "@shared/config/common";
 
 type ProfileWizardMode = "register" | "update";
 
@@ -85,18 +85,35 @@ export function useProfileWizardForm(mode: ProfileWizardMode) {
     }
   }, [stateId, setValue, triggerGetCitiesByState]);
 
-  const nextStep = async () => {
+  const nextStep = async (skipValidation = false) => {
+    if (skipValidation) {
+      setCurrentStep((step) => step + 1);
+      return true;
+    }
     const valid = await trigger(requiredFields[currentStep]);
-    if (valid) setCurrentStep((step) => step + 1);
+    if (valid) {
+      setCurrentStep((step) => step + 1);
+      return true;
+    }
+    toast.error("Please fill all required fields correctly before proceeding.");
+    return false;
   };
 
   const prevStep = () => setCurrentStep((step) => step - 1);
+
+  const resetStep = (stepNumber: number) => {
+    const fields = STEP_FIELDS[stepNumber];
+    if (fields) {
+      fields.forEach((field) => form.resetField(field));
+    }
+  };
 
   return {
     currentStep,
     setCurrentStep,
     nextStep,
     prevStep,
+    resetStep,
     dropdownOption,
     dropdownLoading,
     cities,

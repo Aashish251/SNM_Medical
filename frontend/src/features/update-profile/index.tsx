@@ -34,12 +34,14 @@ const UpdateProfile = () => {
     (state: RootState) => state.auth
   );
   const regId = useLocation().state as { userId?: string | number } | null;
+  const profileId = regId?.userId ?? authUserDetails?.id;
 
   const {
     currentStep,
     setCurrentStep,
     nextStep,
     prevStep,
+    resetStep,
     dropdownOption,
     dropdownLoading,
     cities,
@@ -48,8 +50,6 @@ const UpdateProfile = () => {
   } = useUpdateProfileForm();
 
   const { handleSubmit, reset } = form;
-
-  const profileId = regId?.userId ?? authUserDetails?.id;
 
   const {
     data: userDetails,
@@ -94,54 +94,9 @@ const UpdateProfile = () => {
   }, [isLoading, isError, userDetails, error, reset]);
 
   // Show loading spinner until dropdown data is loaded
-  // NOTE: This must be placed AFTER all hooks are called to avoid React hooks ordering error
   if (dropdownLoading || !dropdownOption) {
     return <LoadingSpinner />;
   }
-
-  // Field definitions for each step
-  const step1Fields: (keyof FormValues)[] = [
-    "title",
-    "fullName",
-    "mobileNo",
-    "gender",
-    "email",
-    "dateOfBirth",
-    "age",
-    "stateId",
-    "cityId",
-    "profilePic",
-    "address",
-  ];
-
-  const step2Fields: (keyof FormValues)[] = [
-    "qualificationId",
-    "departmentId",
-    "availableDayId",
-    "shiftTimeId",
-    "experience",
-    "samagamHeldIn",
-    "lastSewa",
-    "recommendedBy",
-    "certificate",
-  ];
-
-  const step3Fields: (keyof FormValues)[] = [
-    "password",
-    "confirmPassword",
-    "favoriteFood",
-    "childhoodNickname",
-    "motherMaidenName",
-    "hobbies",
-    "remark",
-  ];
-
-  // Reset the step to its loaded values, retaining the saved file previews.
-  const resetFields = (fields: (keyof FormValues)[]) => {
-    fields.forEach((field) => {
-      form.resetField(field);
-    });
-  };
 
   const onSubmit = async (data: FormValues) => {
     if (!profileId) {
@@ -204,8 +159,9 @@ const UpdateProfile = () => {
               cities={cities}
               citiesLoading={citiesLoading}
               nextStep={nextStep}
-              reset={() => resetFields(step1Fields)}
+              reset={() => resetStep(1)}
               existingProfilePic={existingProfilePic}
+              checkDuplicates={false}
             />
           )}
 
@@ -215,7 +171,7 @@ const UpdateProfile = () => {
               dropdownOption={dropdownOption}
               nextStep={nextStep}
               prevStep={prevStep}
-              reset={() => resetFields(step2Fields)}
+              reset={() => resetStep(2)}
               existingCertificate={existingCertificate}
               regId={profileId}
             />
@@ -227,7 +183,7 @@ const UpdateProfile = () => {
               disabled={disabled}
               setDisabled={setDisabled}
               prevStep={prevStep}
-              reset={() => resetFields(step3Fields)}
+              reset={() => resetStep(3)}
             />
           )}
         </motion.form>

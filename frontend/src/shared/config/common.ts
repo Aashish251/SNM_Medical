@@ -176,3 +176,40 @@ export const requiredFields: Record<number, (keyof FormValues)[]> = {
   2: ["qualificationId", "departmentId", "availableDayId", "shiftTimeId", "certificate"],
   3: ["password", "confirmPassword", "favoriteFood", "childhoodNickname", "motherMaidenName", "hobbies"],
 };
+
+export const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
+  1: [
+    "title",
+    "fullName",
+    "mobileNo",
+    "gender",
+    "email",
+    "dateOfBirth",
+    "age",
+    "stateId",
+    "cityId",
+    "profilePic",
+    "address",
+  ],
+  2: [
+    "qualificationId",
+    "departmentId",
+    "availableDayId",
+    "shiftTimeId",
+    "experience",
+    "samagamHeldIn",
+    "lastSewa",
+    "recommendedBy",
+    "certificate",
+  ],
+  3: [
+    "password",
+    "confirmPassword",
+    "favoriteFood",
+    "childhoodNickname",
+    "motherMaidenName",
+    "hobbies",
+    "remark",
+  ],
+};
+
