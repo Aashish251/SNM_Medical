@@ -54,7 +54,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "favoriteFood",
-            validationRules.trimmedAlphabetic(
+            validationRules.trimmedText(
               "Favorite food",
               "favoriteFood",
               form.setValue,
@@ -70,7 +70,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "childhoodNickname",
-            validationRules.trimmedAlphabetic(
+            validationRules.trimmedText(
               "Childhood nickname",
               "childhoodNickname",
               form.setValue,
@@ -86,7 +86,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "motherMaidenName",
-            validationRules.trimmedAlphabetic(
+            validationRules.trimmedText(
               "Mother's maiden name",
               "motherMaidenName",
               form.setValue,
@@ -102,7 +102,7 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "hobbies",
-            validationRules.trimmedAlphabetic(
+            validationRules.trimmedText(
               "Hobbies",
               "hobbies",
               form.setValue,

@@ -69,7 +69,7 @@ const findExistingUser = async ({ email = "", mobileNo = "" } = {}) => {
 
   const [rows] = await promisePool.execute(
     `SELECT
-      (SELECT COUNT(1) FROM registration_tbl WHERE is_deleted = 0 AND ? <> '' AND LOWER(email) = ?) > 0 AS email_exists,
+      (SELECT COUNT(1) FROM registration_tbl WHERE is_deleted = 0 AND ? <> '' AND LOWER(TRIM(email)) = ?) > 0 AS email_exists,
       (SELECT COUNT(1) FROM registration_tbl WHERE is_deleted = 0 AND ? <> '' AND mobile_no = ?) > 0 AS mobile_exists`,
     [cleanEmail, cleanEmail, cleanMobile, cleanMobile]
   );
@@ -140,6 +140,9 @@ const validateUserData = (data) => {
 
   if (!validators.email(email)) throw new Error("Invalid email address");
   if (!validators.mobile(mobileNo)) throw new Error("Invalid mobile number");
+  if (data.experience !== undefined && data.experience !== "" && !validators.experience(data.experience)) {
+    throw new Error("Enter experience between 0 and 50 years, with up to one decimal place");
+  }
   if (getAgeFromDateOfBirth(dateOfBirth) === null) {
     throw new Error("Birthdate must be valid and no more than 120 years ago");
   }
@@ -157,9 +160,18 @@ const validateUserData = (data) => {
     "Hobbies": data.hobbies,
   };
 
+  for (const [label, value] of Object.entries({
+    "Favorite food": data.favoriteFood,
+    "Childhood nickname": data.childhoodNickname,
+    "Mother's maiden name": data.motherMaidenName,
+    Hobbies: data.hobbies,
+  })) {
+    if (!value) throw new Error(`${label} is required`);
+  }
+
   for (const [label, val] of Object.entries(textFieldsToCheck)) {
-    if (val && !/^[A-Za-z\s]+$/.test(String(val))) {
-      throw new Error(`${label} must contain only letters and spaces`);
+    if (val && !/^[A-Za-z\s'.,!?-]+$/.test(String(val))) {
+      throw new Error(`${label} must contain letters, spaces, and common punctuation`);
     }
   }
 

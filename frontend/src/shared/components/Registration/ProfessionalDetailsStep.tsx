@@ -114,14 +114,16 @@ export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = (
 
         <NumberField
           label="Total Experience (Years)"
-          maxLength={3}
+          maxLength={4}
           allowDecimal
-          register={register("experience")}
+          register={register("experience", validationRules.experienceYears("Experience"))}
           placeholder="Enter your experience"
         />
 
         <TextField
           label="Samagam Held In"
+          className="max-w-xs"
+          inputClassName="h-8 px-2"
           register={register(
             "samagamHeldIn",
             validationRules.trimmedAlphabetic(
@@ -136,6 +138,8 @@ export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = (
 
         <TextField
           label="Sewa Performed During Last Samagam"
+          className="max-w-xs"
+          inputClassName="h-8 px-2"
           register={register(
             "lastSewa",
             validationRules.trimmedAlphabetic(
@@ -150,6 +154,8 @@ export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = (
 
         <TextField
           label="Recommended By"
+          className="max-w-xs"
+          inputClassName="h-8 px-2"
           register={register(
             "recommendedBy",
             validationRules.trimmedAlphabetic(

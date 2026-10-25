@@ -1,6 +1,7 @@
 const { promisePool } = require('../config/database');
 const { getRelativeFilePath, normalizeFilePath } = require('../utils/filePathHelper');
 const logger = require('../utils/logger');
+const { validators } = require('../utils/validators');
 
 exports.addUserRole = async ({
   regId,
@@ -230,6 +231,12 @@ exports.updateUserProfile = async (regId, data) => {
       hobbies,
       certificate
     } = data;
+
+    if (experience !== undefined && experience !== null && experience !== "") {
+      if (!validators.experience(experience)) {
+        throw new Error("Enter experience between 0 and 50 years, with up to one decimal place");
+      }
+    }
 
     // Fetch existing user data to preserve unchanged fields
     const [existingUserResult] = await promisePool.execute(

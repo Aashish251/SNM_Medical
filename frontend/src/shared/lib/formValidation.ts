@@ -57,8 +57,8 @@ export type FileValidationOptions = {
 /* Common Regular Expression Patterns                                         */
 /* -------------------------------------------------------------------------- */
 
-export const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const strictEmailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+export const emailPattern = strictEmailPattern;
 export const mobilePattern = /^[6-9]\d{9}$/;
 export const fullMobilePattern = /^(?:\+91|91|0)?[-\s]?[6-9]\d{9}$/;
 export const alphabeticPattern = /^[A-Za-z\s]+$/;
@@ -116,7 +116,7 @@ export const trimFormValues = <T extends Record<string, any>>(values: T): T => {
  */
 export const isValidEmail = (value: string): boolean => {
   if (!value || typeof value !== "string") return false;
-  return emailPattern.test(value.trim());
+  return strictEmailPattern.test(value.trim());
 };
 
 /**
@@ -277,6 +277,25 @@ export const validationRules = {
     };
   },
 
+  /** Trims free-form text on blur while preserving punctuation and internal spacing. */
+  trimmedText: (
+    fieldLabel: string,
+    fieldName: string,
+    setValue?: (name: any, value: any, options?: any) => void,
+    options?: { required?: boolean; onBlur?: (e: any) => void }
+  ): ValidationRule => ({
+    required: options?.required ? `${fieldLabel} is required` : false,
+    validate: (value: unknown) => {
+      if (value === undefined || value === null || value === "") {
+        return options?.required ? `${fieldLabel} is required` : true;
+      }
+      return isWhitespaceOnly(value)
+        ? `${fieldLabel} cannot contain only spaces`
+        : true;
+    },
+    onBlur: createTrimOnBlurHandler(fieldName, setValue, options?.onBlur),
+  }),
+
   /**
    * Full Name rule: requires min 2 letters with single spaces between words.
    */
@@ -303,7 +322,7 @@ export const validationRules = {
    */
   email: {
     pattern: {
-      value: emailPattern,
+      value: strictEmailPattern,
       message: "Enter a valid email address",
     },
     validate: (value: unknown) => {
@@ -320,7 +339,7 @@ export const validationRules = {
   requiredEmail: (field = "Email"): ValidationRule => ({
     required: `${field} is required`,
     pattern: {
-      value: emailPattern,
+      value: strictEmailPattern,
       message: "Enter a valid email address",
     },
     validate: (value: unknown) => {
@@ -359,7 +378,7 @@ export const validationRules = {
       const str = String(value || "").trim();
       if (!str) return `${field} is required`;
       if (isWhitespaceOnly(value)) return `${field} cannot contain only spaces`;
-      const isEmail = emailPattern.test(str);
+      const isEmail = strictEmailPattern.test(str);
       const isPhone = mobilePattern.test(str);
       return isEmail || isPhone || "Enter a valid email or 10-digit mobile number";
     },
@@ -382,6 +401,17 @@ export const validationRules = {
       message: "Enter a valid age",
     },
   } as ValidationRule,
+
+  /** Optional experience value from 0 to 50 with up to one decimal place. */
+  experienceYears: (field = "Experience"): ValidationRule => ({
+    validate: (value: unknown) => {
+      if (value === undefined || value === null || value === "") return true;
+      const str = String(value);
+      const parsed = Number(str);
+      return (Number.isFinite(parsed) && parsed >= 0 && parsed <= 50 && /^\d{1,2}(?:\.\d)?$/.test(str))
+        || `Enter ${field.toLowerCase()} between 0 and 50 years, with up to one decimal place`;
+    },
+  }),
 
   /**
    * Password rule. Rejects empty and whitespace-only passwords.

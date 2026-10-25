@@ -179,6 +179,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         {/* Email */}
         <TextField
           label="Email"
+          type="email"
+          autoComplete="email"
           required
           register={register("email", {
             ...validationRules.requiredEmail("Email address"),

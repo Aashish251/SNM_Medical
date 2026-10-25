@@ -369,6 +369,31 @@ describe("formValidation utilities", () => {
     it("accepts valid email in validate", () => {
       expect(validate("user@example.com")).toBe(true);
     });
+
+    it.each(["user@example.com", "firstname.lastname@company.co.in"])(
+      "accepts valid address %s",
+      (email) => expect(rule.pattern?.value.test(email)).toBe(true)
+    );
+
+    it.each(["user@", "user.com", "user@@example.com", "user@example.c"])(
+      "rejects invalid address %s",
+      (email) => expect(rule.pattern?.value.test(email)).toBe(false)
+    );
+  });
+
+  describe("validationRules.experienceYears", () => {
+    const rule = validationRules.experienceYears();
+    const validate = rule.validate as any;
+
+    it.each(["0", "0.5", "1", "2.5", "5.0", "12.3", "20.5", "50"])(
+      "accepts %s years",
+      (value) => expect(validate(value)).toBe(true)
+    );
+
+    it.each(["-1", "50.1", "51", "12.34", "1..2", "abc"])(
+      "rejects %s years",
+      (value) => expect(validate(value)).toContain("between 0 and 50")
+    );
   });
 
   describe("validationRules.noWhitespaceOnly", () => {
