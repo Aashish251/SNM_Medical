@@ -60,15 +60,16 @@ exports.checkEmail = async (req, res) => {
 };
 
 exports.checkAvailability = async (req, res) => {
-  const email = String(req.body?.email || "").trim();
-  const mobileNo = String(req.body?.mobileNo || "").trim();
+  const { normalizeEmail, normalizePhone } = require("../utils/validators");
+  const email = normalizeEmail(String(req.body?.email || ""));
+  const mobileNo = normalizePhone(String(req.body?.mobileNo || ""));
   if (!email && !mobileNo) return sendResponse(res, 400, false, "Email or mobile number is required");
 
   try {
     const availability = await registrationService.checkRegistrationAvailability({ email, mobileNo });
     const messages = [];
-    if (availability.emailExists) messages.push("Email already exists");
-    if (availability.mobileExists) messages.push("Phone number already exists");
+    if (availability.emailExists) messages.push("This email is already registered");
+    if (availability.mobileExists) messages.push("This phone number is already registered");
     sendSuccess(res, messages.join(". ") || "Email and phone number are available", availability);
   } catch (error) {
     sendError(res, error.message, 500);

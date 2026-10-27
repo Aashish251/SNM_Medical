@@ -40,12 +40,3 @@ const getAge = (dobString: string): number | null => {
 export const calculateAge = (dobString: string) => getAge(dobString || "") ?? 0;
 
 export const isValidBirthdate = (dobString: string) => getAge(dobString) !== null;
-
-export const handleAlphabeticInput = (
-  e: React.ChangeEvent<HTMLInputElement>,
-  fieldName: any,
-  setValue: any
-) => {
-  const value = e.target.value.replace(/[^A-Za-z\s]/g, "");
-  setValue(fieldName, value, { shouldValidate: true });
-};

@@ -14,7 +14,6 @@ import {
 import { useForgotPasswordMutation } from "@features/forgot-password/service/ForgotPasswordApi";
 import { toast } from "@shared/lib/toast";
 import { normalizeApiError } from "@shared/api/errors";
-import { handleAlphabeticInput } from "@shared/lib/utils";
 import { validationRules } from "@shared/lib/formValidation";
 
 interface Props {

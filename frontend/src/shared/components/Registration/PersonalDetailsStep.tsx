@@ -12,7 +12,7 @@ import {
   TextareaField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
-import { handleAlphabeticInput, isValidBirthdate } from "@shared/lib/utils";
+import { isValidBirthdate } from "@shared/lib/utils";
 import { useCheckRegistrationAvailabilityMutation } from "@features/register/services";
 import { normalizeApiError } from "@shared/api/errors";
 import { requiredFields } from "@shared/config/common";
@@ -129,20 +129,15 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <TextField
           label="Full Name"
           required
-          register={register("fullName", {
-            ...validationRules.fullName("Full name"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "fullName", form.setValue),
-            onBlur: (e: any) => {
-              const raw = e?.target?.value;
-              if (typeof raw === "string") {
-                const trimmed = raw.trim().replace(/\s+/g, " ");
-                if (trimmed && trimmed !== raw) {
-                  form.setValue("fullName", trimmed, { shouldValidate: true });
-                }
-              }
-            },
-          })}
+          register={register(
+            "fullName",
+            validationRules.trimmedAlphabetic(
+              "Full name",
+              "fullName",
+              form.setValue,
+              { required: true, maxLength: 50 }
+            )
+          )}
           placeholder="Enter full name"
           error={errors.fullName}
         />
@@ -182,14 +177,21 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           type="email"
           autoComplete="email"
           required
-          register={register("email", {
-            ...validationRules.requiredEmail("Email address"),
-            onChange: () => {
-              if (errors.email) {
-                form.clearErrors("email");
+          register={register(
+            "email",
+            validationRules.emailField(
+              "Email address",
+              "email",
+              form.setValue,
+              {
+                onChange: () => {
+                  if (errors.email) {
+                    form.clearErrors("email");
+                  }
+                },
               }
-            },
-          })}
+            )
+          )}
           placeholder="Enter email address"
           error={errors.email}
         />
@@ -270,7 +272,15 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             label="Address"
             placeholder="Enter address"
             required
-            register={register("address", validationRules.required("Address"))}
+            register={register(
+              "address",
+              validationRules.trimmedRequired(
+                "Address",
+                "address",
+                form.setValue,
+                { minLength: 5, maxLength: 500 }
+              )
+            )}
             error={errors.address}
           />
         </div>

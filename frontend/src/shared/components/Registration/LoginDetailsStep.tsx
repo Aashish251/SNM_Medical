@@ -5,7 +5,6 @@ import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import { RootState } from "@app/store";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { handleAlphabeticInput } from "@shared/lib/utils";
 import { validationRules } from "@shared/lib/formValidation";
 
 export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled }: any) => {
@@ -54,11 +53,10 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "favoriteFood",
-            validationRules.trimmedText(
+            validationRules.securityAnswer(
               "Favorite food",
               "favoriteFood",
-              form.setValue,
-              { required: true }
+              form.setValue
             )
           )}
           placeholder="Enter favorite food"
@@ -70,11 +68,10 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "childhoodNickname",
-            validationRules.trimmedText(
+            validationRules.securityAnswer(
               "Childhood nickname",
               "childhoodNickname",
-              form.setValue,
-              { required: true }
+              form.setValue
             )
           )}
           placeholder="Enter childhood nickname"
@@ -86,11 +83,10 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "motherMaidenName",
-            validationRules.trimmedText(
+            validationRules.securityAnswer(
               "Mother's maiden name",
               "motherMaidenName",
-              form.setValue,
-              { required: true }
+              form.setValue
             )
           )}
           placeholder="Enter mother's maiden name"
@@ -102,11 +98,10 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
           required
           register={register(
             "hobbies",
-            validationRules.trimmedText(
+            validationRules.securityAnswer(
               "Hobbies",
               "hobbies",
-              form.setValue,
-              { required: true }
+              form.setValue
             )
           )}
           placeholder="What are your hobbies?"
@@ -125,7 +120,16 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
             disabled={userType === "admin" ? false : true}
             label="Remark (Added by Administration Team)"
             placeholder="This field will be filled by the administration team after review"
-            register={register("remark")}
+            register={register(
+              "remark",
+              validationRules.remarkField(
+                "Remark",
+                "remark",
+                form.setValue,
+                { maxLength: 500 }
+              )
+            )}
+            error={errors.remark}
           />
         </div>
       </div>

@@ -414,4 +414,120 @@ describe("formValidation utilities", () => {
       expect(validate("Some valid note")).toBe(true);
     });
   });
+
+  describe("validationRules.trimmedRequired", () => {
+    const setValueMock = vi.fn();
+    const rule = validationRules.trimmedRequired("Address", "address", setValueMock, { minLength: 5, maxLength: 500 });
+    const validate = rule.validate as any;
+
+    it("rejects empty, null, or undefined values", () => {
+      expect(validate("")).toBe("Address is required");
+      expect(validate(null)).toBe("Address is required");
+      expect(validate(undefined)).toBe("Address is required");
+    });
+
+    it("rejects whitespace-only input", () => {
+      expect(validate("    ")).toBe("Address cannot contain only spaces");
+    });
+
+    it("accepts valid address", () => {
+      expect(validate("123 Main Street")).toBe(true);
+    });
+
+    it("has minLength 5 and maxLength 500 constraints", () => {
+      expect(rule.minLength?.value).toBe(5);
+      expect(rule.maxLength?.value).toBe(500);
+    });
+
+    it("triggers createTrimOnBlurHandler on blur", () => {
+      const blurEvent = { target: { value: "  123 Main Street  " } };
+      rule.onBlur?.(blurEvent as any);
+      expect(setValueMock).toHaveBeenCalledWith("address", "123 Main Street", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    });
+  });
+
+  describe("validationRules.securityAnswer", () => {
+    const setValueMock = vi.fn();
+    const rule = validationRules.securityAnswer("Favorite food", "favoriteFood", setValueMock);
+    const validate = rule.validate as any;
+
+    it("rejects empty and whitespace-only input", () => {
+      expect(validate("")).toBe("Favorite food is required");
+      expect(validate("   ")).toBe("Favorite food cannot contain only spaces");
+    });
+
+    it("accepts valid security answer", () => {
+      expect(validate("Pizza")).toBe(true);
+    });
+
+    it("has minLength 2 and maxLength 100 constraints", () => {
+      expect(rule.minLength?.value).toBe(2);
+      expect(rule.maxLength?.value).toBe(100);
+    });
+
+    it("trims on blur", () => {
+      const blurEvent = { target: { value: "  Pasta  " } };
+      rule.onBlur?.(blurEvent as any);
+      expect(setValueMock).toHaveBeenCalledWith("favoriteFood", "Pasta", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    });
+  });
+
+  describe("validationRules.emailField", () => {
+    const setValueMock = vi.fn();
+    const rule = validationRules.emailField("Email address", "email", setValueMock);
+    const validate = rule.validate as any;
+
+    it("rejects whitespace-only input", () => {
+      expect(validate("   ")).toBe("Email address cannot contain only spaces");
+    });
+
+    it("accepts valid email", () => {
+      expect(validate("user@example.com")).toBe(true);
+    });
+
+    it("trims email on blur", () => {
+      const blurEvent = { target: { value: "  user@example.com  " } };
+      rule.onBlur?.(blurEvent as any);
+      expect(setValueMock).toHaveBeenCalledWith("email", "user@example.com", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    });
+  });
+
+  describe("validationRules.remarkField", () => {
+    const setValueMock = vi.fn();
+    const rule = validationRules.remarkField("Remark", "remark", setValueMock, { maxLength: 500 });
+    const validate = rule.validate as any;
+
+    it("accepts empty or null for optional remark", () => {
+      expect(validate("")).toBe(true);
+      expect(validate(null)).toBe(true);
+      expect(validate(undefined)).toBe(true);
+    });
+
+    it("rejects whitespace-only input", () => {
+      expect(validate("   ")).toBe("Remark cannot contain only spaces");
+    });
+
+    it("accepts valid remark", () => {
+      expect(validate("Verified successfully.")).toBe(true);
+    });
+
+    it("trims on blur", () => {
+      const blurEvent = { target: { value: "  Verified  " } };
+      rule.onBlur?.(blurEvent as any);
+      expect(setValueMock).toHaveBeenCalledWith("remark", "Verified", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    });
+  });
 });
+

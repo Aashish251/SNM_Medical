@@ -7,7 +7,7 @@ import {
   TextField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
-import { createFileValidation, validationRules } from "@shared/lib/formValidation";
+import { createFileValidation, createTrimOnBlurHandler, validationRules } from "@shared/lib/formValidation";
 import { toast } from "@shared/lib/toast";
 import { requiredFields, STEP_FIELDS } from "@shared/config/common";
 import type { UseFormReturn } from "react-hook-form";
@@ -116,8 +116,17 @@ export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = (
           label="Total Experience (Years)"
           maxLength={4}
           allowDecimal
-          register={register("experience", validationRules.experienceYears("Experience"))}
-          placeholder="Enter your experience"
+          maxWholeDigits={2}
+          maxDecimals={1}
+          register={register("experience", {
+            ...validationRules.experienceYears("Experience"),
+            onBlur: (e) => {
+              const val = e.target.value.trim().replace(/\.$/, "");
+              form.setValue("experience", val, { shouldValidate: true, shouldDirty: true });
+            },
+          })}
+          placeholder="Enter your experience (e.g. 5 or 2.5)"
+          error={errors.experience}
         />
 
         <TextField
@@ -129,7 +138,8 @@ export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = (
             validationRules.trimmedAlphabetic(
               "Samagam Held In",
               "samagamHeldIn",
-              form.setValue
+              form.setValue,
+              { maxLength: 100 }
             )
           )}
           placeholder="Enter samagam held in"
@@ -145,7 +155,8 @@ export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = (
             validationRules.trimmedAlphabetic(
               "Sewa Performed During Last Samagam",
               "lastSewa",
-              form.setValue
+              form.setValue,
+              { maxLength: 100 }
             )
           )}
           placeholder="Enter last Sewa performed"
@@ -161,7 +172,8 @@ export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = (
             validationRules.trimmedAlphabetic(
               "Recommended By",
               "recommendedBy",
-              form.setValue
+              form.setValue,
+              { maxLength: 100 }
             )
           )}
           placeholder="Enter recommender's name"

@@ -42,6 +42,7 @@ export interface RequiredValidationOptions {
 export interface TrimmedAlphabeticOptions {
   required?: boolean;
   message?: string;
+  maxLength?: number;
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
@@ -259,6 +260,7 @@ export const validationRules = {
     options?: TrimmedAlphabeticOptions
   ): ValidationRule => {
     const isReq = options?.required ?? false;
+    const maxLen = options?.maxLength ?? 100;
     const rule = validationRules.alphabetic(fieldLabel, {
       required: isReq,
       message: options?.message,
@@ -266,6 +268,10 @@ export const validationRules = {
 
     return {
       ...rule,
+      maxLength: {
+        value: maxLen,
+        message: `${fieldLabel} must be at most ${maxLen} characters`,
+      },
       onChange: (e: any) => {
         if (setValue && e?.target) {
           const sanitized = e.target.value.replace(/[^A-Za-z\s]/g, "");
@@ -416,14 +422,19 @@ export const validationRules = {
   /**
    * Password rule. Rejects empty and whitespace-only passwords.
    */
-  password: (options?: { minLength?: number; message?: string }): ValidationRule => {
+  password: (options?: { minLength?: number; maxLength?: number; message?: string }): ValidationRule => {
     const minLen = options?.minLength ?? 6;
+    const maxLen = options?.maxLength ?? 16;
     const requiredMsg = options?.message || "Password is required";
     return {
       required: requiredMsg,
       minLength: {
         value: minLen,
         message: `Password must be at least ${minLen} characters`,
+      },
+      maxLength: {
+        value: maxLen,
+        message: `Password must be at most ${maxLen} characters`,
       },
       validate: (value: unknown) => {
         if (!value) return requiredMsg;
@@ -472,6 +483,120 @@ export const validationRules = {
       message: `${field} must be at least ${length} characters`,
     },
   }),
+
+  /**
+   * Required text field with trim-on-blur, whitespace rejection, and length constraints.
+   * Use for fields like Address that need more than just `required`.
+   */
+  trimmedRequired: (
+    fieldLabel: string,
+    fieldName: string,
+    setValue?: (name: any, value: any, options?: any) => void,
+    options?: { minLength?: number; maxLength?: number; onBlur?: (e: any) => void }
+  ): ValidationRule => {
+    const minLen = options?.minLength ?? 2;
+    const maxLen = options?.maxLength ?? 500;
+    return {
+      required: `${fieldLabel} is required`,
+      minLength: {
+        value: minLen,
+        message: `${fieldLabel} must be at least ${minLen} characters`,
+      },
+      maxLength: {
+        value: maxLen,
+        message: `${fieldLabel} must be at most ${maxLen} characters`,
+      },
+      validate: (value: unknown) => {
+        if (value === undefined || value === null || value === "") {
+          return `${fieldLabel} is required`;
+        }
+        if (typeof value === "string" && isWhitespaceOnly(value)) {
+          return `${fieldLabel} cannot contain only spaces`;
+        }
+        return true;
+      },
+      onBlur: createTrimOnBlurHandler(fieldName, setValue, options?.onBlur),
+    };
+  },
+
+  /**
+   * Security question answer: required, trimmed on blur, min 2, max 100 chars.
+   */
+  securityAnswer: (
+    fieldLabel: string,
+    fieldName: string,
+    setValue?: (name: any, value: any, options?: any) => void,
+    options?: { onBlur?: (e: any) => void }
+  ): ValidationRule => ({
+    required: `${fieldLabel} is required`,
+    minLength: {
+      value: 2,
+      message: `${fieldLabel} must be at least 2 characters`,
+    },
+    maxLength: {
+      value: 100,
+      message: `${fieldLabel} must be at most 100 characters`,
+    },
+    validate: (value: unknown) => {
+      if (value === undefined || value === null || value === "") {
+        return `${fieldLabel} is required`;
+      }
+      if (typeof value === "string" && isWhitespaceOnly(value)) {
+        return `${fieldLabel} cannot contain only spaces`;
+      }
+      return true;
+    },
+    onBlur: createTrimOnBlurHandler(fieldName, setValue, options?.onBlur),
+  }),
+
+  /**
+   * Required email with trim-on-blur so leading/trailing spaces are auto-cleaned.
+   */
+  emailField: (
+    fieldLabel: string,
+    fieldName: string,
+    setValue?: (name: any, value: any, options?: any) => void,
+    options?: { onChange?: (e: any) => void; onBlur?: (e: any) => void }
+  ): ValidationRule => ({
+    required: `${fieldLabel} is required`,
+    pattern: {
+      value: strictEmailPattern,
+      message: "Enter a valid email address",
+    },
+    validate: (value: unknown) => {
+      if (typeof value === "string" && isWhitespaceOnly(value)) {
+        return `${fieldLabel} cannot contain only spaces`;
+      }
+      return true;
+    },
+    onChange: options?.onChange,
+    onBlur: createTrimOnBlurHandler(fieldName, setValue, options?.onBlur),
+  }),
+
+  /**
+   * Optional remark/textarea: trim-on-blur, no whitespace-only, max 500 chars.
+   */
+  remarkField: (
+    fieldLabel: string,
+    fieldName: string,
+    setValue?: (name: any, value: any, options?: any) => void,
+    options?: { maxLength?: number; onBlur?: (e: any) => void }
+  ): ValidationRule => {
+    const maxLen = options?.maxLength ?? 500;
+    return {
+      maxLength: {
+        value: maxLen,
+        message: `${fieldLabel} must be at most ${maxLen} characters`,
+      },
+      validate: (value: unknown) => {
+        if (typeof value === "string" && isWhitespaceOnly(value)) {
+          return `${fieldLabel} cannot contain only spaces`;
+        }
+        return true;
+      },
+      onBlur: createTrimOnBlurHandler(fieldName, setValue, options?.onBlur),
+    };
+  },
 };
 
 /* -------------------------------------------------------------------------- */
