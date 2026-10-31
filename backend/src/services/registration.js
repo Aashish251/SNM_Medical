@@ -174,7 +174,7 @@ const validateUserData = (data) => {
   if (!validators.password(password)) throw new Error("Password must be at least 6 characters");
   if (password !== confirmPassword) throw new Error("Passwords do not match");
 
-  // Required security questions: 2-100 characters after trimming, not whitespace-only
+  // Required security questions: 2-100 characters after trimming, not whitespace-only, alphabets and spaces only
   const securityQuestions = [
     { label: "Favorite food", value: data.favoriteFood },
     { label: "Childhood nickname", value: data.childhoodNickname },
@@ -185,8 +185,12 @@ const validateUserData = (data) => {
     if (value === undefined || value === null || typeof value !== "string" || value.trim().length === 0) {
       throw new Error(`${label} is required`);
     }
-    if (!validators.securityAnswer(value)) {
+    const trimmed = value.trim();
+    if (trimmed.length < 2 || trimmed.length > 100) {
       throw new Error(`${label} must be between 2 and 100 characters`);
+    }
+    if (!/^[A-Za-z\s]+$/.test(trimmed)) {
+      throw new Error(`${label} should contain only alphabets and spaces (no numbers or symbols)`);
     }
   }
 
