@@ -187,6 +187,26 @@ describe("validation of user data", () => {
     expect(threwError.message).toContain("Hobbies is required");
   });
 
+  it("rejects numbers in security questions (favorite food, nickname, maiden name, hobbies)", () => {
+    for (const [field, label] of [
+      ["favoriteFood", "Favorite food"],
+      ["childhoodNickname", "Childhood nickname"],
+      ["motherMaidenName", "Mother's maiden name"],
+      ["hobbies", "Hobbies"],
+    ]) {
+      let threwError;
+      try {
+        const data = validData();
+        data[field] = "2435";
+        registrationService.validateUserData(data);
+      } catch (error) {
+        threwError = error;
+      }
+      expect(threwError).toBeDefined();
+      expect(threwError.message).toContain(`${label} should contain only alphabets and spaces (no numbers or symbols)`);
+    }
+  });
+
   it("accepts trimmed and collapsed full name", () => {
     const data = validData();
     const original = data.fullName;

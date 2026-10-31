@@ -6,7 +6,9 @@ export const RequiredMark: React.FC = () => (
 
 export interface FieldErrorTextProps {
   message?: string | null;
+  className?: string;
 }
 
-export const FieldErrorText: React.FC<FieldErrorTextProps> = ({ message }) =>
-  message ? <p className="text-red-500 text-xs mt-1">{message}</p> : null;
+export const FieldErrorText: React.FC<FieldErrorTextProps> = ({ message, className = "" }) =>
+  message ? <p className={`text-red-500 text-xs mt-1 ${className}`.trim()}>{message}</p> : null;
+

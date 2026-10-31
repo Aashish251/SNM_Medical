@@ -520,13 +520,13 @@ export const validationRules = {
   },
 
   /**
-   * Security question answer: required, trimmed on blur, min 2, max 100 chars.
+   * Security question answer: required, trimmed on blur, min 2, max 100 chars, only alphabets and spaces (no numbers or symbols).
    */
   securityAnswer: (
     fieldLabel: string,
     fieldName: string,
     setValue?: (name: any, value: any, options?: any) => void,
-    options?: { onBlur?: (e: any) => void }
+    options?: { onBlur?: (e: any) => void; onChange?: (e: any) => void }
   ): ValidationRule => ({
     required: `${fieldLabel} is required`,
     minLength: {
@@ -541,10 +541,28 @@ export const validationRules = {
       if (value === undefined || value === null || value === "") {
         return `${fieldLabel} is required`;
       }
-      if (typeof value === "string" && isWhitespaceOnly(value)) {
+      const str = String(value);
+      if (isWhitespaceOnly(str)) {
         return `${fieldLabel} cannot contain only spaces`;
       }
+      const trimmed = str.trim();
+      if (trimmed.length < 2) {
+        return `${fieldLabel} must be at least 2 characters`;
+      }
+      if (!alphabeticPattern.test(str)) {
+        return `${fieldLabel} should contain only alphabets and spaces (no numbers or symbols)`;
+      }
+      if (!/[A-Za-z]/.test(trimmed)) {
+        return `${fieldLabel} must contain at least one letter`;
+      }
       return true;
+    },
+    onChange: (e: any) => {
+      if (setValue && e?.target) {
+        const sanitized = e.target.value.replace(/[^A-Za-z\s]/g, "");
+        setValue(fieldName, sanitized, { shouldValidate: true });
+      }
+      options?.onChange?.(e);
     },
     onBlur: createTrimOnBlurHandler(fieldName, setValue, options?.onBlur),
   }),

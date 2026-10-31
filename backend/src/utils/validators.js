@@ -64,10 +64,10 @@ const validators = {
     return PATTERNS.experience.test(text) && Number(text) >= 0 && Number(text) <= 60;
   },
 
-  /** Required security question answer: 2-100 chars, not whitespace-only. */
+  /** Required security question answer: 2-100 chars, only alphabets and spaces. */
   securityAnswer: (value) => {
     const normalized = normalizeText(value);
-    return normalized.length >= 2 && normalized.length <= 100;
+    return normalized.length >= 2 && normalized.length <= 100 && /^[A-Za-z\s]+$/.test(normalized);
   },
 
   /** Optional text with punctuation: max 100 chars. */

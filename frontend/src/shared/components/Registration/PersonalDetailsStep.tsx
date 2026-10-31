@@ -6,6 +6,7 @@ import { UseFormReturn } from "react-hook-form";
 import { FormValues, CityItem } from "@shared/types/CommonType";
 import {
   DatePickerField,
+  FieldErrorText,
   FileUploadField,
   NumberField,
   SelectField,
@@ -197,32 +198,40 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         />
 
         {/* Birthdate & Age */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <TextField
-            label="Birthdate"
-            type="date"
-            max={new Date().toISOString().slice(0, 10)}
-            required
-            register={register("dateOfBirth", {
-              required: "Birthdate is required",
-              validate: {
-                validDate: (value) => {
-                  if (!value) return true;
-                  return isValidBirthdate(value)
-                    || "Enter a valid birthdate no more than 120 years ago";
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <TextField
+              label="Birthdate"
+              type="date"
+              max={new Date().toISOString().slice(0, 10)}
+              required
+              register={register("dateOfBirth", {
+                required: "Birthdate is required",
+                validate: {
+                  validDate: (value) => {
+                    if (!value) return true;
+                    return isValidBirthdate(value)
+                      || "Enter a valid birthdate no more than 120 years ago";
+                  },
                 },
-              },
-            })}
-            placeholder="DD/MM/YYYY"
-            error={errors.dateOfBirth}
-          />
+              })}
+              placeholder="DD/MM/YYYY"
+              error={errors.dateOfBirth}
+              showError={false}
+            />
 
-          <TextField
-            label="Age"
-            readOnly
-            register={register("age", { required: "Age is required" })}
-            placeholder="Auto calculated"
-            error={errors.age}
+            <TextField
+              label="Age"
+              readOnly
+              register={register("age", { required: "Age is required" })}
+              placeholder="Auto calculated"
+              error={errors.age}
+              showError={false}
+            />
+          </div>
+          <FieldErrorText
+            message={errors.dateOfBirth?.message || errors.age?.message}
+            className="whitespace-nowrap"
           />
         </div>
 

@@ -468,6 +468,29 @@ describe("formValidation utilities", () => {
       expect(rule.maxLength?.value).toBe(100);
     });
 
+    it("rejects numbers and symbols in security questions", () => {
+      expect(validate("2435")).toBe(
+        "Favorite food should contain only alphabets and spaces (no numbers or symbols)"
+      );
+      expect(validate("03")).toBe(
+        "Favorite food should contain only alphabets and spaces (no numbers or symbols)"
+      );
+      expect(validate("45")).toBe(
+        "Favorite food should contain only alphabets and spaces (no numbers or symbols)"
+      );
+      expect(validate("Pizza123")).toBe(
+        "Favorite food should contain only alphabets and spaces (no numbers or symbols)"
+      );
+    });
+
+    it("sanitizes numbers and symbols on change", () => {
+      const changeEvent = { target: { value: "Pizza 123!" } };
+      rule.onChange?.(changeEvent as any);
+      expect(setValueMock).toHaveBeenCalledWith("favoriteFood", "Pizza ", {
+        shouldValidate: true,
+      });
+    });
+
     it("trims on blur", () => {
       const blurEvent = { target: { value: "  Pasta  " } };
       rule.onBlur?.(blurEvent as any);
