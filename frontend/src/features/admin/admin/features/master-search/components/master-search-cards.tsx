@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@admin/components/ui/dropdown-menu";
-import { ROUTE_ADMIN_UPDATE_PROFILE } from "@admin/constants/routePaths";
+import { ROUTE_ADMIN_PROFILE_EDIT } from "@admin/constants/routePaths";
 import { ROUTE_ADMIN_PROFILE } from "@admin/constants/routePaths";
 import { useAppSelector } from "@app/store/hooks";
 import type { MasterSearchUser } from "../types";
@@ -71,10 +71,7 @@ export function MasterSearchCards({
           user.isApproved === 1 ||
           user.isApproved === ("1" as unknown);
         const name = `${user.title ? user.title + " " : ""}${user.fullName}`;
-        const isCurrentUser = String(user.regId) === String(currentUserId);
-        const profileRoute = isCurrentUser
-          ? ROUTE_ADMIN_PROFILE
-          : ROUTE_ADMIN_UPDATE_PROFILE;
+        const profileRoute = ROUTE_ADMIN_PROFILE;
         const initials =
           (user.fullName || "User")
             .split(" ")
@@ -127,9 +124,17 @@ export function MasterSearchCards({
                   <DropdownMenuItem asChild>
                     <Link
                       to={profileRoute}
-                      state={isCurrentUser ? undefined : { userId: user.regId }}
+                      state={{ userId: user.regId }}
                     >
                       View Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to={ROUTE_ADMIN_PROFILE_EDIT}
+                      state={{ userId: user.regId }}
+                    >
+                      Edit Profile
                     </Link>
                   </DropdownMenuItem>
                   {!isApproved && (
@@ -162,7 +167,7 @@ export function MasterSearchCards({
               <div className="min-w-0 flex-1">
                 <Link
                   to={profileRoute}
-                  state={isCurrentUser ? undefined : { userId: user.regId }}
+                  state={{ userId: user.regId }}
                   className="block truncate text-sm font-semibold text-slate-900 underline-offset-2 hover:text-blue-600 hover:underline dark:text-slate-100"
                 >
                   {name}

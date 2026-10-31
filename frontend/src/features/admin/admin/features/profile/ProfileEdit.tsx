@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAppSelector } from "@app/store/hooks";
 import { useForm, Controller } from "react-hook-form";
 import { Header } from "@admin/components/layout/header";
@@ -183,9 +183,16 @@ export function ProfileEdit() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { userDetails } = useAppSelector((state) => state.auth);
-  const userIdFromState = state?.userId;
+  const [searchParams] = useSearchParams();
+  const userIdFromLocation = state?.userId ?? searchParams.get("userId");
+  const handleBackToProfile = () => {
+    navigate(
+      ROUTE_ADMIN_PROFILE,
+      userIdFromLocation ? { state: { userId: userIdFromLocation } } : undefined
+    );
+  };
   const defaultUserId = userDetails?.id;
-  const userId = userIdFromState ? String(userIdFromState) : defaultUserId;
+  const userId = userIdFromLocation ? String(userIdFromLocation) : defaultUserId;
 
   /* --- APIs -------------------------------------------------------- */
   const {
@@ -390,7 +397,7 @@ export function ProfileEdit() {
               variant="outline"
               size="sm"
               className="mb-3 gap-1.5"
-              onClick={() => navigate(ROUTE_ADMIN_PROFILE)}
+              onClick={handleBackToProfile}
             >
               <ArrowLeft className="size-3.5" />
               Back to Profile
@@ -981,7 +988,7 @@ export function ProfileEdit() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(ROUTE_ADMIN_PROFILE)}
+                onClick={handleBackToProfile}
               >
                 Cancel
               </Button>
@@ -993,14 +1000,14 @@ export function ProfileEdit() {
           </form>
         )}
       </Main>
-      <Dialog open={!!saveMessage} onOpenChange={(open) => { if (!open) { setSaveMessage(""); navigate(ROUTE_ADMIN_PROFILE); } }}>
+      <Dialog open={!!saveMessage} onOpenChange={(open) => { if (!open) { setSaveMessage(""); handleBackToProfile(); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update complete</DialogTitle>
             <DialogDescription>{saveMessage}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => { setSaveMessage(""); navigate(ROUTE_ADMIN_PROFILE); }}>OK</Button>
+            <Button onClick={() => { setSaveMessage(""); handleBackToProfile(); }}>OK</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
