@@ -95,11 +95,12 @@ async function getRows(moduleName, search = "") {
   const module = getModule(moduleName);
   if (moduleName === "city") {
     const [rows] = await promisePool.execute(
-      `SELECT id, city_name, state_id
-       FROM city_tbl
-       WHERE is_deleted = 0
-         AND (? = '' OR city_name LIKE CONCAT('%', ?, '%'))
-       ORDER BY city_name`,
+      `SELECT c.id, c.city_name, c.state_id, s.state_name
+       FROM city_tbl c
+       LEFT JOIN state_tbl s ON s.id = c.state_id AND s.is_deleted = 0
+       WHERE c.is_deleted = 0
+         AND (? = '' OR c.city_name LIKE CONCAT('%', ?, '%'))
+       ORDER BY c.city_name`,
       [search.trim(), search.trim()]
     );
     return rows.map((row) => ({

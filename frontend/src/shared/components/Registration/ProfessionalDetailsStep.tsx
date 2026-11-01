@@ -1,18 +1,29 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@shared/components/ui/button";
 import { SelectField } from "@shared/components/FormInputs/SelectField";
-import { DUMMY } from "@shared/config/common";
 import {
   FileUploadField,
   NumberField,
-  RequiredMark,
   TextField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
-import { handleAlphabeticInput } from "@shared/lib/utils";
-import { createFileValidation, validationRules } from "@shared/lib/formValidation";
+import { createFileValidation, createTrimOnBlurHandler, validationRules } from "@shared/lib/formValidation";
+import { toast } from "@shared/lib/toast";
+import { requiredFields, STEP_FIELDS } from "@shared/config/common";
+import type { UseFormReturn } from "react-hook-form";
+import type { FormValues } from "@shared/types/CommonType";
 
-export const ProfessionalDetailsStep = ({
+interface ProfessionalDetailsStepProps {
+  form: UseFormReturn<FormValues>;
+  dropdownOption: any;
+  nextStep: (skipValidation?: boolean) => Promise<boolean>;
+  prevStep: () => void;
+  reset: () => void;
+  existingCertificate?: string;
+  regId?: string | number;
+}
+
+export const ProfessionalDetailsStep: React.FC<ProfessionalDetailsStepProps> = ({
   form,
   dropdownOption,
   nextStep,
@@ -20,7 +31,7 @@ export const ProfessionalDetailsStep = ({
   reset,
   existingCertificate,
   regId,
-}: any) => {
+}) => {
   const {
     control,
     register,
@@ -42,6 +53,17 @@ export const ProfessionalDetailsStep = ({
   const shiftTimes = Array.isArray(dropdownOption?.data?.shiftTimes)
     ? dropdownOption.data.shiftTimes
     : [];
+
+  const handleNext = async () => {
+    form.clearErrors("root");
+    const fieldsToValidate = STEP_FIELDS[2] || requiredFields[2];
+    const valid = await form.trigger(fieldsToValidate);
+    if (!valid) {
+      toast.error("Please fill all required fields correctly before proceeding.");
+      return;
+    }
+    await nextStep(true);
+  };
 
   return (
     <div className="p-4 sm:p-8">
@@ -92,41 +114,68 @@ export const ProfessionalDetailsStep = ({
 
         <NumberField
           label="Total Experience (Years)"
-          maxLength={3}
+          maxLength={4}
           allowDecimal
-          register={register("experience")}
-          placeholder="Enter your experience"
+          maxWholeDigits={2}
+          maxDecimals={1}
+          register={register("experience", {
+            ...validationRules.experienceYears("Experience"),
+            onBlur: (e) => {
+              const val = e.target.value.trim().replace(/\.$/, "");
+              form.setValue("experience", val, { shouldValidate: true, shouldDirty: true });
+            },
+          })}
+          placeholder="Enter your experience (e.g. 5 or 2.5)"
+          error={errors.experience}
         />
 
         <TextField
           label="Samagam Held In"
-          register={register("samagamHeldIn", {
-            ...validationRules.alphabetic("Samagam Held In"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "samagamHeldIn", form.setValue),
-          })}
+          className="max-w-xs"
+          inputClassName="h-8 px-2"
+          register={register(
+            "samagamHeldIn",
+            validationRules.trimmedAlphabetic(
+              "Samagam Held In",
+              "samagamHeldIn",
+              form.setValue,
+              { maxLength: 100 }
+            )
+          )}
           placeholder="Enter samagam held in"
           error={errors.samagamHeldIn}
         />
 
         <TextField
           label="Sewa Performed During Last Samagam"
-          register={register("lastSewa", {
-            ...validationRules.alphabetic("Last Sewa"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "lastSewa", form.setValue),
-          })}
+          className="max-w-xs"
+          inputClassName="h-8 px-2"
+          register={register(
+            "lastSewa",
+            validationRules.trimmedAlphabetic(
+              "Sewa Performed During Last Samagam",
+              "lastSewa",
+              form.setValue,
+              { maxLength: 100 }
+            )
+          )}
           placeholder="Enter last Sewa performed"
           error={errors.lastSewa}
         />
 
         <TextField
           label="Recommended By"
-          register={register("recommendedBy", {
-            ...validationRules.alphabetic("Recommended By"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "recommendedBy", form.setValue),
-          })}
+          className="max-w-xs"
+          inputClassName="h-8 px-2"
+          register={register(
+            "recommendedBy",
+            validationRules.trimmedAlphabetic(
+              "Recommended By",
+              "recommendedBy",
+              form.setValue,
+              { maxLength: 100 }
+            )
+          )}
           placeholder="Enter recommender's name"
           error={errors.recommendedBy}
         />
@@ -136,13 +185,11 @@ export const ProfessionalDetailsStep = ({
           existingUrl={existingCertificate}
           regId={regId}
           accept=".jpg,.jpeg,.png,.pdf"
-          required
           selectedFile={watch("certificate")}
           register={register("certificate", {
             validate: createFileValidation({
               allowedExtensions: ["jpg", "jpeg", "png", "pdf"],
               maxSizeMB: 2,
-              requiredMessage: "Please upload a certificate",
               existingUrl: existingCertificate,
             }),
           })}
@@ -171,7 +218,7 @@ export const ProfessionalDetailsStep = ({
           <Button
             type="button"
             size="lg"
-            onClick={nextStep}
+            onClick={handleNext}
             className="bg-primary rounded-2xl font-bold text-white w-full sm:w-auto"
           >
             Next

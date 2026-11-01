@@ -1,5 +1,5 @@
-export const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-export const mobilePattern = /^(?:\+91|91|0)?[-\s]?[6-9]\d{9}$/;
+import { emailPattern, fullMobilePattern as mobilePattern } from "@shared/lib/formValidation";
+export { emailPattern, mobilePattern };
 
 export const ANIM = {
   fadeUp: {

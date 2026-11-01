@@ -19,7 +19,7 @@ import {
   ROUTE_ADMIN_REGISTRATION_REPORT,
   ROUTE_ADMIN_DUTY_CHART,
 } from "@admin/constants/routePaths";
-import { STEPS } from "@shared/config/common";
+import { STEPS, requiredFields } from "@shared/config/common";
 import { useRegistrationForm } from "@features/register/hooks/useRegistrationForm";
 import {
   Stepper,
@@ -30,6 +30,7 @@ import {
 import { useRegisterUserMutation } from "@features/register/services";
 import { createRegistrationFormData } from "@entities/registration";
 import { FormValues } from "@shared/types/CommonType";
+import { trimFormValues } from "@shared/lib/formValidation";
 import { normalizeApiError } from "@shared/api/errors";
 import { reportError } from "@shared/lib/monitoring";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
@@ -78,17 +79,20 @@ export function Users() {
     try {
       setDisabled(true);
 
-      // Validate required fields
-      const requiredFields = [
-        "fullName",
-        "email",
-        "password",
-        "mobileNo",
-        "dateOfBirth",
+      const trimmedData = trimFormValues(data);
+
+      // Validate all required fields
+      const allRequiredFields: (keyof FormValues)[] = [
+        ...requiredFields[1],
+        ...requiredFields[2],
+        ...requiredFields[3],
       ];
-      const missingFields = requiredFields.filter(
-        (field) => !data[field as keyof FormValues]
-      );
+      const missingFields = allRequiredFields.filter((field) => {
+        const val = trimmedData[field];
+        if (val === undefined || val === null || val === "") return true;
+        if (typeof val === "string" && val.trim().length === 0) return true;
+        return false;
+      });
 
       if (missingFields.length > 0) {
         const errorMsg = `Missing required fields: ${missingFields.join(", ")}`;
@@ -99,8 +103,8 @@ export function Users() {
 
       // Ensure userType is medical staff
       const registrationData: FormValues = {
-        ...data,
-        userType: data.userType || "ms",
+        ...trimmedData,
+        userType: trimmedData.userType || "ms",
       };
 
       const formData = createRegistrationFormData(registrationData);
@@ -110,8 +114,8 @@ export function Users() {
       sonnerToast.success("Medical staff member registered successfully!");
 
       setSuccessInfo({
-        name: data.fullName,
-        email: data.email,
+        name: registrationData.fullName,
+        email: registrationData.email,
       });
 
       // Reset form fields and navigate back to step 1 for subsequent additions

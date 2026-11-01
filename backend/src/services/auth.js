@@ -73,7 +73,7 @@ exports.login = async ({ role, email, mobileNo, password }) => {
       loginId: user.login_id
     },
     jwtConfig.secret || process.env.JWT_SECRET,
-    { expiresIn: jwtConfig.expiresIn || '1d' }
+    { expiresIn: jwtConfig.expiresIn }
   );
 
   // Ensure profile picture path is properly formatted

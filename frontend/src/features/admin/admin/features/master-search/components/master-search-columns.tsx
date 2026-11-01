@@ -12,7 +12,7 @@ import {
 } from "@admin/components/ui/dropdown-menu";
 import {
   ROUTE_ADMIN_PROFILE,
-  ROUTE_ADMIN_UPDATE_PROFILE,
+  ROUTE_ADMIN_PROFILE_EDIT,
 } from "@admin/constants/routePaths";
 import type { MasterSearchUser } from "../types";
 import { openDocumentView } from "@shared/utils/documentHelper";
@@ -33,7 +33,7 @@ export function createMasterSearchColumns({
   currentUserId,
 }: CreateMasterSearchColumnsOptions): ColumnDef<MasterSearchUser>[] {
   return [
-    // 1. Select Checkbox
+    // 1. Checkbox
     {
       id: "select",
       header: ({ table }) => (
@@ -62,7 +62,7 @@ export function createMasterSearchColumns({
       enableHiding: false,
     },
 
-    // 2. Action button (allow users to approve each new record individually)
+    // 2. Action
     {
       id: "action",
       header: "Action",
@@ -104,35 +104,7 @@ export function createMasterSearchColumns({
       enableSorting: false,
     },
 
-    // 3. Status
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const user = row.original;
-        const isCurrentUser = String(user.regId) === String(currentUserId);
-        const isApproved =
-          user.status === "approved" ||
-          user.isApproved === 1 ||
-          user.isApproved === ("1" as unknown);
-
-        if (isApproved) {
-          return (
-            <span className="inline-flex items-center rounded-md border border-emerald-200/90 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
-              Approved
-            </span>
-          );
-        }
-        return (
-          <span className="inline-flex items-center rounded-md border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-            Pending
-          </span>
-        );
-      },
-      enableSorting: false,
-    },
-
-    // 4. Full Name (with Avatar thumbnail & blue link)
+    // 3. Full Name
     {
       accessorKey: "fullName",
       header: ({ column }) => {
@@ -172,9 +144,9 @@ export function createMasterSearchColumns({
             <Avatar className="h-6.5 w-6.5 shrink-0 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
-              <Link
-                to={isCurrentUser ? ROUTE_ADMIN_PROFILE : ROUTE_ADMIN_UPDATE_PROFILE}
-                state={isCurrentUser ? undefined : { userId: user.regId }}
+            <Link
+              to={ROUTE_ADMIN_PROFILE}
+              state={{ userId: user.regId }}
               className="text-xs font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700 dark:text-blue-400"
             >
               {name}
@@ -185,7 +157,103 @@ export function createMasterSearchColumns({
       enableSorting: true,
     },
 
-    // 5. Certificate
+    // 4. Contact
+    {
+      accessorKey: "mobileNo",
+      header: "Contact",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.mobileNo || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 5. Qualification
+    {
+      accessorKey: "qualificationName",
+      header: "Qualification",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.qualificationName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 6. Department
+    {
+      accessorKey: "departmentName",
+      header: "Department",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.departmentName || "-"}
+        </span>
+      ),
+      enableSorting: true,
+    },
+
+    // 7. Sewa Location
+    {
+      accessorKey: "sewalocationName",
+      header: "Sewa Location",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.sewalocationName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 8. Pass Entry
+    {
+      accessorKey: "passEntry",
+      header: "Pass Entry",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {yesNo(row.original.passEntry)}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 9. Is Present
+    {
+      accessorKey: "isPresent",
+      header: "Is Present",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {yesNo(row.original.isPresent)}
+        </span>
+      ),
+      enableSorting: true,
+    },
+
+    // 10. State
+    {
+      accessorKey: "stateName",
+      header: "State",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.stateName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 11. City
+    {
+      accessorKey: "cityName",
+      header: "City",
+      cell: ({ row }) => (
+        <span className="text-xs text-slate-700 dark:text-slate-300">
+          {row.original.cityName || "-"}
+        </span>
+      ),
+      enableSorting: false,
+    },
+
+    // 12. Certificate
     {
       accessorKey: "certificateDocPath",
       header: "Certificate",
@@ -207,67 +275,34 @@ export function createMasterSearchColumns({
       enableSorting: false,
     },
 
-    // 6. Contact
+    // 13. Status
     {
-      accessorKey: "mobileNo",
-      header: "Contact",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {row.original.mobileNo || "-"}
-        </span>
-      ),
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const user = row.original;
+        const isApproved =
+          user.status === "approved" ||
+          user.isApproved === 1 ||
+          user.isApproved === ("1" as unknown);
+
+        if (isApproved) {
+          return (
+            <span className="inline-flex items-center rounded-md border border-emerald-200/90 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+              Approved
+            </span>
+          );
+        }
+        return (
+          <span className="inline-flex items-center rounded-md border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+            Pending
+          </span>
+        );
+      },
       enableSorting: false,
     },
 
-    // 7. Department
-    {
-      accessorKey: "departmentName",
-      header: "Department",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {row.original.departmentName || "-"}
-        </span>
-      ),
-      enableSorting: true,
-    },
-
-    // 8. Sewa Location
-    {
-      accessorKey: "sewalocationName",
-      header: "Sewa Location",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {row.original.sewalocationName || "-"}
-        </span>
-      ),
-      enableSorting: false,
-    },
-
-    // 9. Is Present
-    {
-      accessorKey: "isPresent",
-      header: "Is Present",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {yesNo(row.original.isPresent)}
-        </span>
-      ),
-      enableSorting: true,
-    },
-
-    // 10. Pass Entry
-    {
-      accessorKey: "passEntry",
-      header: "Pass Entry",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {yesNo(row.original.passEntry)}
-        </span>
-      ),
-      enableSorting: false,
-    },
-
-    // 11. Shift Time
+    // 14. Shift Time
     {
       accessorKey: "shifttime",
       header: "Shift Time",
@@ -279,36 +314,7 @@ export function createMasterSearchColumns({
       enableSorting: false,
     },
 
-    // 12. On Duty
-    {
-      accessorKey: "onduty",
-      header: "On Duty",
-      cell: ({ row }) => {
-        const val = row.original.onduty;
-        const display =
-          val === "Yes" || val === 1 || val === "1" ? "Yes" : "-";
-        return (
-          <span className="text-xs text-slate-700 dark:text-slate-300">
-            {display}
-          </span>
-        );
-      },
-      enableSorting: false,
-    },
-
-    // 13. Qualification
-    {
-      accessorKey: "qualificationName",
-      header: "Qualification",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {row.original.qualificationName || "-"}
-        </span>
-      ),
-      enableSorting: false,
-    },
-
-    // 14. Email
+    // 15. Email
     {
       accessorKey: "email",
       header: "Email",
@@ -326,34 +332,10 @@ export function createMasterSearchColumns({
       enableSorting: false,
     },
 
-    // 15. City
-    {
-      accessorKey: "cityName",
-      header: "City",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {row.original.cityName || "-"}
-        </span>
-      ),
-      enableSorting: false,
-    },
-
-    // 16. State
-    {
-      accessorKey: "stateName",
-      header: "State",
-      cell: ({ row }) => (
-        <span className="text-xs text-slate-700 dark:text-slate-300">
-          {row.original.stateName || "-"}
-        </span>
-      ),
-      enableSorting: false,
-    },
-
-    // 17. Actions
+    // 16. Edit Profile
     {
       id: "actions",
-      header: "Actions",
+      header: "Edit Profile",
       cell: ({ row }) => {
         const user = row.original;
         const isCurrentUser = String(user.regId) === String(currentUserId);
@@ -376,10 +358,18 @@ export function createMasterSearchColumns({
             <DropdownMenuContent align="end" className="w-40 text-xs">
               <DropdownMenuItem asChild>
                 <Link
-                  to={isCurrentUser ? ROUTE_ADMIN_PROFILE : ROUTE_ADMIN_UPDATE_PROFILE}
-                  state={isCurrentUser ? undefined : { userId: user.regId }}
+                  to={ROUTE_ADMIN_PROFILE}
+                  state={{ userId: user.regId }}
                 >
                   View Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  to={ROUTE_ADMIN_PROFILE_EDIT}
+                  state={{ userId: user.regId }}
+                >
+                  Edit Profile
                 </Link>
               </DropdownMenuItem>
               {!isApproved && (
@@ -397,7 +387,7 @@ export function createMasterSearchColumns({
                     void openDocumentView(user.regId);
                   }}
                 >
-                    View Certificate
+                  View Certificate
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

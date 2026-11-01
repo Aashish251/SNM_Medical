@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAppSelector } from "@app/store/hooks";
 import { useForm, Controller } from "react-hook-form";
 import { Header } from "@admin/components/layout/header";
@@ -33,10 +33,12 @@ import {
 } from "@shared/services/commonApi";
 import { createUpdateProfileFormData } from "@entities/registration";
 import { FileUploadField } from "@shared/components/FormInputs";
+import { openDocumentView } from "@shared/utils/documentHelper";
 import { calculateAge } from "@shared/lib/utils";
 import { DUMMY } from "@shared/config/common";
 import { normalizeApiError } from "@shared/api/errors";
 import { ROUTE_ADMIN_PROFILE } from "@admin/constants/routePaths";
+import { validationRules, trimFormValues } from "@shared/lib/formValidation";
 import toast from "react-hot-toast";
 import type { FormValues, CityItem } from "@shared/types/CommonType";
 import {
@@ -75,6 +77,20 @@ type EditProfileDropdowns = {
   shiftTimes: Array<ProfileOption & { shifttime?: string; name?: string }>;
 };
 
+function getOptionId(opt: unknown): string {
+  if (!opt || typeof opt !== "object") return "";
+  const o = opt as Record<string, unknown>;
+  const raw =
+    o.id ??
+    o.state_id ??
+    o.city_id ??
+    o.department_id ??
+    o.qualification_id ??
+    o.available_day_id ??
+    o.shifttime_id;
+  return raw !== null && raw !== undefined ? String(raw) : "";
+}
+
 function resolveOptionId(
   value: unknown,
   label: unknown,
@@ -83,13 +99,19 @@ function resolveOptionId(
 ): string {
   const rawValue =
     value && typeof value === "object"
-      ? (value as Record<string, unknown>).id
+      ? (value as Record<string, unknown>).id ??
+        (value as Record<string, unknown>).state_id ??
+        (value as Record<string, unknown>).city_id ??
+        (value as Record<string, unknown>).department_id ??
+        (value as Record<string, unknown>).qualification_id ??
+        (value as Record<string, unknown>).available_day_id ??
+        (value as Record<string, unknown>).shifttime_id
       : value;
   const valueId = rawValue === null || rawValue === undefined ? "" : String(rawValue);
 
   if (valueId && valueId !== "0") {
-    const matchingId = options.find((option) => String(option.id) === valueId);
-    if (matchingId) return String(matchingId.id);
+    const matchingId = options.find((option) => getOptionId(option) === valueId);
+    if (matchingId) return getOptionId(matchingId);
   }
 
   const normalizedLabel = String(label ?? "").trim().toLowerCase();
@@ -97,11 +119,11 @@ function resolveOptionId(
     const matchingLabel = options.find((option) =>
       labelKeys.some(
         (key) =>
-          typeof option[key] === "string" &&
-          option[key].trim().toLowerCase() === normalizedLabel
+          typeof (option as any)[key] === "string" &&
+          ((option as any)[key] as string).trim().toLowerCase() === normalizedLabel
       )
     );
-    if (matchingLabel) return String(matchingLabel.id);
+    if (matchingLabel) return getOptionId(matchingLabel);
   }
 
   return valueId === "0" ? "" : valueId;
@@ -117,7 +139,8 @@ function resolveChoiceValue(
     (option) =>
       String(option.id) === rawValue ||
       option.value.toLowerCase() === rawValue.toLowerCase() ||
-      option.label.toLowerCase() === rawValue.toLowerCase()
+      option.label.toLowerCase() === rawValue.toLowerCase() ||
+      option.label.replace(/\./g, "").toLowerCase() === rawValue.toLowerCase()
   );
   return match?.value ?? rawValue;
 }
@@ -135,11 +158,13 @@ function resolveUserType(value: unknown): "admin" | "ms" {
 function FormField({
   label,
   required,
+  error,
   children,
   className,
 }: {
   label: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -150,6 +175,7 @@ function FormField({
         {required && <span className="text-destructive ml-0.5">*</span>}
       </Label>
       {children}
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   );
 }
@@ -179,16 +205,27 @@ export function ProfileEdit() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { userDetails } = useAppSelector((state) => state.auth);
-  const userIdFromState = state?.userId;
+  const [searchParams] = useSearchParams();
+  const userIdFromLocation = state?.userId ?? searchParams.get("userId");
+  const handleBackToProfile = () => {
+    navigate(
+      ROUTE_ADMIN_PROFILE,
+      userIdFromLocation ? { state: { userId: userIdFromLocation } } : undefined
+    );
+  };
   const defaultUserId = userDetails?.id;
-  const userId = userIdFromState ? String(userIdFromState) : defaultUserId;
+  const userId = userIdFromLocation ? String(userIdFromLocation) : defaultUserId;
 
   /* --- APIs -------------------------------------------------------- */
   const {
-    data: profileResponse,
+    // `data` can temporarily contain the previous query argument when this
+    // route is reused for another user. Only hydrate the form from this ID.
+    currentData: profileResponse,
     isLoading: profileLoading,
+    isError: profileError,
   } = useGetUserDetailsQueryQuery(Number(userId), {
     skip: !userId || userId === "0",
+    refetchOnMountOrArgChange: 30,
   });
 
   const { data: dropdownData, isLoading: dropdownLoading } =
@@ -198,14 +235,6 @@ export function ProfileEdit() {
     useLazyGetCitiesByStateQuery();
 
   const [triggerUpdate] = useUpdateUserProfileMutation();
-
-  /* --- Form -------------------------------------------------------- */
-  const form = useForm<FormValues>({
-    mode: "onTouched",
-  });
-
-  const { register, handleSubmit, watch, setValue, reset, formState } = form;
-  const { errors, isSubmitting } = formState;
 
   const dropdowns = dropdownData?.data as unknown as EditProfileDropdowns | undefined;
   const qualifications = dropdowns?.qualifications ?? [];
@@ -223,61 +252,64 @@ export function ProfileEdit() {
         shiftTime?: string;
       })
     | undefined;
-  const [cities, setCities] = useState<CityItem[]>([]);
-  const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
-  const [existingCertificate, setExistingCertificate] = useState<string | undefined>();
-  const [previewUrl, setPreviewUrl] = useState<string | undefined>();
-  const [saveMessage, setSaveMessage] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Also accept profile passed through navigation state as an initial hint
+  // (avoids blank flash when RTK cache has expired).
+  const passedProfile = state?.profile as typeof profileData;
+  const selectedProfile =
+    profileData ??
+    (passedProfile && String((passedProfile as any).id ?? userId) === String(userId)
+      ? passedProfile
+      : undefined);
 
-  // Populate form when profile data arrives or changes
-  useEffect(() => {
-    if (!profileData) return;
+  /* --- Initial & reactive form values ------------------------------- */
+  const initialFormValues = useMemo<FormValues | undefined>(() => {
+    if (!selectedProfile) return undefined;
 
-    setExistingProfilePic(profileData.profileImage ?? undefined);
-    setExistingCertificate(
-      typeof profileData.certificate === "string"
-        ? profileData.certificate
-        : undefined
-    );
-
-    const titleVal = resolveChoiceValue(profileData.title, DUMMY.titles);
-    const genderVal = resolveChoiceValue(profileData.gender, DUMMY.genders);
-    const userTypeVal = resolveUserType(profileData.userType);
+    const titleVal = resolveChoiceValue(selectedProfile.title, DUMMY.titles) || "Mr";
+    const rawGender = resolveChoiceValue(selectedProfile.gender, DUMMY.genders);
+    const genderVal =
+      rawGender === "1"
+        ? "Male"
+        : rawGender === "2"
+        ? "Female"
+        : rawGender === "3"
+        ? "Other"
+        : rawGender || "Male";
+    const userTypeVal = resolveUserType(selectedProfile.userType ?? (selectedProfile as any).role);
     const qualId = resolveOptionId(
-      profileData.qualificationId,
-      profileData.qualificationName,
+      selectedProfile.qualificationId ?? (selectedProfile as any).qualification_id,
+      selectedProfile.qualificationName ?? (selectedProfile as any).qualification_name,
       qualifications,
       ["qualification_name", "name"]
     );
     const deptId = resolveOptionId(
-      profileData.departmentId,
-      profileData.departmentName,
+      selectedProfile.departmentId ?? (selectedProfile as any).department_id,
+      selectedProfile.departmentName ?? (selectedProfile as any).department_name,
       departments,
       ["department_name", "name"]
     );
     const stId = resolveOptionId(
-      profileData.stateId,
-      profileData.stateName,
+      selectedProfile.stateId ?? (selectedProfile as any).state_id,
+      selectedProfile.stateName ?? (selectedProfile as any).state_name,
       states,
-      ["state_name"]
+      ["state_name", "name"]
     );
-    const ctId = profileData.cityId ? String(profileData.cityId) : "";
+    const ctId = String(selectedProfile.cityId ?? (selectedProfile as any).city_id ?? "");
     const dayId = resolveOptionId(
-      profileData.availableDayId,
-      profileData.availableDay,
+      selectedProfile.availableDayId ?? (selectedProfile as any).available_day_id,
+      selectedProfile.availableDay ?? (selectedProfile as any).available_day,
       availableDays,
       ["available_day", "name"]
     );
     const shId = resolveOptionId(
-      profileData.shiftTimeId,
-      profileData.shiftTime,
+      selectedProfile.shiftTimeId ?? (selectedProfile as any).shifttime_id,
+      selectedProfile.shiftTime ?? (selectedProfile as any).shifttime,
       shiftTimes,
       ["shifttime", "name"]
     );
 
-    reset({
-      ...profileData,
+    return {
+      ...selectedProfile,
       title: titleVal,
       gender: genderVal,
       userType: userTypeVal,
@@ -289,16 +321,98 @@ export function ProfileEdit() {
       shiftTimeId: shId,
       profilePic: undefined,
       certificate: undefined,
-    });
+    };
   }, [
-    profileData,
+    selectedProfile,
     qualifications,
     departments,
     states,
     availableDays,
     shiftTimes,
-    reset,
   ]);
+
+  /* --- Form -------------------------------------------------------- */
+  const form = useForm<FormValues>({
+    mode: "onTouched",
+    values: initialFormValues,
+  });
+
+  const { register, handleSubmit, watch, setValue, reset, formState } = form;
+  const { errors, isSubmitting } = formState;
+
+  const [cities, setCities] = useState<CityItem[]>([]);
+  const [existingProfilePic, setExistingProfilePic] = useState<string | undefined>();
+  const [existingCertificate, setExistingCertificate] = useState<string | undefined>();
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>();
+  const [saveMessage, setSaveMessage] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync files / certificate when profile arrives
+  useEffect(() => {
+    if (!selectedProfile) return;
+
+    setExistingProfilePic(selectedProfile.profileImage ?? undefined);
+    setExistingCertificate(
+      typeof selectedProfile.certificate === "string"
+        ? selectedProfile.certificate
+        : undefined
+    );
+  }, [selectedProfile]);
+
+  /* --- Dropdown label helpers (for SelectValue display) ------------- */
+  const getTitleLabel = (val?: string) =>
+    DUMMY.titles.find((t) => t.value === val)?.label ?? val ?? "";
+
+  const getGenderLabel = (val?: string) =>
+    DUMMY.genders.find((g) => g.value === val)?.label ?? val ?? "";
+
+  const getStateLabel = (val?: string) =>
+    states.find((s) => getOptionId(s) === String(val))?.state_name ??
+    (states.find((s) => getOptionId(s) === String(val)) as any)?.name ??
+    (String(val) === String(selectedProfile?.stateId ?? (selectedProfile as any)?.state_id)
+      ? selectedProfile?.stateName || (selectedProfile as any)?.state_name
+      : "") ??
+    "";
+
+  const getCityLabel = (val?: string) =>
+    cities.find((c) => getOptionId(c) === String(val))?.city_name ??
+    (cities.find((c) => getOptionId(c) === String(val)) as any)?.name ??
+    (String(val) === String(selectedProfile?.cityId ?? (selectedProfile as any)?.city_id)
+      ? selectedProfile?.cityName || (selectedProfile as any)?.city_name
+      : "") ??
+    "";
+
+  const getQualificationLabel = (val?: string) =>
+    qualifications.find((q) => getOptionId(q) === String(val))?.qualification_name ??
+    (qualifications.find((q) => getOptionId(q) === String(val)) as any)?.name ??
+    (String(val) === String(selectedProfile?.qualificationId ?? (selectedProfile as any)?.qualification_id)
+      ? selectedProfile?.qualificationName || (selectedProfile as any)?.qualification_name
+      : "") ??
+    "";
+
+  const getDepartmentLabel = (val?: string) =>
+    departments.find((d) => getOptionId(d) === String(val))?.department_name ??
+    (departments.find((d) => getOptionId(d) === String(val)) as any)?.name ??
+    (String(val) === String(selectedProfile?.departmentId ?? (selectedProfile as any)?.department_id)
+      ? selectedProfile?.departmentName || (selectedProfile as any)?.department_name
+      : "") ??
+    "";
+
+  const getAvailableDayLabel = (val?: string) =>
+    availableDays.find((d) => getOptionId(d) === String(val))?.available_day ??
+    (availableDays.find((d) => getOptionId(d) === String(val)) as any)?.name ??
+    (String(val) === String(selectedProfile?.availableDayId ?? (selectedProfile as any)?.available_day_id)
+      ? selectedProfile?.availableDay || (selectedProfile as any)?.available_day
+      : "") ??
+    "";
+
+  const getShiftTimeLabel = (val?: string) =>
+    shiftTimes.find((st) => getOptionId(st) === String(val))?.shifttime ??
+    (shiftTimes.find((st) => getOptionId(st) === String(val)) as any)?.name ??
+    (String(val) === String(selectedProfile?.shiftTimeId ?? (selectedProfile as any)?.shifttime_id)
+      ? selectedProfile?.shiftTime || (selectedProfile as any)?.shifttime
+      : "") ??
+    "";
 
   // Auto-calculate age from DOB
   const birthdate = watch("dateOfBirth");
@@ -314,16 +428,18 @@ export function ProfileEdit() {
         const result = await triggerGetCities({ stateId: id }).unwrap();
         const loadedCities = result?.data?.cities || [];
         setCities(loadedCities);
-        const currentCityId = String(profileData?.cityId ?? "");
-        if (currentCityId && loadedCities.some((c) => String(c.id) === currentCityId)) {
-          setValue("cityId", currentCityId);
-        } else if (profileData?.cityName) {
+        const currentCityId = String(selectedProfile?.cityId ?? (selectedProfile as any)?.city_id ?? "");
+        const targetCityId = watch("cityId") || currentCityId;
+        if (targetCityId && loadedCities.some((c) => getOptionId(c) === targetCityId)) {
+          setValue("cityId", targetCityId);
+        } else if (selectedProfile?.cityName || (selectedProfile as any)?.city_name) {
+          const cName = String((selectedProfile?.cityName || (selectedProfile as any)?.city_name || "")).trim().toLowerCase();
           const matchingCity = loadedCities.find(
             (city) =>
-              city.city_name.trim().toLowerCase() ===
-              profileData.cityName?.trim().toLowerCase()
+              city.city_name?.trim().toLowerCase() === cName ||
+              (city as any).name?.trim().toLowerCase() === cName
           );
-          if (matchingCity) setValue("cityId", String(matchingCity.id));
+          if (matchingCity) setValue("cityId", getOptionId(matchingCity));
         }
       } catch {
         setCities([]);
@@ -335,7 +451,7 @@ export function ProfileEdit() {
     } else {
       setCities([]);
     }
-  }, [stateId, triggerGetCities, profileData, setValue]);
+  }, [stateId, triggerGetCities, selectedProfile, setValue]);
 
   /* --- File upload ------------------------------------------------- */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -350,7 +466,8 @@ export function ProfileEdit() {
   const onSubmit = async (data: FormValues) => {
     if (!userId) return;
     try {
-      const formData = createUpdateProfileFormData(data, String(userId));
+      const trimmedData = trimFormValues(data);
+      const formData = createUpdateProfileFormData(trimmedData, String(userId));
       await triggerUpdate({ id: String(userId), formData }).unwrap();
       setSaveMessage("Records updated successfully !");
     } catch (error) {
@@ -359,9 +476,14 @@ export function ProfileEdit() {
   };
 
   /* --- Derived values ---------------------------------------------- */
-  const displayName = profileData?.fullName ?? userDetails?.name ?? "";
+  const isEditingOwnProfile = String(userId) === String(userDetails?.id);
+  const displayName = selectedProfile?.fullName ?? (isEditingOwnProfile ? userDetails?.name : "") ?? "";
   const initials = displayName.slice(0, 2).toUpperCase();
-  const currentAvatar = previewUrl ?? avatarUrl(existingProfilePic ?? userDetails?.profilePic);
+  const avatarPath =
+    existingProfilePic ??
+    selectedProfile?.profileImage ??
+    (isEditingOwnProfile ? userDetails?.profilePic : undefined);
+  const currentAvatar = previewUrl ?? avatarUrl(avatarPath);
 
   const isLoading = profileLoading || dropdownLoading;
 
@@ -385,7 +507,7 @@ export function ProfileEdit() {
               variant="outline"
               size="sm"
               className="mb-3 gap-1.5"
-              onClick={() => navigate(ROUTE_ADMIN_PROFILE)}
+              onClick={handleBackToProfile}
             >
               <ArrowLeft className="size-3.5" />
               Back to Profile
@@ -406,6 +528,10 @@ export function ProfileEdit() {
         {/* ── Main content ───────────────────────────────────── */}
         {isLoading ? (
           <EditSkeleton />
+        ) : profileError && !selectedProfile ? (
+          <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">
+            Could not load this user’s profile. Go back and try again.
+          </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
@@ -469,25 +595,20 @@ export function ProfileEdit() {
                       </div>
 
                       <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                        <FormField label="Full Name" required>
-                          <Input
-                            {...register("fullName", { required: "Full name is required", validate: (value) => !!value.trim() || "Full name is required" })}
-                            placeholder="Full Name"
-                            aria-invalid={!!errors.fullName}
-                          />
-                        </FormField>
-
-                        <FormField label="Title" required>
+                        <FormField label="Title" required error={errors.title?.message}>
                           <Controller
                             control={form.control}
                             name="title"
+                            rules={validationRules.required("Title")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
                                 onValueChange={field.onChange}
                               >
                                 <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select" />
+                                  <SelectValue placeholder="Select">
+                                    {getTitleLabel(field.value) || "Select"}
+                                  </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
                                   {DUMMY.titles.map((t) => (
@@ -495,32 +616,46 @@ export function ProfileEdit() {
                                       {t.label}
                                     </SelectItem>
                                   ))}
+                                  {field.value &&
+                                    !DUMMY.titles.some((t) => t.value === field.value) && (
+                                      <SelectItem value={String(field.value)}>
+                                        {String(field.value)}
+                                      </SelectItem>
+                                    )}
                                 </SelectContent>
                               </Select>
                             )}
                           />
                         </FormField>
 
-                        <FormField label="Email" required>
+                        <FormField label="Full Name" required error={errors.fullName?.message}>
                           <Input
-                            {...register("email", { required: true })}
+                            {...register("fullName", validationRules.fullName("Full name"))}
+                            placeholder="Full Name"
+                            aria-invalid={!!errors.fullName}
+                          />
+                        </FormField>
+
+                        <FormField label="Email" required error={errors.email?.message}>
+                          <Input
+                            {...register("email", validationRules.requiredEmail("Email"))}
                             type="email"
                             placeholder="Email"
                             aria-invalid={!!errors.email}
                           />
                         </FormField>
 
-                        <FormField label="Mobile" required>
+                        <FormField label="Mobile" required error={errors.mobileNo?.message}>
                           <Input
-                            {...register("mobileNo", { required: true })}
+                            {...register("mobileNo", validationRules.mobileNumber)}
                             placeholder="Mobile"
                             aria-invalid={!!errors.mobileNo}
                           />
                         </FormField>
 
-                        <FormField label="Date of Birth" required>
+                        <FormField label="Date of Birth" required error={errors.dateOfBirth?.message}>
                           <Input
-                            {...register("dateOfBirth", { required: true })}
+                            {...register("dateOfBirth", validationRules.required("Date of Birth"))}
                             type="date"
                             max={new Date().toISOString().slice(0, 10)}
                             aria-invalid={!!errors.dateOfBirth}
@@ -535,24 +670,118 @@ export function ProfileEdit() {
                           />
                         </FormField>
 
-                        <FormField label="Gender" required>
+                        <FormField label="Gender" required error={errors.gender?.message}>
                           <Controller
                             control={form.control}
                             name="gender"
+                            rules={validationRules.required("Gender")}
+                            render={({ field }) => {
+                              const normalizedVal =
+                                field.value === "1"
+                                  ? "Male"
+                                  : field.value === "2"
+                                  ? "Female"
+                                  : field.value === "3"
+                                  ? "Other"
+                                  : field.value || "";
+
+                              return (
+                                <Select
+                                  value={normalizedVal}
+                                  onValueChange={field.onChange}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select">
+                                      {getGenderLabel(normalizedVal) || "Select"}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {DUMMY.genders.map((g) => (
+                                      <SelectItem key={g.value} value={g.value}>
+                                        {g.label}
+                                      </SelectItem>
+                                    ))}
+                                    {normalizedVal &&
+                                      !DUMMY.genders.some((g) => g.value === normalizedVal) && (
+                                        <SelectItem value={normalizedVal}>
+                                          {normalizedVal}
+                                        </SelectItem>
+                                      )}
+                                  </SelectContent>
+                                </Select>
+                              );
+                            }}
+                          />
+                        </FormField>
+
+                        <FormField label="State" required error={errors.stateId?.message}>
+                          <Controller
+                            control={form.control}
+                            name="stateId"
+                            rules={validationRules.required("State")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
                                 onValueChange={field.onChange}
                               >
                                 <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select" />
+                                  <SelectValue placeholder="Select State">
+                                    {getStateLabel(field.value) || "Select State"}
+                                  </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {DUMMY.genders.map((g) => (
-                                    <SelectItem key={g.value} value={g.value}>
-                                      {g.label}
-                                    </SelectItem>
-                                  ))}
+                                  {states.map((s, i) => {
+                                    const val = getOptionId(s) || String(i);
+                                    const label = s.state_name ?? (s as any).name ?? val;
+                                    return (
+                                      <SelectItem key={val} value={val}>
+                                        {label}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                  {field.value &&
+                                    !states.some((s) => getOptionId(s) === String(field.value)) && (
+                                      <SelectItem value={String(field.value)}>
+                                        {selectedProfile?.stateName || (selectedProfile as any)?.state_name || String(field.value)}
+                                      </SelectItem>
+                                    )}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </FormField>
+
+                        <FormField label="City" required error={errors.cityId?.message}>
+                          <Controller
+                            control={form.control}
+                            name="cityId"
+                            rules={validationRules.required("City")}
+                            render={({ field }) => (
+                              <Select
+                                value={field.value || ""}
+                                onValueChange={field.onChange}
+                                disabled={citiesLoading}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder={citiesLoading ? "Loading…" : "Select City"}>
+                                    {getCityLabel(field.value) || (citiesLoading ? "Loading…" : "Select City")}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {cities.map((c, i) => {
+                                    const val = getOptionId(c) || String(i);
+                                    return (
+                                      <SelectItem key={val} value={val}>
+                                        {c.city_name ?? (c as any).name ?? val}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                  {field.value &&
+                                    !cities.some((c) => getOptionId(c) === String(field.value)) && (
+                                      <SelectItem value={String(field.value)}>
+                                        {selectedProfile?.cityName || (selectedProfile as any)?.city_name || String(field.value)}
+                                      </SelectItem>
+                                    )}
                                 </SelectContent>
                               </Select>
                             )}
@@ -573,17 +802,20 @@ export function ProfileEdit() {
                     <Separator className="mb-4 -mt-1" />
 
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                      <FormField label="Role" required>
+                      <FormField label="Role" required error={errors.userType?.message}>
                         <Controller
                           control={form.control}
                           name="userType"
+                          rules={validationRules.required("Role")}
                           render={({ field }) => (
                             <Select
-                              value={field.value || ""}
+                              value={field.value || "ms"}
                               onValueChange={field.onChange}
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select" />
+                                <SelectValue placeholder="Select Role">
+                                  {field.value === "admin" ? "Admin" : "Medical Sewadar"}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="ms">Medical Sewadar</SelectItem>
@@ -594,32 +826,35 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Qualification" required>
+                      <FormField label="Qualification" required error={errors.qualificationId?.message}>
                         <Controller
                           control={form.control}
                           name="qualificationId"
+                          rules={validationRules.required("Qualification")}
                           render={({ field }) => (
                             <Select
                               value={field.value || ""}
                               onValueChange={field.onChange}
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select" />
+                                <SelectValue placeholder="Select Qualification">
+                                  {getQualificationLabel(field.value) || "Select Qualification"}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
                                 {qualifications.map((q, i) => {
-                                  const val = String(q.id);
-                                  const label = q.qualification_name ?? q.name ?? val;
+                                  const val = getOptionId(q) || String(i);
+                                  const label = q.qualification_name ?? (q as any).name ?? val;
                                   return (
-                                    <SelectItem key={val || i} value={val}>
+                                    <SelectItem key={val} value={val}>
                                       {label}
                                     </SelectItem>
                                   );
                                 })}
                                 {field.value &&
-                                  !qualifications.some((q) => String(q.id) === String(field.value)) && (
+                                  !qualifications.some((q) => getOptionId(q) === String(field.value)) && (
                                     <SelectItem value={String(field.value)}>
-                                      {profileData?.qualificationName || String(field.value)}
+                                      {selectedProfile?.qualificationName || (selectedProfile as any)?.qualification_name || String(field.value)}
                                     </SelectItem>
                                   )}
                               </SelectContent>
@@ -628,32 +863,35 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Department" required>
+                      <FormField label="Department" required error={errors.departmentId?.message}>
                         <Controller
                           control={form.control}
                           name="departmentId"
+                          rules={validationRules.required("Department")}
                           render={({ field }) => (
                             <Select
                               value={field.value || ""}
                               onValueChange={field.onChange}
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select" />
+                                <SelectValue placeholder="Select Department">
+                                  {getDepartmentLabel(field.value) || "Select Department"}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
                                 {departments.map((dep, i) => {
-                                  const val = String(dep.id);
-                                  const label = dep.department_name ?? dep.name ?? val;
+                                  const val = getOptionId(dep) || String(i);
+                                  const label = dep.department_name ?? (dep as any).name ?? val;
                                   return (
-                                    <SelectItem key={val || i} value={val}>
+                                    <SelectItem key={val} value={val}>
                                       {label}
                                     </SelectItem>
                                   );
                                 })}
                                 {field.value &&
-                                  !departments.some((dep) => String(dep.id) === String(field.value)) && (
+                                  !departments.some((dep) => getOptionId(dep) === String(field.value)) && (
                                     <SelectItem value={String(field.value)}>
-                                      {profileData?.departmentName || String(field.value)}
+                                      {selectedProfile?.departmentName || (selectedProfile as any)?.department_name || String(field.value)}
                                     </SelectItem>
                                   )}
                               </SelectContent>
@@ -662,9 +900,9 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Experience (Years)" required>
+                      <FormField label="Experience (Years)" required error={errors.experience?.message}>
                         <Input
-                          {...register("experience", { required: true })}
+                          {...register("experience", validationRules.required("Experience"))}
                           type="number"
                           step="0.01"
                           placeholder="0.00"
@@ -672,16 +910,16 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FormField label="Previous Sewa">
+                      <FormField label="Previous Sewa" error={errors.lastSewa?.message}>
                         <Input
-                          {...register("lastSewa")}
+                          {...register("lastSewa", validationRules.noWhitespaceOnly("Previous Sewa"))}
                           placeholder="Previous Sewa"
                         />
                       </FormField>
 
-                      <FormField label="Recommended By">
+                      <FormField label="Recommended By" error={errors.recommendedBy?.message}>
                         <Input
-                          {...register("recommendedBy")}
+                          {...register("recommendedBy", validationRules.noWhitespaceOnly("Recommended By"))}
                           placeholder="Recommended By"
                         />
                       </FormField>
@@ -696,18 +934,24 @@ export function ProfileEdit() {
                               onValueChange={field.onChange}
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select" />
+                                <SelectValue placeholder="Select Available Days">
+                                  {getAvailableDayLabel(field.value) || "Select Available Days"}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
-                                {availableDays.map((day) => (
-                                  <SelectItem key={day.id} value={String(day.id)}>
-                                    {day.available_day ?? day.name ?? String(day.id)}
-                                  </SelectItem>
-                                ))}
+                                {availableDays.map((day, i) => {
+                                  const val = getOptionId(day) || String(i);
+                                  const label = day.available_day ?? (day as any).name ?? val;
+                                  return (
+                                    <SelectItem key={val} value={val}>
+                                      {label}
+                                    </SelectItem>
+                                  );
+                                })}
                                 {field.value &&
-                                  !availableDays.some((day) => String(day.id) === String(field.value)) && (
+                                  !availableDays.some((day) => getOptionId(day) === String(field.value)) && (
                                     <SelectItem value={String(field.value)}>
-                                      {profileData?.availableDay || String(field.value)}
+                                      {selectedProfile?.availableDay || (selectedProfile as any)?.available_day || String(field.value)}
                                     </SelectItem>
                                   )}
                               </SelectContent>
@@ -726,18 +970,24 @@ export function ProfileEdit() {
                               onValueChange={field.onChange}
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select" />
+                                <SelectValue placeholder="Select Preferred Shift Time">
+                                  {getShiftTimeLabel(field.value) || "Select Preferred Shift Time"}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
-                                {shiftTimes.map((shift) => (
-                                  <SelectItem key={shift.id} value={String(shift.id)}>
-                                    {shift.shifttime ?? shift.name ?? String(shift.id)}
-                                  </SelectItem>
-                                ))}
+                                {shiftTimes.map((shift, i) => {
+                                  const val = getOptionId(shift) || String(i);
+                                  const label = shift.shifttime ?? (shift as any).name ?? val;
+                                  return (
+                                    <SelectItem key={val} value={val}>
+                                      {label}
+                                    </SelectItem>
+                                  );
+                                })}
                                 {field.value &&
-                                  !shiftTimes.some((shift) => String(shift.id) === String(field.value)) && (
+                                  !shiftTimes.some((shift) => getOptionId(shift) === String(field.value)) && (
                                     <SelectItem value={String(field.value)}>
-                                      {profileData?.shiftTime || String(field.value)}
+                                      {selectedProfile?.shiftTime || (selectedProfile as any)?.shifttime || String(field.value)}
                                     </SelectItem>
                                   )}
                               </SelectContent>
@@ -746,14 +996,30 @@ export function ProfileEdit() {
                         />
                       </FormField>
 
-                      <FileUploadField
-                        label="Certificate"
-                        existingUrl={existingCertificate}
-                        regId={userId}
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        selectedFile={watch("certificate")}
-                        register={register("certificate")}
-                      />
+                      <div className="space-y-1.5">
+                        <FileUploadField
+                          label="Certificate"
+                          existingUrl={existingCertificate}
+                          regId={userId}
+                          accept=".jpg,.jpeg,.png,.pdf"
+                          selectedFile={watch("certificate")}
+                          register={register("certificate")}
+                        />
+                        {(existingCertificate || (selectedProfile as any)?.certificate_doc_path) && userId && (
+                          <div className="flex items-center gap-2 pt-0.5">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 gap-1.5 text-xs text-[#0066FF] hover:text-blue-700 font-semibold"
+                              onClick={() => void openDocumentView(userId)}
+                            >
+                              <ExternalLink className="size-3.5" />
+                              View Certificate
+                            </Button>
+                          </div>
+                        )}
+                      </div>
 
                       <FormField label="Joined Date">
                         <Input
@@ -775,9 +1041,9 @@ export function ProfileEdit() {
                     <Separator className="mb-4 -mt-1" />
 
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                      <FormField label="Address" required>
+                      <FormField label="Address" required error={errors.address?.message}>
                         <Textarea
-                          {...register("address", { required: true })}
+                          {...register("address", validationRules.required("Address"))}
                           placeholder="Address"
                           rows={3}
                           aria-invalid={!!errors.address}
@@ -785,28 +1051,35 @@ export function ProfileEdit() {
                       </FormField>
 
                       <div className="space-y-3">
-                        <FormField label="State" required>
+                        <FormField label="State" required error={errors.stateId?.message}>
                           <Controller
                             control={form.control}
                             name="stateId"
+                            rules={validationRules.required("State")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
                                 onValueChange={field.onChange}
                               >
                                 <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select State" />
+                                  <SelectValue placeholder="Select State">
+                                    {getStateLabel(field.value) || "Select State"}
+                                  </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {states.map((s) => (
-                                    <SelectItem key={s.id} value={String(s.id)}>
-                                      {s.state_name}
-                                    </SelectItem>
-                                  ))}
+                                  {states.map((s, i) => {
+                                    const val = getOptionId(s) || String(i);
+                                    const label = s.state_name ?? (s as any).name ?? val;
+                                    return (
+                                      <SelectItem key={val} value={val}>
+                                        {label}
+                                      </SelectItem>
+                                    );
+                                  })}
                                   {field.value &&
-                                    !states.some((stateOption) => String(stateOption.id) === String(field.value)) && (
+                                    !states.some((stateOption) => getOptionId(stateOption) === String(field.value)) && (
                                       <SelectItem value={String(field.value)}>
-                                        {profileData?.stateName || String(field.value)}
+                                        {selectedProfile?.stateName || (selectedProfile as any)?.state_name || String(field.value)}
                                       </SelectItem>
                                     )}
                                 </SelectContent>
@@ -815,29 +1088,35 @@ export function ProfileEdit() {
                           />
                         </FormField>
 
-                        <FormField label="City" required>
+                        <FormField label="City" required error={errors.cityId?.message}>
                           <Controller
                             control={form.control}
                             name="cityId"
+                            rules={validationRules.required("City")}
                             render={({ field }) => (
                               <Select
                                 value={field.value || ""}
                                 onValueChange={field.onChange}
-                                disabled={citiesLoading || cities.length === 0}
+                                disabled={citiesLoading}
                               >
                                 <SelectTrigger className="w-full">
-                                  <SelectValue placeholder={citiesLoading ? "Loading…" : "Select City"} />
+                                  <SelectValue placeholder={citiesLoading ? "Loading…" : "Select City"}>
+                                    {getCityLabel(field.value) || (citiesLoading ? "Loading…" : "Select City")}
+                                  </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {cities.map((c) => (
-                                    <SelectItem key={c.id} value={String(c.id)}>
-                                      {c.city_name}
-                                    </SelectItem>
-                                  ))}
+                                  {cities.map((c, i) => {
+                                    const val = getOptionId(c) || String(i);
+                                    return (
+                                      <SelectItem key={val} value={val}>
+                                        {c.city_name ?? (c as any).name ?? val}
+                                      </SelectItem>
+                                    );
+                                  })}
                                   {field.value &&
-                                    !cities.some((city) => String(city.id) === String(field.value)) && (
+                                    !cities.some((city) => getOptionId(city) === String(field.value)) && (
                                       <SelectItem value={String(field.value)}>
-                                        {profileData?.cityName || String(field.value)}
+                                        {selectedProfile?.cityName || (selectedProfile as any)?.city_name || String(field.value)}
                                       </SelectItem>
                                     )}
                                 </SelectContent>
@@ -849,10 +1128,10 @@ export function ProfileEdit() {
                     </div>
 
                     {/* View on Maps link */}
-                    {profileData?.address && (
+                    {selectedProfile?.address && (
                       <div className="flex justify-end mt-3">
                         <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profileData.address)}`}
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedProfile.address)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-[13px] text-primary font-medium hover:underline"
@@ -875,35 +1154,38 @@ export function ProfileEdit() {
                     <Separator className="mb-4 -mt-1" />
 
                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-                      <FormField label="Favorite Food">
+                      <FormField label="Favorite Food" error={errors.favoriteFood?.message}>
                         <Input
-                          {...register("favoriteFood")}
+                          {...register("favoriteFood", validationRules.noWhitespaceOnly("Favorite food"))}
                           placeholder="Favorite Food"
                         />
                       </FormField>
 
-                      <FormField label="Hobbies">
+                      <FormField label="Hobbies" error={errors.hobbies?.message}>
                         <Input
-                          {...register("hobbies")}
+                          {...register("hobbies", validationRules.noWhitespaceOnly("Hobbies"))}
                           placeholder="Hobbies"
                         />
                       </FormField>
 
-                      <FormField label="Nickname">
+                      <FormField label="Nickname" error={errors.childhoodNickname?.message}>
                         <Input
-                          {...register("childhoodNickname")}
+                          {...register("childhoodNickname", validationRules.noWhitespaceOnly("Nickname"))}
                           placeholder="Nickname"
                         />
                       </FormField>
 
-                      <FormField label="Mother's Name">
+                      <FormField label="Mother's Name" error={errors.motherMaidenName?.message}>
                         <Input
-                          {...register("motherMaidenName")}
+                          {...register("motherMaidenName", validationRules.noWhitespaceOnly("Mother's Name"))}
                           placeholder="Mother's Name"
                         />
                       </FormField>
-                      <FormField label="Remark">
-                        <Textarea {...register("remark")} placeholder="Remark" />
+                      <FormField label="Remark" error={errors.remark?.message}>
+                        <Textarea
+                          {...register("remark", validationRules.noWhitespaceOnly("Remark"))}
+                          placeholder="Remark"
+                        />
                       </FormField>
                     </div>
                   </CardContent>
@@ -966,7 +1248,7 @@ export function ProfileEdit() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(ROUTE_ADMIN_PROFILE)}
+                onClick={handleBackToProfile}
               >
                 Cancel
               </Button>
@@ -978,14 +1260,14 @@ export function ProfileEdit() {
           </form>
         )}
       </Main>
-      <Dialog open={!!saveMessage} onOpenChange={(open) => { if (!open) { setSaveMessage(""); navigate(ROUTE_ADMIN_PROFILE); } }}>
+      <Dialog open={!!saveMessage} onOpenChange={(open) => { if (!open) { setSaveMessage(""); handleBackToProfile(); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update complete</DialogTitle>
             <DialogDescription>{saveMessage}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => { setSaveMessage(""); navigate(ROUTE_ADMIN_PROFILE); }}>OK</Button>
+            <Button onClick={() => { setSaveMessage(""); handleBackToProfile(); }}>OK</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

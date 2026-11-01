@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { MailPlus, Send } from "lucide-react";
 import { showSubmittedData } from "@admin/lib/show-submitted-data";
-import { isValidEmail } from "@admin/lib/form-validation";
+import { isValidEmail, validationRules, trimFormValues } from "@admin/lib/form-validation";
 import { Button } from "@admin/components/ui/button";
 import {
   Dialog,
@@ -43,7 +43,7 @@ export function UsersInviteDialog({ open, onOpenChange }: UserInviteDialogProps)
 
   const onSubmit = (values: UserInviteForm) => {
     form.reset();
-    showSubmittedData(values);
+    showSubmittedData(trimFormValues(values));
     onOpenChange(false);
   };
 
@@ -69,10 +69,7 @@ export function UsersInviteDialog({ open, onOpenChange }: UserInviteDialogProps)
             <FormField
               control={form.control}
               name="email"
-              rules={{
-                required: "Please enter an email to invite.",
-                validate: (value) => isValidEmail(value) || "Please enter a valid email.",
-              }}
+              rules={validationRules.requiredEmail("Email")}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
@@ -86,7 +83,7 @@ export function UsersInviteDialog({ open, onOpenChange }: UserInviteDialogProps)
             <FormField
               control={form.control}
               name="role"
-              rules={{ required: "Role is required." }}
+              rules={validationRules.required("Role")}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
@@ -103,6 +100,7 @@ export function UsersInviteDialog({ open, onOpenChange }: UserInviteDialogProps)
             <FormField
               control={form.control}
               name="desc"
+              rules={validationRules.noWhitespaceOnly("Description")}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description (optional)</FormLabel>

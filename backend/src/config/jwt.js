@@ -8,7 +8,9 @@ if (!process.env.JWT_SECRET) {
 
 const jwtConfig = {
   secret: process.env.JWT_SECRET,
-  expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+  // Authenticated requests rotate the token, giving the session a 15 minute
+  // sliding expiration while keeping an idle token unusable after 15 minutes.
+  expiresIn: '15m',
 };
 
 module.exports = jwtConfig;

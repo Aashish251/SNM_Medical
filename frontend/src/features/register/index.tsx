@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { STEPS } from "@shared/config/common";
+import { STEPS, requiredFields } from "@shared/config/common";
 import { useRegistrationForm } from "./hooks/useRegistrationForm";
 import {
   Stepper,
@@ -17,6 +17,7 @@ import { reportError } from "@shared/lib/monitoring";
 import LoadingSpinner from "@shared/components/LoadingSpinner";
 import { createRegistrationFormData } from "@entities/registration";
 import { ApiErrorDialog } from "@shared/components/ApiErrorDialog";
+import { trimFormValues } from "@shared/lib/formValidation";
 
 const Register = () => {
   const [triggerRegisterUser] = useRegisterUserMutation();
@@ -47,17 +48,20 @@ const Register = () => {
     try {
       setDisabled(true);
 
-      // Validate required fields
-      const requiredFields = [
-        "fullName",
-        "email",
-        "password",
-        "mobileNo",
-        "dateOfBirth",
+      const trimmedData = trimFormValues(data);
+
+      // Validate all required fields
+      const allRequiredFields: (keyof FormValues)[] = [
+        ...requiredFields[1],
+        ...requiredFields[2],
+        ...requiredFields[3],
       ];
-      const missingFields = requiredFields.filter(
-        (field) => !data[field as keyof FormValues]
-      );
+      const missingFields = allRequiredFields.filter((field) => {
+        const val = trimmedData[field];
+        if (val === undefined || val === null || val === "") return true;
+        if (typeof val === "string" && val.trim().length === 0) return true;
+        return false;
+      });
 
       if (missingFields.length > 0) {
         setSubmitError(`Missing required fields: ${missingFields.join(", ")}`);
@@ -65,7 +69,7 @@ const Register = () => {
         return;
       }
 
-      const formData = createRegistrationFormData(data);
+      const formData = createRegistrationFormData(trimmedData);
 
       await triggerRegisterUser(formData).unwrap();
       toast.success("Registered successfully!");

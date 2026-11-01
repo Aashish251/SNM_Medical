@@ -17,6 +17,8 @@ interface TextFieldProps {
   disabled?: boolean;
   maxLength?: number;
   max?: string | number;
+  inputClassName?: string;
+  showError?: boolean;
 }
 
 export const TextField = ({
@@ -32,6 +34,9 @@ export const TextField = ({
   disabled = false,
   className = "",
   max,
+  maxLength,
+  inputClassName = "",
+  showError = true,
 }: TextFieldProps) => {
   const inputProps = value ? { defaultValue: value } : {};
   const localRef = useRef<HTMLInputElement>(null);
@@ -52,6 +57,8 @@ export const TextField = ({
         <Input
           type={type}
           max={max}
+          maxLength={maxLength}
+          className={inputClassName}
           placeholder={placeholder}
           readOnly={readOnly}
           disabled={disabled}
@@ -64,7 +71,7 @@ export const TextField = ({
           {...inputProps}
         />
       </div>
-      <FieldErrorText message={error?.message} />
+      {showError && <FieldErrorText message={error?.message} />}
     </div>
   );
 };

@@ -85,12 +85,13 @@ export function useProfileWizardForm(mode: ProfileWizardMode) {
     }
   }, [stateId, setValue, triggerGetCitiesByState]);
 
-  const nextStep = async (skipValidation = false) => {
-    if (skipValidation) {
+  const nextStep = async (skipValidation: boolean | unknown = false) => {
+    if (skipValidation === true) {
       setCurrentStep((step) => step + 1);
       return true;
     }
-    const valid = await trigger(requiredFields[currentStep]);
+    const fieldsToTrigger = STEP_FIELDS[currentStep] || requiredFields[currentStep];
+    const valid = await trigger(fieldsToTrigger);
     if (valid) {
       setCurrentStep((step) => step + 1);
       return true;

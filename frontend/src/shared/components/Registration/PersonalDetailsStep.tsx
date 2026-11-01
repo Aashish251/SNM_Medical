@@ -6,13 +6,14 @@ import { UseFormReturn } from "react-hook-form";
 import { FormValues, CityItem } from "@shared/types/CommonType";
 import {
   DatePickerField,
+  FieldErrorText,
   FileUploadField,
   NumberField,
   SelectField,
   TextareaField,
 } from "@shared/components/FormInputs";
 import { SearchableSelect } from "@shared/components/FormInputs/SearchableSelect";
-import { handleAlphabeticInput, isValidBirthdate } from "@shared/lib/utils";
+import { isValidBirthdate } from "@shared/lib/utils";
 import { useCheckRegistrationAvailabilityMutation } from "@features/register/services";
 import { normalizeApiError } from "@shared/api/errors";
 import { requiredFields } from "@shared/config/common";
@@ -129,19 +130,15 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         <TextField
           label="Full Name"
           required
-          register={register("fullName", {
-            required: "Full name is required",
-            minLength: {
-              value: 2,
-              message: "Full name must be at least 2 characters long",
-            },
-            pattern: {
-              value: /^[A-Za-z]+(?: [A-Za-z]+)*$/,
-              message: "Full name should contain only letters with single spaces between words",
-            },
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "fullName", form.setValue),
-          })}
+          register={register(
+            "fullName",
+            validationRules.trimmedAlphabetic(
+              "Full name",
+              "fullName",
+              form.setValue,
+              { required: true, maxLength: 50 }
+            )
+          )}
           placeholder="Enter full name"
           error={errors.fullName}
         />
@@ -152,19 +149,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
           required
           maxLength={10}
           register={register("mobileNo", {
-            required: "Contact number is required",
-            pattern: {
-              value: /^[6-9]\d{9}$/,
-              message: "Enter a valid 10-digit mobile number starting with 6-9",
-            },
-            minLength: {
-              value: 10,
-              message: "Mobile number must be 10 digits",
-            },
-            maxLength: {
-              value: 10,
-              message: "Mobile number must be 10 digits",
-            },
+            ...validationRules.mobileNumber,
             onChange: () => {
               if (errors.mobileNo) {
                 form.clearErrors("mobileNo");
@@ -190,50 +175,63 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         {/* Email */}
         <TextField
           label="Email"
+          type="email"
+          autoComplete="email"
           required
-          register={register("email", {
-            required: "Email address is required",
-            pattern: {
-              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-              message: "Enter a valid email",
-            },
-            onChange: () => {
-              if (errors.email) {
-                form.clearErrors("email");
+          register={register(
+            "email",
+            validationRules.emailField(
+              "Email address",
+              "email",
+              form.setValue,
+              {
+                onChange: () => {
+                  if (errors.email) {
+                    form.clearErrors("email");
+                  }
+                },
               }
-            },
-          })}
+            )
+          )}
           placeholder="Enter email address"
           error={errors.email}
         />
 
         {/* Birthdate & Age */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <TextField
-            label="Birthdate"
-            type="date"
-            max={new Date().toISOString().slice(0, 10)}
-            required
-            register={register("dateOfBirth", {
-              required: "Birthdate is required",
-              validate: {
-                validDate: (value) => {
-                  if (!value) return true;
-                  return isValidBirthdate(value)
-                    || "Enter a valid birthdate no more than 120 years ago";
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <TextField
+              label="Birthdate"
+              type="date"
+              max={new Date().toISOString().slice(0, 10)}
+              required
+              register={register("dateOfBirth", {
+                required: "Birthdate is required",
+                validate: {
+                  validDate: (value) => {
+                    if (!value) return true;
+                    return isValidBirthdate(value)
+                      || "Enter a valid birthdate no more than 120 years ago";
+                  },
                 },
-              },
-            })}
-            placeholder="DD/MM/YYYY"
-            error={errors.dateOfBirth}
-          />
+              })}
+              placeholder="DD/MM/YYYY"
+              error={errors.dateOfBirth}
+              showError={false}
+            />
 
-          <TextField
-            label="Age"
-            readOnly
-            register={register("age", { required: "Age is required" })}
-            placeholder="Auto calculated"
-            error={errors.age}
+            <TextField
+              label="Age"
+              readOnly
+              register={register("age", { required: "Age is required" })}
+              placeholder="Auto calculated"
+              error={errors.age}
+              showError={false}
+            />
+          </div>
+          <FieldErrorText
+            message={errors.dateOfBirth?.message || errors.age?.message}
+            className="whitespace-nowrap"
           />
         </div>
 
@@ -283,9 +281,15 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
             label="Address"
             placeholder="Enter address"
             required
-            register={register("address", {
-              required: "Address is required",
-            })}
+            register={register(
+              "address",
+              validationRules.trimmedRequired(
+                "Address",
+                "address",
+                form.setValue,
+                { minLength: 5, maxLength: 500 }
+              )
+            )}
             error={errors.address}
           />
         </div>

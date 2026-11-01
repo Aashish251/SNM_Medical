@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@admin/components/ui/button";
+import { validationRules } from "@admin/lib/form-validation";
 import {
   Dialog,
   DialogContent,
@@ -176,7 +177,7 @@ export function DutyChartDialog({
             <FormField
               control={form.control}
               name="title"
-              rules={{ required: "Samagam Title is required" }}
+              rules={validationRules.required("Samagam Title")}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Samagam Title</FormLabel>
@@ -196,7 +197,7 @@ export function DutyChartDialog({
               <FormField
                 control={form.control}
                 name="date"
-                rules={{ required: "Date is required" }}
+                rules={validationRules.required("Date")}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date</FormLabel>
@@ -211,7 +212,7 @@ export function DutyChartDialog({
               <FormField
                 control={form.control}
                 name="shift"
-                rules={{ required: "Shift is required" }}
+                rules={validationRules.required("Shift")}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Shift</FormLabel>
@@ -242,7 +243,7 @@ export function DutyChartDialog({
             <FormField
               control={form.control}
               name="department"
-              rules={{ required: "Department is required" }}
+              rules={validationRules.required("Department")}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Department</FormLabel>
@@ -263,7 +264,7 @@ export function DutyChartDialog({
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: "Staff Name is required" }}
+              rules={validationRules.required("Staff Name")}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Staff Name</FormLabel>
@@ -299,7 +300,7 @@ export function DutyChartDialog({
               control={form.control}
               name="contact"
               rules={{
-                required: "Contact Number is required",
+                ...validationRules.required("Contact Number"),
                 pattern: {
                   value: /^\d{10}$/,
                   message: "Contact number must be exactly 10 digits.",

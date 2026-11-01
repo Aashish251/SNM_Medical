@@ -13,6 +13,7 @@ export interface MasterRecord {
   id: number | string;
   value: string;
   state_id?: number;
+  state_name?: string | null;
   country_id?: number;
 }
 

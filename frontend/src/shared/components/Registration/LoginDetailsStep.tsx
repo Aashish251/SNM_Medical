@@ -5,7 +5,6 @@ import { PasswordField } from "@shared/components/FormInputs/PasswordField";
 import { RootState } from "@app/store";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { handleAlphabeticInput } from "@shared/lib/utils";
 import { validationRules } from "@shared/lib/formValidation";
 
 export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled }: any) => {
@@ -21,43 +20,45 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
     <>
       {/* Responsive grid for inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full">
-        {!regId?.userId && <><PasswordField
-          label="Password"
-          autoComplete="new-password"
-          required
-          placeholder="Enter your password"
-          register={register("password", {
-            required: "Password is required",
-            minLength: {
-              value: 6,
-              message: "Password must be at least 6 characters",
-            },
-          })}
-          error={errors.password}
-        />
+        {!regId?.userId && (
+          <>
+            <PasswordField
+              label="Password"
+              autoComplete="new-password"
+              required
+              placeholder="Enter your password"
+              register={register(
+                "password",
+                validationRules.password({ minLength: 6 })
+              )}
+              error={errors.password}
+            />
 
-          <PasswordField
-            label="Confirm Password"
-            autoComplete="confirm-password"
-            required
-            register={register("confirmPassword", {
-              required: "Confirm password",
-              validate: (v: string) =>
-                v === watch("password") || "Passwords do not match",
-            })}
-            placeholder="Re-enter password"
-            error={errors.confirmPassword}
-          /></>}
+            <PasswordField
+              label="Confirm Password"
+              autoComplete="confirm-password"
+              required
+              register={register(
+                "confirmPassword",
+                validationRules.confirmPassword(() => watch("password"))
+              )}
+              placeholder="Re-enter password"
+              error={errors.confirmPassword}
+            />
+          </>
+        )}
 
         <TextField
           label="What is your favorite food?"
           required
-          register={register("favoriteFood", {
-            required: "Favorite food is required",
-            ...validationRules.alphabetic("Favorite food"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "favoriteFood", form.setValue),
-          })}
+          register={register(
+            "favoriteFood",
+            validationRules.securityAnswer(
+              "Favorite food",
+              "favoriteFood",
+              form.setValue
+            )
+          )}
           placeholder="Enter favorite food"
           error={errors.favoriteFood}
         />
@@ -65,12 +66,14 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
         <TextField
           label="What was your childhood nickname?"
           required
-          register={register("childhoodNickname", {
-            required: "Childhood nickname is required",
-            ...validationRules.alphabetic("Childhood nickname"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "childhoodNickname", form.setValue),
-          })}
+          register={register(
+            "childhoodNickname",
+            validationRules.securityAnswer(
+              "Childhood nickname",
+              "childhoodNickname",
+              form.setValue
+            )
+          )}
           placeholder="Enter childhood nickname"
           error={errors.childhoodNickname}
         />
@@ -78,12 +81,14 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
         <TextField
           label="What is your mother's maiden name?"
           required
-          register={register("motherMaidenName", {
-            required: "Mother's maiden name is required",
-            ...validationRules.alphabetic("Mother's maiden name"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "motherMaidenName", form.setValue),
-          })}
+          register={register(
+            "motherMaidenName",
+            validationRules.securityAnswer(
+              "Mother's maiden name",
+              "motherMaidenName",
+              form.setValue
+            )
+          )}
           placeholder="Enter mother's maiden name"
           error={errors.motherMaidenName}
         />
@@ -91,12 +96,14 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
         <TextField
           label="What are your hobbies?"
           required
-          register={register("hobbies", {
-            required: "Hobbies are required",
-            ...validationRules.alphabetic("Hobbies"),
-            onChange: (e: any) =>
-              handleAlphabeticInput(e, "hobbies", form.setValue),
-          })}
+          register={register(
+            "hobbies",
+            validationRules.securityAnswer(
+              "Hobbies",
+              "hobbies",
+              form.setValue
+            )
+          )}
           placeholder="What are your hobbies?"
           error={errors.hobbies}
         />
@@ -113,7 +120,16 @@ export const LoginDetailsStep = ({ form, prevStep, reset, disabled, setDisabled 
             disabled={userType === "admin" ? false : true}
             label="Remark (Added by Administration Team)"
             placeholder="This field will be filled by the administration team after review"
-            register={register("remark")}
+            register={register(
+              "remark",
+              validationRules.remarkField(
+                "Remark",
+                "remark",
+                form.setValue,
+                { maxLength: 500 }
+              )
+            )}
+            error={errors.remark}
           />
         </div>
       </div>

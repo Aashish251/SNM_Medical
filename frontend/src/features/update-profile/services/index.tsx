@@ -21,7 +21,8 @@ export const UpdateProfileApi = baseApi.injectEndpoints({
       invalidatesTags: ["UserDetails"],
     }),
     getUserDetailsQuery: builder.query<GetUserProfileResponse, number>({
-      keepUnusedDataFor: 0,
+      // Keep profile data available while moving from view to edit and back.
+      keepUnusedDataFor: 60,
       query: (id) => ({
         url: `/api/user/update-profile/${id}`,
         method: "GET",

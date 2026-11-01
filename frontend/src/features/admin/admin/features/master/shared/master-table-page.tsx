@@ -23,6 +23,7 @@ export interface MasterRow {
   id: string;
   value: string;
   state_id?: number;
+  state_name?: string | null;
   country_id?: number;
 }
 
@@ -50,51 +51,21 @@ function buildColumns(
 ): ColumnDef<MasterRow>[] {
   const cols: ColumnDef<MasterRow>[] = [
     createSelectColumn<MasterRow>(),
-    {
-      accessorKey: "id",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="ID" />
-      ),
-      cell: ({ row }) => (
-        <span className="font-mono text-xs text-muted-foreground">
-          {row.getValue("id")}
-        </span>
-      ),
-      enableSorting: true,
-      meta: { className: "w-20" },
-    },
     createTextColumn<MasterRow>("value", `${recordTitle} Name`),
   ];
 
   if (module === "city") {
     cols.push({
-      accessorKey: "state_id",
+      accessorKey: "state_name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="State ID" />
+        <DataTableColumnHeader column={column} title="State Name" />
       ),
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-muted-foreground">
-          {String(row.getValue("state_id") ?? "-")}
-        </span>
+        <span>{String(row.getValue("state_name") ?? "-")}</span>
       ),
       enableSorting: true,
-      filterFn: (row, id, value) => value.includes(String(row.getValue(id))),
-      meta: { className: "w-28" },
-    });
-  }
-
-  if (module === "state") {
-    cols.push({
-      accessorKey: "country_id",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Country ID" />
-      ),
-      cell: ({ row }) => (
-        <span className="font-mono text-xs text-muted-foreground">
-          {String(row.getValue("country_id") ?? "-")}
-        </span>
-      ),
-      enableSorting: true,
+      filterFn: (row, id, value) =>
+        value.includes(String(row.getValue(id) ?? "")),
       meta: { className: "w-28" },
     });
   }
@@ -182,6 +153,14 @@ export function MasterTablePage({
     const items = statesData?.data?.items ?? [];
     return items.map((s) => ({ label: s.value, value: String(s.id) }));
   }, [statesData, areStatesLoading]);
+
+  const stateNameOptions = useMemo(() => {
+    const items = statesData?.data?.items ?? [];
+    return items.map((state) => ({
+      label: state.value,
+      value: state.value,
+    }));
+  }, [statesData]);
 
   const formFields = useMemo(
     () => buildFormFields(module, recordTitle, stateOptions),
@@ -271,9 +250,9 @@ export function MasterTablePage({
       module === "city" && stateOptions.length > 0 && stateOptions[0].value !== ""
         ? [
             {
-              columnId: "state_id",
+              columnId: "state_name",
               title: "State",
-              options: stateOptions,
+              options: stateNameOptions,
             },
           ]
         : [],

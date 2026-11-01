@@ -3,6 +3,12 @@
  * Protects against XSS and injection attacks
  */
 
+const { normalizeText, normalizePhone, normalizeEmail } = require('./validators');
+
+exports.normalizeText = normalizeText;
+exports.normalizePhone = normalizePhone;
+exports.normalizeEmail = normalizeEmail;
+
 /**
  * Sanitize user input by removing dangerous characters
  * @param {*} input - The input to sanitize

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAppSelector } from "@app/store/hooks";
 import { Header } from "@admin/components/layout/header";
 import { Main } from "@admin/components/layout/main";
@@ -10,9 +10,11 @@ import { Card, CardContent } from "@admin/components/ui/card";
 import { Separator } from "@admin/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@admin/components/ui/avatar";
 import { Skeleton } from "@admin/components/ui/skeleton";
-import { ROUTE_ADMIN_PROFILE_EDIT } from "@admin/constants/routePaths";
+import { ROUTE_ADMIN_PROFILE_EDIT, ROUTE_ADMIN_MASTER_SEARCH } from "@admin/constants/routePaths";
+import { Button } from "@admin/components/ui/button";
 import { useGetUserDetailsQueryQuery } from "@features/update-profile/services";
-import { useGetRegistrationDropdownDataQuery } from "@shared/services/commonApi";
+import { useGetRegistrationDropdownDataQuery, useLazyGetCitiesByStateQuery } from "@shared/services/commonApi";
+import { DUMMY } from "@shared/config/common";
 import { openDocumentView } from "@shared/utils/documentHelper";
 import {
   User,
@@ -31,6 +33,7 @@ import {
   Zap,
   FileText,
   Users,
+  ArrowLeft,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -66,6 +69,8 @@ function lookupName(
       val.qualification_name ??
       val.state_name ??
       val.city_name ??
+      val.available_day ??
+      val.shifttime ??
       val.name ??
       "—"
     );
@@ -78,7 +83,17 @@ function lookupName(
 
   const numId = Number(strVal);
   if (list && list.length > 0) {
-    const found = list.find((item) => Number(item.id) === numId);
+    const found = list.find((item) => {
+      const itemId =
+        item?.id ??
+        item?.state_id ??
+        item?.city_id ??
+        item?.department_id ??
+        item?.qualification_id ??
+        item?.available_day_id ??
+        item?.shifttime_id;
+      return Number(itemId) === numId;
+    });
     if (found) {
       return (
         found[nameProp] ??
@@ -86,6 +101,8 @@ function lookupName(
         found.qualification_name ??
         found.state_name ??
         found.city_name ??
+        found.available_day ??
+        found.shifttime ??
         found.name ??
         strVal
       );
@@ -281,7 +298,13 @@ function ProfileTabs({
 export function Profile() {
   const navigate = useNavigate();
   const { userDetails } = useAppSelector((state) => state.auth);
-  const userId = userDetails?.id;
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const userIdFromLocation = location.state?.userId ?? searchParams.get("userId");
+  const isViewingOtherUser = Boolean(
+    userIdFromLocation && String(userIdFromLocation) !== String(userDetails?.id)
+  );
+  const userId = userIdFromLocation ? String(userIdFromLocation) : userDetails?.id;
 
   const { data: profileResponse, isLoading } = useGetUserDetailsQueryQuery(
     userId ? Number(userId) : 0,
@@ -296,67 +319,239 @@ export function Profile() {
   const profile = profileResponse?.data;
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
+  const [triggerGetCities] = useLazyGetCitiesByStateQuery();
+  const [fetchedCities, setFetchedCities] = useState<any[]>([]);
+
+  useEffect(() => {
+    const sId = profile?.stateId ?? (profile as any)?.state_id;
+    if (sId && Number(sId) > 0) {
+      triggerGetCities({ stateId: Number(sId) })
+        .unwrap()
+        .then((res) => {
+          if (res?.data?.cities) {
+            setFetchedCities(res.data.cities);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [profile?.stateId, (profile as any)?.state_id, triggerGetCities]);
 
   // Lookup resolutions
   const qualificationsList = dropdowns?.qualifications ?? [];
   const departmentsList = dropdowns?.departments ?? [];
   const statesList = dropdowns?.states ?? [];
   const citiesList = dropdowns?.cities ?? [];
+  const availableDaysList = (dropdowns as any)?.availableDays ?? [];
+  const shiftTimesList = (dropdowns as any)?.shiftTimes ?? [];
 
   // Resolved Display Values
-  const displayName = profile?.fullName ?? userDetails?.name ?? "Purab Kanaujiya";
-  const email = profile?.email ?? userDetails?.email ?? "purab.kanaujiya@gmail.com";
-  const initials = displayName.slice(0, 2).toUpperCase();
-  const profileImage = assetUrl(profile?.profileImage ?? userDetails?.profilePic);
+  const displayName = profile?.fullName ?? (isViewingOtherUser ? "—" : userDetails?.name ?? "Purab Kanaujiya");
+  const email = profile?.email ?? (isViewingOtherUser ? "—" : userDetails?.email ?? "purab.kanaujiya@gmail.com");
+  const initials = (displayName !== "—" ? displayName : "U").slice(0, 2).toUpperCase();
+  const profileImage = assetUrl(profile?.profileImage ?? (isViewingOtherUser ? undefined : userDetails?.profilePic));
   const certificatePath =
-    typeof profile?.certificate === "string" ? profile.certificate : undefined;
+    typeof profile?.certificate === "string" && profile.certificate.trim() !== ""
+      ? profile.certificate
+      : (profile as any)?.certificate_doc_path || (profile as any)?.certificateDocPath || undefined;
 
-  const titleVal =
-    String(profile?.title) === "1"
-      ? "Mr"
-      : String(profile?.title) === "2"
-        ? "Mrs"
-        : String(profile?.title) === "3"
-          ? "Ms"
-          : d(profile?.title);
+  const resolveTitle = (val: any) => {
+    if (val === null || val === undefined || val === "") return isViewingOtherUser ? "—" : "Mr";
+    const str = String(val).trim();
+    const found = DUMMY.titles.find(
+      (t) =>
+        String(t.id) === str ||
+        t.value.toLowerCase() === str.toLowerCase() ||
+        t.label.toLowerCase() === str.toLowerCase() ||
+        t.label.replace(/\./g, "").toLowerCase() === str.toLowerCase()
+    );
+    if (found) return found.value;
+    return str || "—";
+  };
+  const titleVal = resolveTitle(profile?.title);
 
-  const genderVal =
-    String(profile?.gender) === "1"
-      ? "Male"
-      : String(profile?.gender) === "2"
-        ? "Female"
-        : d(profile?.gender);
+  const resolveGender = (val: any) => {
+    if (val === null || val === undefined || val === "") return isViewingOtherUser ? "—" : "Male";
+    const str = String(val).trim();
+    const found = DUMMY.genders.find(
+      (g) =>
+        String(g.id) === str ||
+        g.value.toLowerCase() === str.toLowerCase() ||
+        g.label.toLowerCase() === str.toLowerCase()
+    );
+    if (found) return found.label;
+    if (str === "1") return "Male";
+    if (str === "2") return "Female";
+    if (str === "3") return "Other";
+    return str || "—";
+  };
+  const genderVal = resolveGender(profile?.gender);
 
-  const qualification = lookupName(
-    profile?.qualificationId,
+  const qualificationNameFromProfile =
+    (profile as any)?.qualificationName || (profile as any)?.qualification_name;
+  const qualificationFromLookup = lookupName(
+    profile?.qualificationId ?? (profile as any)?.qualification_id,
     qualificationsList,
     "qualification_name"
   );
-  const resolvedQualification = qualification !== "—" ? qualification : "Student";
+  const resolvedQualification =
+    qualificationNameFromProfile && String(qualificationNameFromProfile).trim() !== ""
+      ? String(qualificationNameFromProfile).trim()
+      : qualificationFromLookup !== "—" && isNaN(Number(qualificationFromLookup))
+      ? qualificationFromLookup
+      : isViewingOtherUser
+      ? "—"
+      : "Student";
 
-  const department = lookupName(
-    profile?.departmentId,
+  const departmentNameFromProfile =
+    (profile as any)?.departmentName || (profile as any)?.department_name;
+  const departmentFromLookup = lookupName(
+    profile?.departmentId ?? (profile as any)?.department_id,
     departmentsList,
     "department_name"
   );
-  const resolvedDepartment = department !== "—" ? department : "Dispensary";
+  const resolvedDepartment =
+    departmentNameFromProfile && String(departmentNameFromProfile).trim() !== ""
+      ? String(departmentNameFromProfile).trim()
+      : departmentFromLookup !== "—" && isNaN(Number(departmentFromLookup))
+      ? departmentFromLookup
+      : isViewingOtherUser
+      ? "—"
+      : "Dispensary";
 
-  const rawState = (profile as any)?.stateName ?? lookupName(profile?.stateId, statesList, "state_name");
-  const rawCity = (profile as any)?.cityName ?? lookupName(profile?.cityId, citiesList, "city_name");
+  const stateNameFromProfile =
+    (profile as any)?.stateName || (profile as any)?.state_name;
+  const stateFromLookup = lookupName(
+    profile?.stateId ?? (profile as any)?.state_id,
+    statesList,
+    "state_name"
+  );
+  const stateVal =
+    stateNameFromProfile && String(stateNameFromProfile).trim() !== ""
+      ? String(stateNameFromProfile).trim()
+      : stateFromLookup !== "—" && isNaN(Number(stateFromLookup))
+      ? stateFromLookup
+      : isViewingOtherUser
+      ? "—"
+      : "Maharashtra";
 
-  const stateVal = rawState !== "—" && isNaN(Number(rawState)) ? rawState : "Maharashtra";
-  const cityVal = rawCity !== "—" && isNaN(Number(rawCity)) ? rawCity : "Mumbai";
-  const locationVal = `${cityVal}, ${stateVal}`;
+  const cityNameFromProfile =
+    (profile as any)?.cityName || (profile as any)?.city_name;
+  const cityFromLookup = lookupName(
+    profile?.cityId ?? (profile as any)?.city_id,
+    fetchedCities.length > 0 ? fetchedCities : citiesList,
+    "city_name"
+  );
+  const cityVal =
+    cityNameFromProfile && String(cityNameFromProfile).trim() !== ""
+      ? String(cityNameFromProfile).trim()
+      : cityFromLookup !== "—" && isNaN(Number(cityFromLookup))
+      ? cityFromLookup
+      : isViewingOtherUser
+      ? "—"
+      : "Mumbai";
 
-  const role = userDetails?.userType ? userDetails.userType : "Medical Sewadar";
+  const locationVal =
+    cityVal !== "—" && stateVal !== "—"
+      ? `${cityVal}, ${stateVal}`
+      : cityVal !== "—"
+      ? cityVal
+      : stateVal !== "—"
+      ? stateVal
+      : isViewingOtherUser
+      ? "—"
+      : "Mumbai, Maharashtra";
+
+  const userRole = profile?.userType ?? (profile as any)?.role ?? (isViewingOtherUser ? undefined : userDetails?.userType);
+  const role =
+    userRole === "admin"
+      ? "Admin"
+      : userRole === "ms"
+      ? "Medical Sewadar"
+      : userRole || "Medical Sewadar";
   const experience =
-    d(profile?.experience) !== "—" ? `${d(profile?.experience)}` : "6.00";
-  const lastSewa = d(profile?.lastSewa) !== "—" ? d(profile?.lastSewa) : "Pune";
+    d(profile?.experience) !== "—"
+      ? `${d(profile?.experience)}`
+      : isViewingOtherUser
+      ? "—"
+      : "6.00";
+  const lastSewa =
+    d(profile?.lastSewa) !== "—"
+      ? d(profile?.lastSewa)
+      : isViewingOtherUser
+      ? "—"
+      : "Pune";
+
+  const availableDayFromProfile =
+    (profile as any)?.availableDay || (profile as any)?.available_day;
+  const availableDayFromLookup = lookupName(
+    profile?.availableDayId ?? (profile as any)?.available_day_id,
+    availableDaysList,
+    "available_day"
+  );
+  const availableDaysVal =
+    availableDayFromProfile && String(availableDayFromProfile).trim() !== ""
+      ? String(availableDayFromProfile).trim()
+      : availableDayFromLookup !== "—" && isNaN(Number(availableDayFromLookup))
+      ? availableDayFromLookup
+      : isViewingOtherUser
+      ? "—"
+      : "All-Day";
+
+  const shiftTimeFromProfile =
+    (profile as any)?.shiftTime || (profile as any)?.shifttime;
+  const shiftTimeFromLookup = lookupName(
+    profile?.shiftTimeId ?? (profile as any)?.shifttime_id,
+    shiftTimesList,
+    "shifttime"
+  );
+  const shiftTimeVal =
+    shiftTimeFromProfile && String(shiftTimeFromProfile).trim() !== ""
+      ? String(shiftTimeFromProfile).trim()
+      : shiftTimeFromLookup !== "—" && isNaN(Number(shiftTimeFromLookup))
+      ? shiftTimeFromLookup
+      : isViewingOtherUser
+      ? "—"
+      : "Morning - 8.00 AM to 4.00 PM";
+
+  const mobileVal =
+    d(profile?.mobileNo) !== "—"
+      ? d(profile?.mobileNo)
+      : isViewingOtherUser
+      ? "—"
+      : "8692003830";
+
+  const dobVal =
+    d(profile?.dateOfBirth) !== "—"
+      ? d(profile?.dateOfBirth)
+      : isViewingOtherUser
+      ? "—"
+      : "2014-09-03";
+
+  const ageVal =
+    d(profile?.age) !== "—"
+      ? d(profile?.age)
+      : isViewingOtherUser
+      ? "—"
+      : "12";
+
+  const addressVal =
+    profile?.address
+      ? d(profile?.address)
+      : isViewingOtherUser
+      ? (locationVal !== "—" ? locationVal : "—")
+      : "Golden Nest, Mira Bhayandar, Thane -401107.";
+
+  const recommendedByVal =
+    d(profile?.recommendedBy) !== "—"
+      ? d(profile?.recommendedBy)
+      : isViewingOtherUser
+      ? "—"
+      : "Pratik Ji";
 
   // Navigation
   const handleEditProfile = () => {
     if (!userId) return;
-    navigate(ROUTE_ADMIN_PROFILE_EDIT, { state: { userId } });
+    navigate(ROUTE_ADMIN_PROFILE_EDIT, { state: { userId, profile } });
   };
 
   /* ---------------------------------------------------------------- */
@@ -427,13 +622,13 @@ export function Profile() {
         <div className="flex items-center gap-3 text-slate-700">
           <Phone className="size-4 text-slate-400 shrink-0" />
           <span className="text-[13px] font-medium">
-            {d(profile?.mobileNo) !== "—" ? d(profile?.mobileNo) : "8692003830"}
+            {mobileVal}
           </span>
         </div>
         <div className="flex items-center gap-3 text-slate-700">
           <MapPin className="size-4 text-slate-400 shrink-0" />
           <span className="text-[13px] font-medium truncate">
-            {profile?.address ? d(profile?.address) : locationVal}
+            {addressVal}
           </span>
         </div>
         <div className="flex items-center gap-3 text-slate-700">
@@ -452,7 +647,7 @@ export function Profile() {
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <StatCard
         icon={Calendar}
-        value={d(profile?.age) !== "—" ? d(profile?.age) : "12"}
+        value={ageVal}
         label="Age"
         bgColor="bg-blue-50"
         iconColor="text-[#0066FF]"
@@ -500,26 +695,24 @@ export function Profile() {
       <CardContent className="p-0">
         {sectionHeader(User, "Personal Information")}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-          <InfoRow label="Full Name" value={displayName} />
           <InfoRow label="Title" value={titleVal} />
+          <InfoRow label="Full Name" value={displayName} />
           <InfoRow label="Email" value={email} />
           <InfoRow
             label="Mobile"
             value={
-              d(profile?.mobileNo) !== "—" ? d(profile?.mobileNo) : "8692003830"
+              mobileVal
             }
           />
           <InfoRow
             label="Date of Birth"
             value={
-              d(profile?.dateOfBirth) !== "—"
-                ? d(profile?.dateOfBirth)
-                : "2014-09-03"
+              dobVal
             }
           />
           <InfoRow
             label="Age"
-            value={d(profile?.age) !== "—" ? d(profile?.age) : "12"}
+            value={ageVal}
           />
           <InfoRow label="Gender" value={genderVal} />
           <InfoRow label="State" value={stateVal} />
@@ -542,32 +735,30 @@ export function Profile() {
           <InfoRow
             label="Recommended By"
             value={
-              d(profile?.recommendedBy) !== "—"
-                ? d(profile?.recommendedBy)
-                : "Pratik Ji"
+              recommendedByVal
             }
           />
           <InfoRow
             label="Available Days"
-            value={d(profile?.availableDayId)}
+            value={availableDaysVal}
           />
           <InfoRow
             label="Preferred Shift Time"
-            value={d(profile?.shiftTimeId)}
+            value={shiftTimeVal}
           />
         </div>
         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
           <span className="text-slate-400 text-[13px] font-medium w-[100px] sm:w-[110px] shrink-0">
             View Certificate
           </span>
-          {certificatePath && userId ? (
+          {(certificatePath || (profile as any)?.certificate_doc_path) && userId ? (
             <button
               type="button"
               onClick={() => void openDocumentView(userId)}
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#0066FF] font-semibold hover:underline"
+              className="inline-flex items-center gap-1.5 text-[13px] text-[#0066FF] font-semibold hover:underline cursor-pointer"
             >
               <ExternalLink className="size-3" />
-              Open Certificate
+              View Certificate
             </button>
           ) : (
             <span className="text-slate-800 text-[13px] font-semibold">—</span>
@@ -590,7 +781,23 @@ export function Profile() {
               <span className="font-semibold text-[13px] text-slate-800 leading-snug break-words flex-1">
                 {profile?.address
                   ? d(profile?.address)
-                  : "Golden Nest, Mira Bhayandar, Thane -401107."}
+                  : addressVal}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-slate-400 text-[13px] font-medium w-[100px] sm:w-[110px] shrink-0">
+                State
+              </span>
+              <span className="font-semibold text-[13px] text-slate-800 truncate flex-1">
+                {stateVal}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-slate-400 text-[13px] font-medium w-[100px] sm:w-[110px] shrink-0">
+                City
+              </span>
+              <span className="font-semibold text-[13px] text-slate-800 truncate flex-1">
+                {cityVal}
               </span>
             </div>
             <div className="flex items-center gap-3">
@@ -773,11 +980,24 @@ export function Profile() {
         {/* ── Page header ───────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
+            {isViewingOtherUser && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mb-3 gap-1.5"
+                onClick={() => navigate(ROUTE_ADMIN_MASTER_SEARCH)}
+              >
+                <ArrowLeft className="size-3.5" />
+                Back to Master Search
+              </Button>
+            )}
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              My Profile
+              {isViewingOtherUser ? displayName : "My Profile"}
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              View your account details and keep your information up to date.
+              {isViewingOtherUser
+                ? "Viewing profile details for this user."
+                : "View your account details and keep your information up to date."}
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">

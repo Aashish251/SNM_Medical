@@ -5,7 +5,7 @@ import {
   type FetchArgs,
   type FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
-import { signOut } from "@entities/session/model/authSlice";
+import { refreshToken, signOut } from "@entities/session/model/authSlice";
 import { toast } from "@shared/lib/toast";
 import { normalizeApiError } from "./errors";
 
@@ -35,9 +35,16 @@ export const baseQueryWithAuth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const result = await rawBaseQuery(args, api, extraOptions);
+  const refreshedToken = result.meta?.response?.headers.get("X-Session-Token");
+  if (refreshedToken) api.dispatch(refreshToken(refreshedToken));
 
-  if (result.error?.status === 401 || result.error?.status === 403) {
+  const state = api.getState() as { auth?: { token?: string } };
+  if (result.error?.status === 401 && state.auth?.token) {
     api.dispatch(signOut());
+    if (typeof window !== "undefined") {
+      localStorage.setItem("snm-session-event", JSON.stringify({ type: "expired", at: Date.now() }));
+      window.location.assign("/login?reason=timeout");
+    }
     toast.error("Your session has expired. Please log in again.");
   }
 

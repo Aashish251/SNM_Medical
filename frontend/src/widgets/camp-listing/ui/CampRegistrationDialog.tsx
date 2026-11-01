@@ -36,7 +36,13 @@ export function CampRegistrationDialog({
   }, [open]);
 
   const canSubmit = useMemo(
-    () => !!form.name && !!form.email && !!form.phone && !!form.preferredTime,
+    () =>
+      Boolean(
+        form.name.trim() &&
+        form.email.trim() &&
+        form.phone.trim() &&
+        form.preferredTime.trim()
+      ),
     [form]
   );
 
