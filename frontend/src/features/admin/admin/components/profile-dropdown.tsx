@@ -34,6 +34,8 @@ export function ProfileDropdown() {
   const displayName = profile?.fullName ?? userDetails?.name ?? "Admin";
   const email = profile?.email ?? userDetails?.email ?? "snm@gmail.com";
   const role = userDetails?.role ?? "Admin";
+  const department = (profile as any)?.departmentName ?? (profile as any)?.department_name ?? (userDetails as any)?.department;
+  const subtitle = department || role;
   const initials = displayName.slice(0, 2).toUpperCase();
   const avatarSrc =
     getAvatarUrl(profile?.profileImage ?? userDetails?.profilePic) ??
@@ -58,7 +60,7 @@ export function ProfileDropdown() {
                 {displayName}
               </span>
               <span className="truncate text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                {role}
+                {subtitle}
               </span>
             </div>
             <ChevronDown className="hidden sm:block size-4 text-slate-400 dark:text-slate-500 shrink-0" />

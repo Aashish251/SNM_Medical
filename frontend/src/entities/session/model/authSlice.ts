@@ -27,8 +27,11 @@ const authSlice = createSlice({
       state.userDetails = null;
       state.error = null;
     },
+    refreshToken(state, action: PayloadAction<string>) {
+      if (state.isSignedIn) state.token = action.payload;
+    },
   },
 });
 
-export const { signIn, signOut } = authSlice.actions;
+export const { signIn, signOut, refreshToken } = authSlice.actions;
 export default authSlice.reducer;

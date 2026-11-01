@@ -2,6 +2,13 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth');
+const authenticateToken = require('../middlewares/auth');
+
+// Authenticated activity endpoint used to extend the sliding session when a
+// user is active without making other API calls.
+router.post('/session/refresh', authenticateToken, (req, res) => {
+  res.status(200).json({ success: true, message: 'Session refreshed' });
+});
 
 // Login with role validation
 router.post('/login',

@@ -48,6 +48,18 @@ const authenticateToken = (req, res, next) => {
       }
 
       req.user = decoded;
+      // Rotate the bearer token on each authenticated request. The client
+      // adopts this token, so its expiration slides with server activity.
+      const refreshedToken = jwt.sign(
+        {
+          userId: decoded.userId,
+          userType: decoded.userType,
+          loginId: decoded.loginId,
+        },
+        jwtConfig.secret,
+        { expiresIn: jwtConfig.expiresIn }
+      );
+      res.set('X-Session-Token', refreshedToken);
       next();
     });
 

@@ -15,6 +15,7 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
 
   const handleSignOut = () => {
     dispatch(signOut());
+    localStorage.setItem("snm-session-event", JSON.stringify({ type: "logout", at: Date.now() }));
     navigate(SNM_NAV_LOGIN_LINK, { replace: true });
   };
 

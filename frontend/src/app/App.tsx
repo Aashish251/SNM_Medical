@@ -6,6 +6,7 @@ import CustomToaster from "@shared/components/CustomToaster";
 import { TooltipProvider } from "@shared/components/ui";
 import { WidgetErrorBoundary } from "@shared/error";
 import { AdminProviders } from "@admin/providers/AdminProviders";
+import IdleSessionManager from "@shared/components/IdleSessionManager";
 import { ROUTE_ADMIN_BASE } from "@app/router/routePaths";
 
 function isAdministratorPortal(pathname: string): boolean {
@@ -20,6 +21,7 @@ function App() {
     return (
       <AdminProviders>
         <TooltipProvider>
+          <IdleSessionManager />
           <AppRoutes />
         </TooltipProvider>
       </AdminProviders>
@@ -31,6 +33,7 @@ function App() {
       <WidgetErrorBoundary name="header">
         <Header />
       </WidgetErrorBoundary>
+      <IdleSessionManager />
       <main className="flex-1">
         <TooltipProvider>
           <CustomToaster />
