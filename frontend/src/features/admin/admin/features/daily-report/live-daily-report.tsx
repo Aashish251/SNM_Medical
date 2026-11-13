@@ -1,381 +1,542 @@
-import { useMemo, useState } from "react";
-import {
-  CalendarDays,
-  Check,
-  ChevronsUpDown,
-  FileSpreadsheet,
-  Plus,
-  Printer,
-  RefreshCw,
-  Search,
-  Trash2,
-  Users,
-  X,
-} from "lucide-react";
-import { Button } from "@admin/components/ui/button";
-import { Input } from "@admin/components/ui/input";
-import { Skeleton } from "@admin/components/ui/skeleton";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@admin/components/ui/popover";
-import { cn } from "@admin/lib/utils";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   useGetDailyReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
-import {
-  escapeReportHtml,
-  exportHtmlToExcel,
-  printReportHtml,
-} from "../reports-common/reportExportUtils";
 
-const NO_AVAILABLE_DATES: { date: string; count: number; label: string }[] = [];
-const NO_DEPARTMENTS: { id: number; name: string }[] = [];
-const NO_LOCATIONS: { id: number; name: string }[] = [];
-const NO_REPORT_ROWS: { department: string; values: Record<string, number>; total: number }[] = [];
-const DEFAULT_TITLE = "60TH MAHARASHTRA NIRANKARI SANT SAMAGAM";
-const formatNumber = (value: number) => value.toLocaleString();
-const formatDate = (date: string) => {
-  const [year, month, day] = date.split("-");
-  return `${day}-${month}-${year}`;
-};
+const DEFAULT_DEPARTMENTS = [
+  "Registration",
+  "OPD",
+  "INDOOR",
+  "Homeopathy",
+  "Accupressure",
+  "Physiotherapy",
+  "Dental",
+  "Eye",
+  "ENT",
+  "ECG",
+  "Pediatric",
+  "ICU",
+  "Injection",
+  "Dressing",
+  "Pathology",
+];
 
-type AddedDepartmentRow = { id: number; departmentId: string };
-type DepartmentOption = { id: number; name: string };
+const LOCATIONS = [
+  "Dispensary-1",
+  "Dispensary-2",
+  "Dispensary-3",
+  "Langar-1",
+  "Langar-2",
+  "Langar-3",
+];
 
-function SearchableDepartmentSelect({
-  value,
-  onChange,
-  departments,
-  placeholder = "Select Department",
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  departments: DepartmentOption[];
-  placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return departments;
-    const q = searchQuery.toLowerCase().trim();
-    return departments.filter((d) => d.name.toLowerCase().includes(q));
-  }, [departments, searchQuery]);
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(isOpen) => {
-        setOpen(isOpen);
-        if (!isOpen) setSearchQuery("");
-      }}
-    >
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          role="combobox"
-          aria-expanded={open}
-          aria-label="Select department"
-          className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm transition hover:bg-slate-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        >
-          <span className={cn("truncate text-left", !value && "text-slate-400 font-normal")}>
-            {value || placeholder}
-          </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-slate-400 opacity-60" />
-        </button>
-      </PopoverTrigger>
-
-      <PopoverContent
-        align="start"
-        className="w-[var(--radix-popover-trigger-width,260px)] min-w-[220px] p-1.5 shadow-lg z-50 bg-white"
-      >
-        <div className="mb-1.5 flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs">
-          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search department..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-400"
-            autoFocus
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="text-slate-400 hover:text-slate-600"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-
-        <div className="max-h-56 overflow-y-auto space-y-0.5">
-          {filtered.map((department) => {
-            const isSelected = value.toLowerCase() === department.name.toLowerCase();
-            return (
-              <button
-                key={department.id}
-                type="button"
-                onClick={() => {
-                  onChange(department.name);
-                  setOpen(false);
-                  setSearchQuery("");
-                }}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-left transition-colors",
-                  isSelected
-                    ? "bg-blue-50 font-medium text-blue-600"
-                    : "text-slate-700 hover:bg-slate-100"
-                )}
-              >
-                <span className="truncate">{department.name}</span>
-                {isSelected && (
-                  <Check className="h-3.5 w-3.5 shrink-0 text-blue-600" />
-                )}
-              </button>
-            );
-          })}
-
-          {filtered.length === 0 && (
-            <div className="px-2 py-3 text-center text-xs text-slate-400">
-              No matching departments
-            </div>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
+interface DailyRow {
+  id: string;
+  department: string;
+  values: number[]; // 6 values corresponding to LOCATIONS
 }
 
 export function LiveDailyReport() {
-  const { data: metadataResponse, isLoading: isMetadataLoading } = useGetReportMetadataQuery();
-  const availableDates = metadataResponse?.data?.availableDates ?? NO_AVAILABLE_DATES;
-  const departments = metadataResponse?.data?.departments ?? NO_DEPARTMENTS;
-  const knownLocations = metadataResponse?.data?.locations ?? NO_LOCATIONS;
-  const defaultDate = availableDates[0]?.date ?? "";
-  const [selectedDate, setSelectedDate] = useState("");
-  const [title, setTitle] = useState(DEFAULT_TITLE);
-  const [hiddenDepartments, setHiddenDepartments] = useState<string[]>([]);
-  const [addedRows, setAddedRows] = useState<AddedDepartmentRow[]>([]);
-  const [editedDepartments, setEditedDepartments] = useState<Record<string, string>>({});
-  const [editedCounts, setEditedCounts] = useState<Record<string, number>>({});
-  const queryDate = selectedDate || defaultDate;
-  const {
-    data: response,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useGetDailyReportQuery(
-    { date: queryDate, includeEmpty: false },
-    { skip: isMetadataLoading && availableDates.length === 0 },
+  const { data: metaResponse } = useGetReportMetadataQuery();
+  const availableDates = metaResponse?.data?.availableDates || [];
+  const metaDepartments = metaResponse?.data?.departments || [];
+
+  const allDepartments = useMemo(() => {
+    const list = [...DEFAULT_DEPARTMENTS];
+    metaDepartments.forEach((d) => {
+      if (!list.includes(d.name)) {
+        list.push(d.name);
+      }
+    });
+    return list;
+  }, [metaDepartments]);
+
+  const todayStr = useMemo(() => {
+    return new Date().toISOString().split("T")[0];
+  }, []);
+
+  const [samagamName, setSamagamName] = useState(
+    "60TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
+  );
+  const [reportDate, setReportDate] = useState("");
+  const [rows, setRows] = useState<DailyRow[]>([
+    { id: "row-1", department: "", values: [0, 0, 0, 0, 0, 0] },
+  ]);
+
+  // Query backend data if available for date
+  const { data: reportResponse } = useGetDailyReportQuery(
+    { date: reportDate, includeEmpty: false },
+    { skip: !reportDate }
   );
 
-  const report = response?.data;
-  const reportRows = report?.rows ?? NO_REPORT_ROWS;
-  const locationColumns = useMemo(() => {
-    const masterLocationNames = new Set(knownLocations.map(({ name }) => name.toLowerCase()));
-    return (report?.columns ?? []).filter((column) => masterLocationNames.has(column.label.toLowerCase()));
-  }, [knownLocations, report?.columns]);
-  const departmentByName = useMemo(
-    () => new Map(departments.map((department) => [department.name.toLowerCase(), department])),
-    [departments],
-  );
-  const visibleRows = useMemo(
-    () => reportRows.filter((row) => !hiddenDepartments.includes(row.department)),
-    [hiddenDepartments, reportRows],
-  );
-  const displayRows = useMemo(() => [
-    ...visibleRows.map((row) => {
-      const id = `report-${row.department}`;
-      return {
-        id,
-        department: editedDepartments[id] ?? row.department,
-        values: Object.fromEntries(locationColumns.map((column) => [
-          column.key,
-          editedCounts[`${queryDate}::${id}::${column.key}`] ?? row.values[column.key] ?? 0,
-        ])),
-      };
-    }),
-    ...addedRows.map((row) => {
-      const departmentName = departments.find(({ id }) => id === Number(row.departmentId))?.name ?? "";
-      const sourceRow = reportRows.find((item) => item.department.toLowerCase() === departmentName.toLowerCase());
-      const id = `added-${row.id}`;
-      return {
-        id,
-        department: editedDepartments[id] ?? departmentName,
-        values: Object.fromEntries(locationColumns.map((column) => [
-          column.key,
-          editedCounts[`${queryDate}::${id}::${column.key}`] ?? sourceRow?.values[column.key] ?? 0,
-        ])),
-      };
-    }),
-  ], [addedRows, departments, editedCounts, editedDepartments, locationColumns, queryDate, reportRows, visibleRows]);
-  const totalsByLocation = useMemo(
-    () => Object.fromEntries(locationColumns.map((column) => [
-      column.key,
-      displayRows.reduce((sum, row) => sum + (row.values[column.key] ?? 0), 0),
-    ])),
-    [displayRows, locationColumns],
-  );
-  const grandTotal = Object.values(totalsByLocation).reduce((sum, value) => sum + value, 0);
-  const reportTitle = title || report?.title || DEFAULT_TITLE;
-
-  const addRow = () => {
-    setAddedRows((current) => [...current, { id: Date.now() + current.length, departmentId: "" }]);
-  };
-
-  const setAddedDepartment = (rowId: number, departmentId: string) => {
-    setAddedRows((current) => current.map((row) => row.id === rowId ? { ...row, departmentId } : row));
-  };
-
-  const setRowDepartment = (rowId: string, department: string) => {
-    if (rowId.startsWith("added-")) {
-      const rowIdValue = Number(rowId.slice("added-".length));
-      const departmentId = String(departments.find((item) => item.name === department)?.id ?? "");
-      setAddedDepartment(rowIdValue, departmentId);
-      return;
+  // If backend returns rows for this date, populate them
+  useEffect(() => {
+    if (reportResponse?.data?.rows && reportResponse.data.rows.length > 0) {
+      const backendRows: DailyRow[] = reportResponse.data.rows.map(
+        (r, idx) => ({
+          id: `backend-${idx}`,
+          department: r.department,
+          values: LOCATIONS.map((loc) => {
+            const locKey = loc.toLowerCase().replace("-", " ");
+            const locKeyAlt = loc.toLowerCase().replace("-", "");
+            return (
+              r.values[loc] ??
+              r.values[locKey] ??
+              r.values[locKeyAlt] ??
+              0
+            );
+          }),
+        })
+      );
+      setRows(backendRows);
     }
-    setEditedDepartments((current) => ({ ...current, [rowId]: department }));
+  }, [reportResponse]);
+
+  // Date Title formatted as en-GB (DD/MM/YYYY)
+  const dateTitle = useMemo(() => {
+    if (!reportDate) return "DAILY REPORT CHART";
+    try {
+      const formatted = new Date(reportDate).toLocaleDateString("en-GB");
+      return `DAILY REPORT CHART - ${formatted}`;
+    } catch {
+      return "DAILY REPORT CHART";
+    }
+  }, [reportDate]);
+
+  // Add new row
+  const addRow = (index?: number) => {
+    const newRow: DailyRow = {
+      id: `row-${Date.now()}-${Math.random()}`,
+      department: "",
+      values: [0, 0, 0, 0, 0, 0],
+    };
+    if (typeof index === "number") {
+      const updated = [...rows];
+      updated.splice(index + 1, 0, newRow);
+      setRows(updated);
+    } else {
+      setRows((prev) => [...prev, newRow]);
+    }
   };
 
-  const setCellValue = (rowId: string, locationKey: string, rawValue: string) => {
-    const value = Math.max(0, Math.trunc(Number(rawValue) || 0));
-    setEditedCounts((current) => ({ ...current, [`${queryDate}::${rowId}::${locationKey}`]: value }));
-  };
-
+  // Remove row
   const removeRow = (id: string) => {
-    if (id.startsWith("added-")) {
-      const rowId = Number(id.slice("added-".length));
-      setAddedRows((current) => current.filter((row) => row.id !== rowId));
-      return;
-    }
-    const department = id.slice("report-".length);
-    setHiddenDepartments((current) => current.includes(department) ? current : [...current, department]);
+    setRows((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const reportHtml = () => {
-    const headers = locationColumns.map((column) => `<th>${escapeReportHtml(column.label)}</th>`).join("");
-    const body = displayRows.map((row) =>
-      `<tr><td>${escapeReportHtml(row.department || "Select Department")}</td>${locationColumns.map((column) => `<td>${row.values[column.key] ?? 0}</td>`).join("")}</tr>`,
-    ).join("");
-    const totals = locationColumns.map((column) => `<td>${totalsByLocation[column.key] ?? 0}</td>`).join("");
-    return `<h2>${escapeReportHtml(report?.reportTitle || "DAILY REPORT CHART")}</h2><table><thead><tr><th>Department</th>${headers}</tr></thead><tbody>${body}</tbody><tfoot><tr><td>TOTAL</td>${totals}</tr></tfoot></table><p>Grand Total: ${grandTotal}</p>`;
+  // Update department
+  const handleDepartmentChange = (id: string, department: string) => {
+    setRows((prev) =>
+      prev.map((r) => {
+        if (r.id === id) {
+          return {
+            ...r,
+            department,
+            values: department ? r.values : [0, 0, 0, 0, 0, 0],
+          };
+        }
+        return r;
+      })
+    );
+  };
+
+  // Update number value
+  const handleValueChange = (
+    id: string,
+    valIdx: number,
+    rawVal: string
+  ) => {
+    const num = Math.max(0, parseInt(rawVal, 10) || 0);
+    setRows((prev) =>
+      prev.map((r) => {
+        if (r.id === id) {
+          const newVals = [...r.values];
+          newVals[valIdx] = num;
+          return { ...r, values: newVals };
+        }
+        return r;
+      })
+    );
+  };
+
+  // Column totals
+  const totals = useMemo(() => {
+    const t = [0, 0, 0, 0, 0, 0];
+    rows.forEach((r) => {
+      if (r.department) {
+        r.values.forEach((v, idx) => {
+          t[idx] += v;
+        });
+      }
+    });
+    return t;
+  }, [rows]);
+
+  // Print function matching DailyReport.html
+  const preparePrint = () => {
+    window.print();
+  };
+
+  // Excel Export matching DailyReport.html
+  const exportToExcel = () => {
+    let html = "<table border='1'>";
+    html += `
+      <tr>
+        <th colspan="7">${samagamName}</th>
+      </tr>
+      <tr>
+        <th colspan="7">${dateTitle}</th>
+      </tr>
+      <tr>
+        <th>Department</th>
+        ${LOCATIONS.map((loc) => `<th>${loc}</th>`).join("")}
+      </tr>
+    `;
+
+    rows.forEach((r) => {
+      if (r.department) {
+        html += `
+          <tr>
+            <td>${r.department}</td>
+            ${r.values.map((v) => `<td>${v || 0}</td>`).join("")}
+          </tr>
+        `;
+      }
+    });
+
+    html += `
+      <tr>
+        <td><b>TOTAL</b></td>
+        ${totals.map((t) => `<td>${t}</td>`).join("")}
+      </tr>
+    </table>`;
+
+    const blob = new Blob(["\ufeff", html], {
+      type: "application/vnd.ms-excel",
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Daily_Report.xls";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   };
 
   return (
-    <main className="space-y-4 pb-8">
-      <section className="rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="mb-6 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-md bg-blue-50 text-blue-700"><FileSpreadsheet className="size-6" /></span>
-            <h1 className="text-xl font-bold text-slate-900">Daily Report</h1>
+    <div className="daily-report-wrapper w-full p-2 sm:p-5 bg-[#f4f4f4] min-h-screen text-slate-800">
+      <style>{`
+        .daily-report-container {
+          background: #fff;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.1);
+          font-family: Arial, sans-serif;
+        }
+        .daily-report-container h2 {
+          text-align: center;
+          margin: 5px;
+          font-weight: bold;
+          font-size: 18px;
+        }
+        .daily-top-section {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+          gap: 15px;
+        }
+        .daily-input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .daily-input-group input {
+          padding: 8px;
+          font-size: 14px;
+          min-width: 250px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          background: #fff;
+        }
+        .daily-button-group {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .daily-btn {
+          padding: 8px 14px;
+          border: none;
+          color: white;
+          cursor: pointer;
+          border-radius: 4px;
+          font-size: 13px;
+          font-weight: 500;
+          transition: opacity 0.2s;
+        }
+        .daily-btn:hover {
+          opacity: 0.9;
+        }
+        .daily-print-btn {
+          background: #0066cc;
+        }
+        .daily-excel-btn {
+          background: #28a745;
+        }
+        .daily-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+          font-size: 13px;
+        }
+        .daily-table th, .daily-table td {
+          border: 1px solid #000;
+          padding: 8px;
+          text-align: center;
+        }
+        .daily-table th {
+          background: #d9d9d9;
+          font-weight: bold;
+        }
+        .daily-table select,
+        .daily-table input[type="number"] {
+          width: 100%;
+          padding: 5px;
+          box-sizing: border-box;
+          border: 1px solid #ccc;
+          border-radius: 3px;
+          text-align: center;
+          background: #fff;
+        }
+        .daily-table select:focus,
+        .daily-table input[type="number"]:focus {
+          outline: 1px solid #0066cc;
+          border-color: #0066cc;
+        }
+        .daily-table input[type="number"]:disabled {
+          background: #f9f9f9;
+          cursor: not-allowed;
+          color: #888;
+        }
+        .daily-total-row {
+          background: #efefef;
+          font-weight: bold;
+        }
+        .daily-action-col {
+          white-space: nowrap;
+        }
+        .daily-add-btn {
+          background: #0275d8;
+          color: white;
+          padding: 5px 10px;
+          border: none;
+          border-radius: 4px;
+          font-size: 12px;
+          cursor: pointer;
+          margin-right: 5px;
+        }
+        .daily-remove-btn {
+          background: #d9534f;
+          color: white;
+          padding: 5px 10px;
+          border: none;
+          border-radius: 4px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        @media print {
+          @page {
+            size: landscape;
+            margin: 10mm;
+          }
+          .daily-top-section,
+          .daily-action-col,
+          .print-hide {
+            display: none !important;
+          }
+          body, .daily-report-wrapper {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .daily-report-container {
+            box-shadow: none !important;
+            padding: 0 !important;
+          }
+          .daily-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+          .daily-table th, .daily-table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            border: 1px solid #000 !important;
+          }
+          .daily-table thead th {
+            font-size: 13px !important;
+            background: #d9d9d9 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .daily-table input,
+          .daily-table select {
+            border: none !important;
+            background: transparent !important;
+            text-align: center !important;
+            box-shadow: none !important;
+            -webkit-appearance: none !important;
+            appearance: none !important;
+          }
+          .daily-table input::-webkit-outer-spin-button,
+          .daily-table input::-webkit-inner-spin-button {
+            display: none;
+          }
+        }
+      `}</style>
+
+      <div className="daily-report-container max-w-6xl mx-auto">
+        {/* Top Control Section */}
+        <div className="daily-top-section">
+          <div className="daily-input-group">
+            <label>
+              <strong>Samagam Name</strong>
+            </label>
+            <input
+              type="text"
+              value={samagamName}
+              onChange={(e) => setSamagamName(e.target.value)}
+              placeholder="Enter Samagam Name"
+            />
           </div>
-          <Button variant="outline" size="icon" onClick={() => void refetch()} disabled={isFetching} aria-label="Refresh report" title="Refresh report">
-            <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
 
-        <div className="mb-7 grid gap-4 xl:grid-cols-[minmax(280px,1fr)_minmax(220px,0.7fr)_auto] xl:items-end">
-          <label className="space-y-1.5 text-sm font-semibold text-slate-700">
-            <span className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-md bg-blue-50 text-blue-600"><Users className="size-4" /></span>Samagam Name</span>
-            <Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={200} />
-          </label>
-          <label className="space-y-1.5 text-sm font-semibold text-slate-700">
-            <span className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-md bg-violet-50 text-violet-600"><CalendarDays className="size-4" /></span>Report Date</span>
-            <Input type="date" value={queryDate} onChange={(event) => setSelectedDate(event.target.value)} />
-          </label>
-          <div className="flex flex-wrap gap-2 xl:justify-end">
-            <Button onClick={() => printReportHtml(reportTitle, reportHtml())} disabled={!report}>
-              <Printer className="mr-2 size-4" />Print Report
-            </Button>
-            <Button variant="outline" className="border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white" onClick={() => exportHtmlToExcel(`Daily_Report_${queryDate || ""}.xls`, reportTitle, reportHtml())} disabled={!report}>
-              <FileSpreadsheet className="mr-2 size-4" />Export to Excel
-            </Button>
+          <div className="daily-input-group">
+            <label>
+              <strong>Report Date</strong>
+            </label>
+            <input
+              type="date"
+              value={reportDate}
+              onChange={(e) => setReportDate(e.target.value)}
+            />
+          </div>
+
+          <div className="daily-button-group">
+            <button
+              type="button"
+              className="daily-btn daily-print-btn"
+              onClick={preparePrint}
+            >
+              Print Report
+            </button>
+            <button
+              type="button"
+              className="daily-btn daily-excel-btn"
+              onClick={exportToExcel}
+            >
+              Export to Excel
+            </button>
           </div>
         </div>
 
-        <div className="mb-6 py-2 text-center">
-          <h2 className="text-xl font-bold text-blue-950 sm:text-2xl">{reportTitle}</h2>
-          <p className="mt-1 text-base font-medium text-slate-500 sm:text-lg">DAILY REPORT CHART{queryDate ? ` - ${formatDate(queryDate)}` : ""}</p>
-          <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-blue-500" />
-        </div>
+        {/* Dynamic Titles */}
+        <h2>{samagamName}</h2>
+        <h2>{dateTitle}</h2>
 
-        {isError ? (
-          <p role="alert" className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">Unable to load daily report data. Please refresh and try again.</p>
-        ) : isLoading ? (
-          <Skeleton className="h-56 w-full" />
-        ) : locationColumns.length === 0 ? (
-          <p className="border-y border-slate-100 py-12 text-center text-sm text-slate-500">No service locations are available for this report.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-md border border-blue-200">
-            <table className="w-full min-w-[980px] border-collapse text-sm">
-              <thead className="bg-blue-50/90 text-blue-950">
-                <tr>
-                  <th className="min-w-56 border-r border-blue-200 px-4 py-4 text-center font-bold">Department</th>
-                  {locationColumns.map((column) => <th key={column.key} className="min-w-32 border-r border-blue-200 px-3 py-4 text-center font-bold">{column.label}</th>)}
-                  <th className="min-w-40 px-3 py-4 text-center font-bold">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {displayRows.length === 0 ? (
-                  <tr><td colSpan={locationColumns.length + 2} className="px-4 py-10 text-center text-sm text-slate-500">No department rows for this date. Add a row to select a department.</td></tr>
-                ) : displayRows.map((row) => {
-                  const addedRowId = row.id.startsWith("added-") ? Number(row.id.slice("added-".length)) : null;
-                  const selectableDepartments = departments.filter((department) =>
-                    !displayRows.some((other) => other.id !== row.id && other.department.toLowerCase() === department.name.toLowerCase()),
-                  );
-                  const existingMasterDepartment = departmentByName.get(row.department.toLowerCase());
-                  const currentDeptName = existingMasterDepartment?.name ?? row.department ?? "";
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="daily-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th>Dispensary-1</th>
+                <th>Dispensary-2</th>
+                <th>Dispensary-3</th>
+                <th>Langar-1</th>
+                <th>Langar-2</th>
+                <th>Langar-3</th>
+                <th className="daily-action-col">Action</th>
+              </tr>
+            </thead>
 
-                  const rowDepartments = [...selectableDepartments];
-                  if (currentDeptName && !rowDepartments.some((d) => d.name.toLowerCase() === currentDeptName.toLowerCase())) {
-                    rowDepartments.unshift({ id: -1, name: currentDeptName });
-                  }
+            <tbody>
+              {rows.map((row, idx) => {
+                const isDeptSelected = Boolean(row.department);
+                return (
+                  <tr key={row.id}>
+                    <td>
+                      <select
+                        value={row.department}
+                        onChange={(e) =>
+                          handleDepartmentChange(row.id, e.target.value)
+                        }
+                      >
+                        <option value="">Select Department</option>
+                        {allDepartments.map((dept) => (
+                          <option key={dept} value={dept}>
+                            {dept}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
 
-                  return (
-                    <tr key={row.id} className="bg-white hover:bg-blue-50/30">
-                      <td className="border-r border-slate-100 px-3 py-2">
-                        <SearchableDepartmentSelect
-                          value={currentDeptName}
-                          onChange={(val) => setRowDepartment(row.id, val)}
-                          departments={rowDepartments}
+                    {LOCATIONS.map((_, valIdx) => (
+                      <td key={valIdx}>
+                        <input
+                          type="number"
+                          min="0"
+                          disabled={!isDeptSelected}
+                          value={row.values[valIdx] === 0 ? "" : row.values[valIdx]}
+                          placeholder={isDeptSelected ? "0" : ""}
+                          onChange={(e) =>
+                            handleValueChange(row.id, valIdx, e.target.value)
+                          }
                         />
                       </td>
-                      {locationColumns.map((column) => <td key={column.key} className="border-r border-slate-100 px-2 py-2"><Input className="mx-auto h-10 max-w-28 text-center tabular-nums" aria-label={`${row.department || "Department"}, ${column.label}`} type="number" min="0" step="1" value={row.values[column.key] ?? 0} onChange={(event) => setCellValue(row.id, column.key, event.target.value)} /></td>)}
-                      <td className="px-2 py-2">
-                        <div className="flex justify-center gap-2">
-                          {addedRowId === null && <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={addRow}><Plus className="mr-1.5 size-4" />Add New</Button>}
-                          <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => removeRow(row.id)} aria-label={`Remove ${row.department || "department"}`}>
-                            <Trash2 className="mr-1.5 size-4" />Remove
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {addedRows.length === 0 && displayRows.length === 0 && (
-                  <tr><td colSpan={locationColumns.length + 2} className="py-3 text-center"><Button size="sm" onClick={addRow}><Plus className="mr-2 size-4" />Add New</Button></td></tr>
-                )}
-                {addedRows.length > 0 && (
-                  <tr><td colSpan={locationColumns.length + 2} className="py-3 text-center"><Button variant="outline" size="sm" onClick={addRow}><Plus className="mr-2 size-4" />Add New Department Row</Button></td></tr>
-                )}
-              </tbody>
-              <tfoot className="border-t border-blue-200 bg-blue-50/90 font-bold text-blue-950">
-                <tr>
-                  <td className="border-r border-blue-200 px-4 py-4 text-center">TOTAL</td>
-                  {locationColumns.map((column) => <td key={column.key} className="border-r border-blue-200 px-3 py-4 text-center tabular-nums">{formatNumber(totalsByLocation[column.key] ?? 0)}</td>)}
-                  <td />
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-      </section>
-    </main>
+                    ))}
+
+                    <td className="daily-action-col">
+                      <button
+                        type="button"
+                        className="daily-add-btn"
+                        onClick={() => addRow(idx)}
+                      >
+                        Add New
+                      </button>
+                      <button
+                        type="button"
+                        className="daily-remove-btn"
+                        onClick={() => removeRow(row.id)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+
+            <tfoot>
+              <tr className="daily-total-row">
+                <td>TOTAL</td>
+                {totals.map((t, i) => (
+                  <td key={i}>{t}</td>
+                ))}
+                <td className="daily-action-col">
+                  {rows.length === 0 && (
+                    <button
+                      type="button"
+                      className="daily-add-btn"
+                      onClick={() => addRow()}
+                    >
+                      Add New
+                    </button>
+                  )}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 }
