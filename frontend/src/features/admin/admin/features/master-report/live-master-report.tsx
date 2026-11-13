@@ -5,8 +5,7 @@ import {
   Plus,
   Calendar,
   MapPin,
-  X,
-  Layers,
+  Building2,
 } from "lucide-react";
 import {
   useGetMasterReportQuery,
@@ -456,7 +455,7 @@ export function LiveMasterReport() {
   };
 
   return (
-    <div className="master-report-wrapper w-full p-3 sm:p-6 bg-slate-50/60 min-h-screen text-slate-800 font-sans">
+    <div className="w-full space-y-4">
       <style>{`
         @media print {
           @page {
@@ -471,7 +470,7 @@ export function LiveMasterReport() {
           .master-section-title {
             display: none !important;
           }
-          body, .master-report-wrapper {
+          body {
             padding: 0 !important;
             background: #fff !important;
             color: #000 !important;
@@ -538,16 +537,18 @@ export function LiveMasterReport() {
         }
       `}</style>
 
-      <div className="max-w-7xl mx-auto space-y-4">
-        {/* Top Control Bar */}
-        <div className="master-top-bar flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
-          <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap">
+      {/* Main Full-Width Wrapper */}
+      <div className="w-full space-y-4">
+        {/* Top Control Bar (Full Width, Zero Wasted Space) */}
+        <div className="master-top-bar flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap flex items-center gap-1.5">
+              <Building2 className="size-4 text-blue-600 shrink-0" />
               Report Title:
             </label>
             <input
               type="text"
-              className="flex-1 max-w-xl rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex-1 max-w-2xl rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={reportTitle}
               onChange={(e) => setReportTitle(e.target.value)}
             />
@@ -556,7 +557,7 @@ export function LiveMasterReport() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
               onClick={() => window.print()}
             >
               <Printer className="size-3.5 text-slate-500" />
@@ -564,7 +565,7 @@ export function LiveMasterReport() {
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1d6f42] hover:bg-[#155534] text-white px-4 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1d6f42] hover:bg-[#155534] text-white px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
               onClick={exportToExcel}
             >
               <FileSpreadsheet className="size-3.5" />
@@ -573,13 +574,13 @@ export function LiveMasterReport() {
           </div>
         </div>
 
-        {/* Polished Yellow Banner */}
+        {/* Polished Yellow Banner (Full Width) */}
         <div className="master-banner rounded-xl bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 border border-amber-400/80 p-3 sm:p-3.5 text-center text-amber-950 font-extrabold text-base sm:text-lg tracking-wide shadow-xs">
           {reportTitle}
         </div>
 
         {/* ── Date-wise Control Bar ── */}
-        <div className="master-date-bar flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/90 bg-white p-3.5 sm:p-4 shadow-xs">
+        <div className="master-date-bar flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:p-3.5 shadow-xs">
           <div className="flex items-center gap-2">
             <label className="text-xs font-bold text-slate-700 whitespace-nowrap flex items-center gap-1">
               <Calendar className="size-3.5 text-blue-600" />
@@ -587,13 +588,13 @@ export function LiveMasterReport() {
             </label>
             <input
               type="date"
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer font-medium"
               value={newDateInput}
               onChange={(e) => setNewDateInput(e.target.value)}
             />
             <button
               type="button"
-              className="inline-flex items-center gap-1 rounded-lg bg-[#1a6aab] hover:bg-[#155090] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+              className="inline-flex items-center gap-1 rounded-lg bg-[#1a6aab] hover:bg-[#155090] text-white px-3 py-1 text-xs font-semibold shadow-2xs transition-all active:scale-95"
               onClick={addDate}
             >
               <Plus className="size-3" />
@@ -601,7 +602,7 @@ export function LiveMasterReport() {
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-3">
+          <div className="flex flex-wrap items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-3 flex-1">
             <span className="text-xs font-semibold text-slate-500">
               Active dates:
             </span>
@@ -609,12 +610,12 @@ export function LiveMasterReport() {
               {activeDates.map((d) => (
                 <span
                   key={d}
-                  className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/90 px-2.5 py-1 text-xs font-bold text-blue-900 shadow-2xs"
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/90 px-2.5 py-0.5 text-xs font-bold text-blue-900 shadow-2xs"
                 >
                   {fmtDisplay(d)}
                   <button
                     type="button"
-                    className="ml-1 text-rose-500 hover:text-rose-700 hover:bg-rose-100/60 rounded-full size-4 flex items-center justify-center text-[10px] transition-colors"
+                    className="ml-1 text-rose-500 hover:text-rose-700 rounded-full size-3.5 flex items-center justify-center text-[10px] transition-colors"
                     onClick={() => removeDate(d)}
                     title="Remove date"
                   >
@@ -627,13 +628,13 @@ export function LiveMasterReport() {
         </div>
 
         {/* ── Date-wise Summary ── */}
-        <div>
-          <div className="master-section-title text-sm font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
+        <div className="space-y-2">
+          <div className="master-section-title text-sm font-bold text-slate-800 flex items-center gap-1.5">
             <Calendar className="size-4 text-blue-600" />
             Date-wise Summary
           </div>
 
-          <div className="master-grid-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="master-grid-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
             {activeDates.map((dateKey, di) => {
               const rows = dateRows[dateKey] || [];
               let grandOpd = 0;
@@ -645,10 +646,10 @@ export function LiveMasterReport() {
                   className="master-table-card rounded-xl border border-slate-300/80 bg-white shadow-2xs overflow-hidden transition-all hover:shadow-sm"
                 >
                   {/* Beige Date Header */}
-                  <div className="date-header bg-[#e8d8b8] border-b border-[#dacab0] px-3 py-2 flex items-center justify-center">
+                  <div className="date-header bg-[#e8d8b8] border-b border-[#dacab0] px-3 py-1.5 flex items-center justify-center">
                     <input
                       type="date"
-                      className="rounded-md border border-[#c4b396] bg-white/75 px-2 py-1 text-xs font-bold text-[#443825] shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-700"
+                      className="rounded border border-[#c4b396] bg-white/80 px-2 py-0.5 text-xs font-bold text-[#443825] shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-700"
                       value={dateKey}
                       onChange={(e) => changeDate(di, e.target.value)}
                     />
@@ -657,11 +658,11 @@ export function LiveMasterReport() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                        <th className="px-2 py-2 text-left">Location</th>
-                        <th className="px-2 py-2 text-center">OPD</th>
-                        <th className="px-2 py-2 text-center">IPD</th>
-                        <th className="px-2 py-2 text-center">Total</th>
-                        <th className="master-action-col w-6 px-1" />
+                        <th className="px-2 py-1.5 text-left">Location</th>
+                        <th className="px-2 py-1.5 text-center">OPD</th>
+                        <th className="px-2 py-1.5 text-center">IPD</th>
+                        <th className="px-2 py-1.5 text-center">Total</th>
+                        <th className="master-action-col w-5 px-1" />
                       </tr>
                     </thead>
 
@@ -678,9 +679,9 @@ export function LiveMasterReport() {
                             key={ri}
                             className="hover:bg-slate-50 transition-colors"
                           >
-                            <td className="p-1.5">
+                            <td className="p-1">
                               <select
-                                className="master-dept-select w-full rounded border border-slate-200 bg-white px-1.5 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer font-medium"
+                                className="master-dept-select w-full rounded border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-slate-800 shadow-2xs cursor-pointer font-medium"
                                 value={dept}
                                 onChange={(e) =>
                                   changeDateRowLocation(
@@ -702,7 +703,7 @@ export function LiveMasterReport() {
                               <input
                                 type="number"
                                 min="0"
-                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="master-num-input w-full max-w-[55px] rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-0.5 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 value={opd}
                                 onChange={(e) =>
                                   setCellVal(
@@ -719,7 +720,7 @@ export function LiveMasterReport() {
                               <input
                                 type="number"
                                 min="0"
-                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="master-num-input w-full max-w-[55px] rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-0.5 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 value={ipd}
                                 onChange={(e) =>
                                   setCellVal(
@@ -743,7 +744,7 @@ export function LiveMasterReport() {
                             <td className="master-action-col p-1 text-center">
                               <button
                                 type="button"
-                                className="master-remove-btn text-rose-500 hover:text-rose-700 p-0.5 rounded transition-colors text-sm font-bold"
+                                className="text-rose-500 hover:text-rose-700 p-0.5 rounded transition-colors text-xs font-bold"
                                 onClick={() =>
                                   removeLocationRowFromDate(dateKey, ri)
                                 }
@@ -759,22 +760,22 @@ export function LiveMasterReport() {
 
                     <tfoot>
                       <tr className="total-row bg-[#eef4fb] text-[#1a3a5c] font-bold border-t border-slate-200">
-                        <td className="px-2 py-1.5 text-left">Total</td>
+                        <td className="px-2 py-1 text-left">Total</td>
                         <td
-                          className={`px-2 py-1.5 text-center tabular-nums ${
+                          className={`px-2 py-1 text-center tabular-nums ${
                             grandOpd === 0 ? "text-rose-600" : ""
                           }`}
                         >
                           {grandOpd}
                         </td>
                         <td
-                          className={`px-2 py-1.5 text-center tabular-nums ${
+                          className={`px-2 py-1 text-center tabular-nums ${
                             grandIpd === 0 ? "text-rose-600" : ""
                           }`}
                         >
                           {grandIpd}
                         </td>
-                        <td className="px-2 py-1.5 text-center tabular-nums font-extrabold text-[#1a3a5c]">
+                        <td className="px-2 py-1 text-center tabular-nums font-extrabold text-[#1a3a5c]">
                           {grandOpd + grandIpd}
                         </td>
                         <td className="master-action-col" />
@@ -784,7 +785,7 @@ export function LiveMasterReport() {
 
                   <button
                     type="button"
-                    className="master-add-row-btn w-full py-2 bg-slate-50/70 hover:bg-blue-50/60 border-t border-dashed border-slate-200 text-blue-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                    className="w-full py-1.5 bg-slate-50/70 hover:bg-blue-50/60 border-t border-dashed border-slate-200 text-blue-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                     onClick={() => addLocationRowToDate(dateKey)}
                   >
                     <Plus className="size-3" /> Add Location Row
@@ -796,14 +797,14 @@ export function LiveMasterReport() {
         </div>
 
         {/* ── Location-wise Control Bar ── */}
-        <div className="master-dept-ctrl-bar flex flex-wrap items-center gap-3 rounded-xl border border-blue-200/90 bg-[#edf4fb] p-3.5 sm:p-4 shadow-xs">
+        <div className="master-dept-ctrl-bar flex flex-wrap items-center gap-3 rounded-xl border border-blue-200/90 bg-[#edf4fb] p-3 sm:p-3.5 shadow-xs">
           <div className="flex items-center gap-2">
             <label className="text-xs font-bold text-[#1a3a5c] whitespace-nowrap flex items-center gap-1">
               <MapPin className="size-3.5 text-blue-600" />
               Select Location:
             </label>
             <select
-              className="rounded-lg border border-[#8aabcc] bg-white px-2.5 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              className="rounded-lg border border-[#8aabcc] bg-white px-2.5 py-1 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer font-medium"
               value={newDeptInput}
               onChange={(e) => setNewDeptInput(e.target.value)}
             >
@@ -816,7 +817,7 @@ export function LiveMasterReport() {
             </select>
             <button
               type="button"
-              className="inline-flex items-center gap-1 rounded-lg bg-[#1a6aab] hover:bg-[#155090] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+              className="inline-flex items-center gap-1 rounded-lg bg-[#1a6aab] hover:bg-[#155090] text-white px-3 py-1 text-xs font-semibold shadow-2xs transition-all active:scale-95"
               onClick={addDeptCard}
             >
               <Plus className="size-3" />
@@ -824,7 +825,7 @@ export function LiveMasterReport() {
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 border-t sm:border-t-0 sm:border-l border-blue-200 pt-2 sm:pt-0 sm:pl-3">
+          <div className="flex flex-wrap items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-blue-200 pt-2 sm:pt-0 sm:pl-3 flex-1">
             <span className="text-xs font-semibold text-[#5a7a9a]">
               Active Location:
             </span>
@@ -832,12 +833,12 @@ export function LiveMasterReport() {
               {activeDepts.map((d) => (
                 <span
                   key={d}
-                  className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-white px-2.5 py-1 text-xs font-bold text-[#1a3a5c] shadow-2xs"
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-white px-2.5 py-0.5 text-xs font-bold text-[#1a3a5c] shadow-2xs"
                 >
                   {d}
                   <button
                     type="button"
-                    className="ml-1 text-rose-500 hover:text-rose-700 hover:bg-rose-100/60 rounded-full size-4 flex items-center justify-center text-[10px] transition-colors"
+                    className="ml-1 text-rose-500 hover:text-rose-700 rounded-full size-3.5 flex items-center justify-center text-[10px] transition-colors"
                     onClick={() => removeDeptCard(d)}
                     title="Remove location"
                   >
@@ -850,13 +851,13 @@ export function LiveMasterReport() {
         </div>
 
         {/* ── Location-wise Summary ── */}
-        <div>
-          <div className="master-section-title text-sm font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
+        <div className="space-y-2">
+          <div className="master-section-title text-sm font-bold text-slate-800 flex items-center gap-1.5">
             <MapPin className="size-4 text-blue-600" />
             Location-wise Summary
           </div>
 
-          <div className="master-grid-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="master-grid-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
             {activeDepts.map((dept, ci) => {
               const dates = deptCardDates[dept] || activeDates;
               let grandOpd = 0;
@@ -868,9 +869,9 @@ export function LiveMasterReport() {
                   className="master-table-card rounded-xl border border-slate-300/80 bg-white shadow-2xs overflow-hidden transition-all hover:shadow-sm"
                 >
                   {/* Blue Location Header */}
-                  <div className="dept-header bg-[#b0cce0] border-b border-[#9ec0d8] px-3 py-2 flex items-center justify-center">
+                  <div className="dept-header bg-[#b0cce0] border-b border-[#9ec0d8] px-3 py-1.5 flex items-center justify-center">
                     <select
-                      className="rounded-md border border-[#8aabcc] bg-white/80 px-2.5 py-1 text-xs font-bold text-[#1a3a5c] shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-700"
+                      className="rounded border border-[#8aabcc] bg-white/85 px-2 py-0.5 text-xs font-bold text-[#1a3a5c] shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-700"
                       value={dept}
                       onChange={(e) =>
                         changeDeptCardLocation(ci, e.target.value)
@@ -887,11 +888,11 @@ export function LiveMasterReport() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                        <th className="px-2 py-2 text-left">Date</th>
-                        <th className="px-2 py-2 text-center">OPD</th>
-                        <th className="px-2 py-2 text-center">IPD</th>
-                        <th className="px-2 py-2 text-center">Total</th>
-                        <th className="master-action-col w-6 px-1" />
+                        <th className="px-2 py-1.5 text-left">Date</th>
+                        <th className="px-2 py-1.5 text-center">OPD</th>
+                        <th className="px-2 py-1.5 text-center">IPD</th>
+                        <th className="px-2 py-1.5 text-center">Total</th>
+                        <th className="master-action-col w-5 px-1" />
                       </tr>
                     </thead>
 
@@ -908,10 +909,10 @@ export function LiveMasterReport() {
                             key={di}
                             className="hover:bg-slate-50 transition-colors"
                           >
-                            <td className="p-1.5">
+                            <td className="p-1">
                               <input
                                 type="date"
-                                className="master-date-cell rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1.5 py-1 text-xs text-slate-800 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                                className="master-date-cell rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-0.5 text-xs text-slate-800 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                                 value={dateKey}
                                 onChange={(e) =>
                                   changeDeptCardDateVal(
@@ -927,7 +928,7 @@ export function LiveMasterReport() {
                               <input
                                 type="number"
                                 min="0"
-                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="master-num-input w-full max-w-[55px] rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-0.5 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 value={opd}
                                 onChange={(e) =>
                                   setCellVal(
@@ -944,7 +945,7 @@ export function LiveMasterReport() {
                               <input
                                 type="number"
                                 min="0"
-                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="master-num-input w-full max-w-[55px] rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-0.5 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 value={ipd}
                                 onChange={(e) =>
                                   setCellVal(
@@ -968,7 +969,7 @@ export function LiveMasterReport() {
                             <td className="master-action-col p-1 text-center">
                               <button
                                 type="button"
-                                className="master-remove-btn text-rose-500 hover:text-rose-700 p-0.5 rounded transition-colors text-sm font-bold"
+                                className="text-rose-500 hover:text-rose-700 p-0.5 rounded transition-colors text-xs font-bold"
                                 onClick={() =>
                                   removeDateRowFromDeptCard(dept, di)
                                 }
@@ -984,22 +985,22 @@ export function LiveMasterReport() {
 
                     <tfoot>
                       <tr className="total-row bg-[#eef4fb] text-[#1a3a5c] font-bold border-t border-slate-200">
-                        <td className="px-2 py-1.5 text-left">Total</td>
+                        <td className="px-2 py-1 text-left">Total</td>
                         <td
-                          className={`px-2 py-1.5 text-center tabular-nums ${
+                          className={`px-2 py-1 text-center tabular-nums ${
                             grandOpd === 0 ? "text-rose-600" : ""
                           }`}
                         >
                           {grandOpd}
                         </td>
                         <td
-                          className={`px-2 py-1.5 text-center tabular-nums ${
+                          className={`px-2 py-1 text-center tabular-nums ${
                             grandIpd === 0 ? "text-rose-600" : ""
                           }`}
                         >
                           {grandIpd}
                         </td>
-                        <td className="px-2 py-1.5 text-center tabular-nums font-extrabold text-[#1a3a5c]">
+                        <td className="px-2 py-1 text-center tabular-nums font-extrabold text-[#1a3a5c]">
                           {grandOpd + grandIpd}
                         </td>
                         <td className="master-action-col" />
@@ -1009,7 +1010,7 @@ export function LiveMasterReport() {
 
                   <button
                     type="button"
-                    className="master-add-row-btn w-full py-2 bg-slate-50/70 hover:bg-blue-50/60 border-t border-dashed border-slate-200 text-blue-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                    className="w-full py-1.5 bg-slate-50/70 hover:bg-blue-50/60 border-t border-dashed border-slate-200 text-blue-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                     onClick={() => addDateRowToDeptCard(dept)}
                   >
                     <Plus className="size-3" /> Add Date Row

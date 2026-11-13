@@ -155,9 +155,9 @@ export function LiveRegistrationReport() {
     const date3Formatted = formatDate(d3);
 
     let html = `
-      <h2 style="text-align:center; font-weight:bold; font-family:Arial, sans-serif;">${title}</h2>
-      <table border="1" style="border-collapse:collapse; width:100%; font-family:Arial, sans-serif; text-align:center;">
-        <tr style="background:#f2f2f2;">
+      <h2 style="text-align:center; font-weight:bold; font-family:Arial, sans-serif; font-size:18px;">${title}</h2>
+      <table border="1" style="border-collapse:collapse; width:100%; font-family:Arial, sans-serif; text-align:center; margin-top:15px;">
+        <tr style="background:#f2f2f2; font-weight:bold;">
           <th style="padding:8px; border:1px solid #000;">Department</th>
           <th style="padding:8px; border:1px solid #000;">${date1Formatted}</th>
           <th style="padding:8px; border:1px solid #000;">${date2Formatted}</th>
@@ -184,7 +184,7 @@ export function LiveRegistrationReport() {
           <td style="padding:8px; border:1px solid #000;"><b>${t3}</b></td>
         </tr>
         <tr>
-          <td colspan="4" style="padding:8px; border:1px solid #000; font-weight:bold;">Grand Total: ${grandTotal}</td>
+          <td colspan="4" style="padding:8px; border:1px solid #000; font-weight:bold; text-align:left;">Grand Total: ${grandTotal}</td>
         </tr>
       </table>
     `;
@@ -204,7 +204,7 @@ export function LiveRegistrationReport() {
           h2 { text-align: center; font-weight: bold; }
           table { border-collapse: collapse; width: 100%; }
           th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-          th { background: #f2f2f2; }
+          th { background: #f2f2f2; font-weight: bold; }
         </style>
       </head>
       <body>
@@ -231,7 +231,7 @@ export function LiveRegistrationReport() {
           table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
           th, td { border: 1px solid black; padding: 8px; text-align: center; font-size: 12px; }
           th { font-weight: bold; background: #f2f2f2; }
-          h2 { text-align: center; font-weight: bold; }
+          h2 { text-align: center; }
         </style>
       </head>
       <body>
@@ -249,21 +249,20 @@ export function LiveRegistrationReport() {
   };
 
   return (
-    <div className="registration-report-wrapper w-full p-3 sm:p-6 bg-slate-50/60 min-h-screen text-slate-900 font-sans">
+    <div className="w-full space-y-4">
       <style>{`
         @media print {
           .reg-print-hide {
             display: none !important;
           }
-          body, .registration-report-wrapper {
+          body {
             padding: 0 !important;
             margin: 0 !important;
             background: #fff !important;
           }
-          .reg-report-container {
-            max-width: 100% !important;
-            box-shadow: none !important;
+          .reg-card {
             border: none !important;
+            box-shadow: none !important;
             padding: 0 !important;
           }
           .reg-table th, .reg-table td {
@@ -283,99 +282,104 @@ export function LiveRegistrationReport() {
         }
       `}</style>
 
-      <div className="reg-report-container max-w-4xl mx-auto rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs">
-        {/* Centered Heading */}
-        <div className="text-center mb-6">
+      {/* Main Full-Width Card */}
+      <div className="reg-card w-full rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs">
+        {/* Title Header */}
+        <div className="text-center mb-5">
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
             Registration Report
           </h2>
-          <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-blue-600" />
+          <div className="mx-auto mt-1.5 h-1 w-16 rounded-full bg-blue-600" />
         </div>
 
-        {/* Title Input */}
-        <div className="mb-5 flex flex-wrap items-center gap-3 reg-print-hide">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap flex items-center gap-1.5">
-            <Building2 className="size-3.5 text-blue-600" />
-            Title:
-          </label>
-          <input
-            type="text"
-            className="flex-1 max-w-lg rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+        {/* Top Controls Bar: Title & Buttons (Full Width, Zero Wasted Space) */}
+        <div className="mb-5 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/90 p-3 sm:p-4 rounded-xl border border-slate-200/80 reg-print-hide">
+          {/* Title Input */}
+          <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap flex items-center gap-1.5">
+              <Building2 className="size-4 text-blue-600 shrink-0" />
+              Title:
+            </label>
+            <input
+              type="text"
+              className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter Report Title"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
+              onClick={addRow}
+            >
+              <Plus className="size-3.5 text-blue-600" />
+              Add Row
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              onClick={printReport}
+            >
+              <Printer className="size-3.5" />
+              Print
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              onClick={exportExcel}
+            >
+              <FileSpreadsheet className="size-3.5" />
+              Export Excel
+            </button>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="mb-6 flex flex-wrap items-center gap-2.5 reg-print-hide">
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 px-4 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-[0.98]"
-            onClick={addRow}
-          >
-            <Plus className="size-3.5 text-blue-600" />
-            Add Row
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-4 py-2 text-xs font-semibold shadow-xs transition-all active:scale-[0.98]"
-            onClick={printReport}
-          >
-            <Printer className="size-3.5" />
-            Print
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-4 py-2 text-xs font-semibold shadow-xs transition-all active:scale-[0.98]"
-            onClick={exportExcel}
-          >
-            <FileSpreadsheet className="size-3.5" />
-            Export Excel
-          </button>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto rounded-xl border border-slate-300 shadow-2xs">
+        {/* Full-Width Responsive Table */}
+        <div className="w-full overflow-x-auto rounded-xl border border-slate-300 shadow-2xs">
           <table className="reg-table w-full border-collapse text-xs sm:text-sm">
             <thead>
               <tr className="bg-slate-100 text-slate-900 border-b border-slate-300">
-                <th className="border border-slate-300 px-3 py-3 text-left font-bold min-w-40">
+                <th className="border border-slate-300 px-3 py-2.5 text-left font-bold w-[28%] min-w-[160px]">
                   Department
                 </th>
-                <th className="border border-slate-300 px-2 py-2 text-center font-bold min-w-36">
+                <th className="border border-slate-300 px-2 py-2 text-center font-bold w-[20%] min-w-[130px]">
                   <div className="flex items-center justify-center gap-1">
                     <Calendar className="size-3.5 text-blue-600 shrink-0" />
                     <input
                       type="date"
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      className="w-full max-w-[130px] rounded border border-slate-300 bg-white px-1.5 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold text-center"
                       value={d1}
                       onChange={(e) => setD1(e.target.value)}
                     />
                   </div>
                 </th>
-                <th className="border border-slate-300 px-2 py-2 text-center font-bold min-w-36">
+                <th className="border border-slate-300 px-2 py-2 text-center font-bold w-[20%] min-w-[130px]">
                   <div className="flex items-center justify-center gap-1">
                     <Calendar className="size-3.5 text-blue-600 shrink-0" />
                     <input
                       type="date"
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      className="w-full max-w-[130px] rounded border border-slate-300 bg-white px-1.5 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold text-center"
                       value={d2}
                       onChange={(e) => setD2(e.target.value)}
                     />
                   </div>
                 </th>
-                <th className="border border-slate-300 px-2 py-2 text-center font-bold min-w-36">
+                <th className="border border-slate-300 px-2 py-2 text-center font-bold w-[20%] min-w-[130px]">
                   <div className="flex items-center justify-center gap-1">
                     <Calendar className="size-3.5 text-blue-600 shrink-0" />
                     <input
                       type="date"
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      className="w-full max-w-[130px] rounded border border-slate-300 bg-white px-1.5 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold text-center"
                       value={d3}
                       onChange={(e) => setD3(e.target.value)}
                     />
                   </div>
                 </th>
-                <th className="reg-print-hide border border-slate-300 px-3 py-3 text-center font-bold w-24">
+                <th className="reg-print-hide border border-slate-300 px-3 py-2.5 text-center font-bold w-[12%] min-w-[90px]">
                   Action
                 </th>
               </tr>
@@ -445,7 +449,7 @@ export function LiveRegistrationReport() {
                   <td className="reg-print-hide border border-slate-300 p-2 text-center">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-3 py-1 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
                       onClick={() => deleteRow(row.id)}
                     >
                       <Trash2 className="size-3" />
@@ -457,32 +461,37 @@ export function LiveRegistrationReport() {
             </tbody>
 
             <tfoot>
+              {/* Totals Row */}
               <tr className="bg-slate-100 text-slate-900 font-bold border-t-2 border-slate-400">
-                <td className="border border-slate-300 px-3 py-2.5 text-left font-bold">
+                <td className="border border-slate-300 px-3 py-2 text-left font-bold">
                   Total
                 </td>
-                <td className="border border-slate-300 px-2 py-2.5 text-center tabular-nums font-extrabold">
+                <td className="border border-slate-300 px-2 py-2 text-center tabular-nums font-extrabold">
                   {t1.toLocaleString()}
                 </td>
-                <td className="border border-slate-300 px-2 py-2.5 text-center tabular-nums font-extrabold">
+                <td className="border border-slate-300 px-2 py-2 text-center tabular-nums font-extrabold">
                   {t2.toLocaleString()}
                 </td>
-                <td className="border border-slate-300 px-2 py-2.5 text-center tabular-nums font-extrabold">
+                <td className="border border-slate-300 px-2 py-2 text-center tabular-nums font-extrabold">
                   {t3.toLocaleString()}
                 </td>
                 <td className="reg-print-hide border border-slate-300" />
               </tr>
-              <tr className="bg-slate-50">
+
+              {/* Grand Total Row */}
+              <tr className="bg-blue-50/80 border-t border-blue-200">
                 <td
                   colSpan={5}
-                  className="border border-slate-300 text-left font-bold px-4 py-3 text-slate-900"
+                  className="border border-slate-300 text-left font-bold px-4 py-2.5 text-slate-900"
                 >
-                  <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold mr-2">
-                    Grand Total:
-                  </span>
-                  <span className="text-base sm:text-lg font-extrabold text-blue-700 tabular-nums">
-                    {grandTotal.toLocaleString()}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-wider text-slate-600 font-bold">
+                      Grand Total
+                    </span>
+                    <span className="text-base sm:text-lg font-extrabold text-blue-700 tabular-nums">
+                      {grandTotal.toLocaleString()}
+                    </span>
+                  </div>
                 </td>
               </tr>
             </tfoot>
