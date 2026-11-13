@@ -321,7 +321,15 @@ export function LiveDailyReport() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
+              onClick={() => addRow()}
+            >
+              <Plus className="size-3.5 text-blue-600" />
+              Add Row
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
               onClick={preparePrint}
             >
               <Printer className="size-3.5" />
@@ -329,7 +337,7 @@ export function LiveDailyReport() {
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
               onClick={exportToExcel}
             >
               <FileSpreadsheet className="size-3.5" />
@@ -360,12 +368,12 @@ export function LiveDailyReport() {
                 {LOCATIONS.map((loc) => (
                   <th
                     key={loc}
-                    className="border border-slate-400/80 px-2 py-2.5 text-center font-bold w-[11%] min-w-[85px]"
+                    className="border border-slate-400/80 px-2 py-2.5 text-center font-bold w-[10%] min-w-[85px]"
                   >
                     {loc}
                   </th>
                 ))}
-                <th className="daily-action-col border border-slate-400/80 px-3 py-2.5 text-center font-bold w-[12%] min-w-[110px]">
+                <th className="daily-action-col border border-slate-400/80 px-3 py-2.5 text-center font-bold w-[18%] min-w-[170px]">
                   Action
                 </th>
               </tr>
@@ -412,23 +420,25 @@ export function LiveDailyReport() {
                       </td>
                     ))}
 
-                    <td className="daily-action-col border border-slate-300 p-1.5 text-center">
-                      <div className="flex items-center justify-center gap-1">
+                    <td className="daily-action-col border border-slate-300 p-2 text-center">
+                      <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <button
                           type="button"
-                          className="inline-flex items-center gap-0.5 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-2 py-1 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+                          className="inline-flex items-center gap-1 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
                           onClick={() => addRow(idx)}
+                          title="Add new row below"
                         >
-                          <Plus className="size-3" />
-                          Add
+                          <Plus className="size-3.5" />
+                          <span>Add New</span>
                         </button>
                         <button
                           type="button"
-                          className="inline-flex items-center gap-0.5 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-2 py-1 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+                          className="inline-flex items-center gap-1 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
                           onClick={() => removeRow(row.id)}
+                          title="Remove this row"
                         >
-                          <Trash2 className="size-3" />
-                          Del
+                          <Trash2 className="size-3.5" />
+                          <span>Remove</span>
                         </button>
                       </div>
                     </td>
@@ -450,24 +460,32 @@ export function LiveDailyReport() {
                     {t.toLocaleString()}
                   </td>
                 ))}
-                <td className="daily-action-col border border-slate-300 p-1.5 text-center">
+                <td className="daily-action-col border border-slate-300 p-2 text-center">
                   {rows.length === 0 && (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs"
+                      className="inline-flex items-center gap-1 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
                       onClick={() => addRow()}
                     >
                       <Plus className="size-3.5" />
                       Add New
                     </button>
                   )}
-                  {rows.length > 0 && (
-                    <span className="text-xs font-extrabold text-blue-700">
-                      {grandTotal.toLocaleString()}
-                    </span>
-                  )}
                 </td>
               </tr>
+              {rows.length > 0 && (
+                <tr className="bg-slate-200/90 text-slate-900 font-bold border-t border-slate-300">
+                  <td
+                    colSpan={8}
+                    className="border border-slate-300 px-4 py-2 text-left text-xs sm:text-sm font-extrabold"
+                  >
+                    Grand Total:{" "}
+                    <span className="text-blue-700">
+                      {grandTotal.toLocaleString()}
+                    </span>
+                  </td>
+                </tr>
+              )}
             </tfoot>
           </table>
         </div>
