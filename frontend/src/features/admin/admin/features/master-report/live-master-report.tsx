@@ -1,5 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
+  Printer,
+  FileSpreadsheet,
+  Plus,
+  Calendar,
+  MapPin,
+  X,
+  Layers,
+} from "lucide-react";
+import {
   useGetMasterReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
@@ -163,7 +172,6 @@ export function LiveMasterReport() {
       ...prev,
       [newDateInput]: prev[newDateInput] || [...ALL_DEPTS],
     }));
-    // also update deptCardDates
     setDeptCardDates((prev) => {
       const updated: Record<string, string[]> = {};
       Object.keys(prev).forEach((dept) => {
@@ -342,9 +350,9 @@ export function LiveMasterReport() {
       <head>
         <meta charset="utf-8">
         <style>
-          table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-          th, td { border: 1px solid #ddd; padding: 5px; text-align: center; font-size: 11px; }
-          .banner { background: #FFFF00; font-size: 14px; font-weight: bold; text-align: center; }
+          table { border-collapse: collapse; width: 100%; margin-bottom: 20px; font-family: Arial, sans-serif; }
+          th, td { border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 11px; }
+          .banner { background: #FFFF00; font-size: 14px; font-weight: bold; text-align: center; padding: 10px; }
           .date-header { background: #E8D8B8; font-weight: bold; font-size: 12px; }
           .dept-header { background: #B0CCE0; font-weight: bold; font-size: 12px; }
           .col-header { background: #F5F5F5; font-weight: bold; }
@@ -448,304 +456,8 @@ export function LiveMasterReport() {
   };
 
   return (
-    <div className="master-report-page w-full p-2 sm:p-4 bg-white text-slate-800">
+    <div className="master-report-wrapper w-full p-3 sm:p-6 bg-slate-50/60 min-h-screen text-slate-800 font-sans">
       <style>{`
-        .master-top-bar {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 12px;
-          flex-wrap: wrap;
-        }
-        .master-top-bar label {
-          font-weight: bold;
-          white-space: nowrap;
-          font-size: 13px;
-        }
-        .master-top-bar input[type="text"] {
-          border: 1px solid #aaa;
-          padding: 4px 8px;
-          font-size: 13px;
-          width: 320px;
-          border-radius: 2px;
-        }
-        .master-top-bar button {
-          padding: 4px 14px;
-          font-size: 13px;
-          border: 1px solid #aaa;
-          background: #f0f0f0;
-          cursor: pointer;
-          border-radius: 2px;
-        }
-        .master-top-bar button:hover {
-          background: #ddd;
-        }
-        .master-banner {
-          background: yellow;
-          text-align: center;
-          font-weight: bold;
-          font-size: 16px;
-          padding: 10px;
-          margin-bottom: 14px;
-          border: 1px solid #ccc;
-          color: #000;
-        }
-        .master-date-bar {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 14px;
-          padding: 8px 12px;
-          background: #f5f5f5;
-          border: 1px solid #ddd;
-          flex-wrap: wrap;
-        }
-        .master-date-bar label {
-          font-weight: bold;
-          white-space: nowrap;
-          font-size: 13px;
-        }
-        .master-date-bar input[type="date"] {
-          border: 1px solid #aaa;
-          padding: 4px 6px;
-          font-size: 13px;
-          cursor: pointer;
-        }
-        .master-btn-add {
-          padding: 4px 12px;
-          font-size: 13px;
-          background: #1a6aab;
-          color: #fff;
-          border: none;
-          cursor: pointer;
-          border-radius: 3px;
-        }
-        .master-btn-add:hover {
-          background: #155090;
-        }
-        .master-dept-ctrl-bar {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 8px;
-          padding: 8px 12px;
-          background: #edf4fb;
-          border: 1px solid #b0cce0;
-          flex-wrap: wrap;
-        }
-        .master-dept-ctrl-bar label {
-          font-weight: bold;
-          white-space: nowrap;
-          color: #1a3a5c;
-          font-size: 13px;
-        }
-        .master-dept-ctrl-bar select {
-          border: 1px solid #8aabcc;
-          padding: 4px 6px;
-          font-size: 13px;
-          cursor: pointer;
-          border-radius: 3px;
-          background: #fff;
-        }
-        .master-tags-row {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-          align-items: center;
-        }
-        .master-tag {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          background: #e0eaf5;
-          border: 1px solid #aac4e0;
-          border-radius: 12px;
-          padding: 2px 10px;
-          font-size: 12px;
-          font-weight: bold;
-          color: #1a3a5c;
-        }
-        .master-tag .tag-x {
-          cursor: pointer;
-          color: #c0392b;
-          font-weight: bold;
-          font-size: 14px;
-          line-height: 1;
-          margin-left: 4px;
-        }
-        .master-tag .tag-x:hover {
-          color: #7b0000;
-        }
-        .master-section-title {
-          font-weight: bold;
-          font-size: 13px;
-          color: #333;
-          margin-bottom: 6px;
-          padding-left: 2px;
-        }
-        .master-grid-3 {
-          display: grid;
-          grid-template-columns: repeat(1, minmax(0, 1fr));
-          gap: 14px;
-          margin-bottom: 16px;
-        }
-        @media (min-width: 768px) {
-          .master-grid-3 {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-        @media (min-width: 1100px) {
-          .master-grid-3 {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
-        }
-        .master-table-card {
-          border: 1px solid #ccc;
-          background: #fff;
-        }
-        .master-table-header {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding: 6px 10px;
-          font-weight: bold;
-          font-size: 13px;
-        }
-        .master-table-header.date-header {
-          background: #e8d8b8;
-        }
-        .master-table-header.dept-header {
-          background: #b0cce0;
-          color: #1a3a5c;
-        }
-        .master-table-header input[type="date"] {
-          border: 1px solid #8aabcc;
-          border-radius: 3px;
-          padding: 2px 5px;
-          font-size: 12px;
-          font-weight: bold;
-          background: rgba(255,255,255,0.65);
-          cursor: pointer;
-          color: #1a3a5c;
-        }
-        .master-table-header select {
-          border: 1px solid #8aabcc;
-          border-radius: 3px;
-          padding: 3px 8px;
-          font-size: 12px;
-          font-weight: bold;
-          background: rgba(255,255,255,0.65);
-          color: #1a3a5c;
-          cursor: pointer;
-        }
-        .master-table-card table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 12px;
-        }
-        .master-table-card table th,
-        .master-table-card table td {
-          border: 1px solid #ddd;
-          padding: 3px 5px;
-          text-align: center;
-        }
-        .master-table-card table th {
-          background: #f5f5f5;
-          font-weight: bold;
-          font-size: 12px;
-        }
-        .master-table-card table td:first-child {
-          text-align: left;
-        }
-        .master-table-card table tr.total-row td {
-          font-weight: bold;
-          background: #eef4fb;
-          color: #1a3a5c;
-        }
-        .master-num-input {
-          width: 58px;
-          border: 1px solid transparent;
-          border-radius: 3px;
-          padding: 2px 4px;
-          font-size: 12px;
-          text-align: center;
-          background: transparent;
-          color: #333;
-          transition: border-color 0.15s, background 0.15s;
-        }
-        .master-num-input:hover {
-          border-color: #bbb;
-          background: #fff;
-        }
-        .master-num-input:focus {
-          border-color: #1a6aab;
-          background: #fff;
-          outline: none;
-          box-shadow: 0 0 0 2px #c8dff5;
-        }
-        .master-date-cell {
-          border: 1px solid transparent;
-          border-radius: 3px;
-          padding: 2px 4px;
-          font-size: 12px;
-          background: transparent;
-          color: #333;
-          cursor: pointer;
-          width: 110px;
-        }
-        .master-date-cell:hover {
-          border-color: #bbb;
-          background: #fff;
-        }
-        .master-dept-select {
-          width: 100%;
-          border: 1px solid #bbb;
-          border-radius: 3px;
-          padding: 2px 4px;
-          font-size: 12px;
-          background: #fff;
-          cursor: pointer;
-          color: #333;
-        }
-        .master-total-cell {
-          font-weight: bold;
-          color: #1a3a5c;
-        }
-        .master-zero {
-          color: red;
-        }
-        .master-remove-row-btn {
-          background: none;
-          border: none;
-          color: #c0392b;
-          font-size: 15px;
-          cursor: pointer;
-          padding: 0 3px;
-          line-height: 1;
-          font-weight: bold;
-        }
-        .master-remove-row-btn:hover {
-          color: #7b0000;
-        }
-        .master-add-row-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-          width: 100%;
-          padding: 5px;
-          border: 1px dashed #aaa;
-          background: #fafafa;
-          cursor: pointer;
-          font-size: 12px;
-          color: #1a6aab;
-          font-weight: bold;
-        }
-        .master-add-row-btn:hover {
-          background: #eef4fb;
-          border-color: #1a6aab;
-        }
         @media print {
           @page {
             size: A4 landscape;
@@ -754,14 +466,13 @@ export function LiveMasterReport() {
           .master-top-bar,
           .master-date-bar,
           .master-dept-ctrl-bar,
-          .master-remove-row-btn,
+          .master-remove-btn,
           .master-add-row-btn,
           .master-section-title {
             display: none !important;
           }
-          body, .master-report-page {
+          body, .master-report-wrapper {
             padding: 0 !important;
-            font-size: 9px !important;
             background: #fff !important;
             color: #000 !important;
           }
@@ -781,13 +492,14 @@ export function LiveMasterReport() {
           }
           .master-table-card {
             border: 1px solid #999 !important;
+            box-shadow: none !important;
           }
-          .master-table-header.date-header {
+          .date-header {
             background: #e8d8b8 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
-          .master-table-header.dept-header {
+          .dept-header {
             background: #b0cce0 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -795,8 +507,8 @@ export function LiveMasterReport() {
           .master-num-input,
           .master-date-cell,
           .master-dept-select,
-          .master-table-header input,
-          .master-table-header select {
+          .date-header input,
+          .dept-header select {
             border: none !important;
             background: transparent !important;
             box-shadow: none !important;
@@ -820,381 +532,493 @@ export function LiveMasterReport() {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
-          .master-table-card table th:last-child,
-          .master-table-card table td:last-child {
+          .master-action-col {
             display: none !important;
           }
         }
       `}</style>
 
-      {/* Top Bar */}
-      <div className="master-top-bar">
-        <label>Report Title:</label>
-        <input
-          type="text"
-          value={reportTitle}
-          onChange={(e) => setReportTitle(e.target.value)}
-        />
-        <button type="button" onClick={() => window.print()}>
-          Print Report
-        </button>
-        <button
-          type="button"
-          onClick={exportToExcel}
-          style={{
-            background: "#1d6f42",
-            color: "#fff",
-            border: "1px solid #155534",
-            padding: "4px 14px",
-            fontSize: "13px",
-            cursor: "pointer",
-          }}
-        >
-          ⬇ Export to Excel
-        </button>
-      </div>
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* Top Control Bar */}
+        <div className="master-top-bar flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
+          <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap">
+              Report Title:
+            </label>
+            <input
+              type="text"
+              className="flex-1 max-w-xl rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              value={reportTitle}
+              onChange={(e) => setReportTitle(e.target.value)}
+            />
+          </div>
 
-      {/* Yellow Banner */}
-      <div className="master-banner">{reportTitle}</div>
-
-      {/* Date-wise Control Bar */}
-      <div className="master-date-bar">
-        <label>Select Date:</label>
-        <input
-          type="date"
-          value={newDateInput}
-          onChange={(e) => setNewDateInput(e.target.value)}
-        />
-        <button type="button" className="master-btn-add" onClick={addDate}>
-          + Add Date
-        </button>
-        <span style={{ color: "#888", fontSize: "12px" }}>Active dates:</span>
-        <div className="master-tags-row">
-          {activeDates.map((d) => (
-            <span key={d} className="master-tag">
-              {fmtDisplay(d)}
-              <span className="tag-x" onClick={() => removeDate(d)}>
-                &#x2715;
-              </span>
-            </span>
-          ))}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-[0.98]"
+              onClick={() => window.print()}
+            >
+              <Printer className="size-3.5 text-slate-500" />
+              Print Report
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1d6f42] hover:bg-[#155534] text-white px-4 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-[0.98]"
+              onClick={exportToExcel}
+            >
+              <FileSpreadsheet className="size-3.5" />
+              ⬇ Export to Excel
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Date-wise Summary */}
-      <div className="master-section-title">Date-wise Summary</div>
-      <div className="master-grid-3">
-        {activeDates.map((dateKey, di) => {
-          const rows = dateRows[dateKey] || [];
-          let grandOpd = 0;
-          let grandIpd = 0;
-
-          return (
-            <div key={dateKey} className="master-table-card">
-              <div className="master-table-header date-header">
-                <input
-                  type="date"
-                  value={dateKey}
-                  onChange={(e) => changeDate(di, e.target.value)}
-                />
-              </div>
-
-              <table>
-                <thead>
-                  <tr>
-                    <th>Location</th>
-                    <th>OPD</th>
-                    <th>IPD</th>
-                    <th>Total</th>
-                    <th style={{ width: "22px" }} />
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {rows.map((dept, ri) => {
-                    const opd = getVal(dateKey, dept, "opd");
-                    const ipd = getVal(dateKey, dept, "ipd");
-                    const total = opd + ipd;
-                    grandOpd += opd;
-                    grandIpd += ipd;
-
-                    return (
-                      <tr key={ri}>
-                        <td style={{ padding: "2px 4px" }}>
-                          <select
-                            className="master-dept-select"
-                            value={dept}
-                            onChange={(e) =>
-                              changeDateRowLocation(
-                                dateKey,
-                                ri,
-                                e.target.value
-                              )
-                            }
-                          >
-                            {ALL_DEPTS.map((d) => (
-                              <option key={d} value={d}>
-                                {d}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-
-                        <td>
-                          <input
-                            type="number"
-                            min="0"
-                            className="master-num-input"
-                            value={opd}
-                            onChange={(e) =>
-                              setCellVal(
-                                dateKey,
-                                dept,
-                                "opd",
-                                parseInt(e.target.value, 10) || 0
-                              )
-                            }
-                          />
-                        </td>
-
-                        <td>
-                          <input
-                            type="number"
-                            min="0"
-                            className="master-num-input"
-                            value={ipd}
-                            onChange={(e) =>
-                              setCellVal(
-                                dateKey,
-                                dept,
-                                "ipd",
-                                parseInt(e.target.value, 10) || 0
-                              )
-                            }
-                          />
-                        </td>
-
-                        <td
-                          className={`master-total-cell ${
-                            total === 0 ? "master-zero" : ""
-                          }`}
-                        >
-                          {total}
-                        </td>
-
-                        <td>
-                          <button
-                            type="button"
-                            className="master-remove-row-btn"
-                            onClick={() =>
-                              removeLocationRowFromDate(dateKey, ri)
-                            }
-                          >
-                            &#x2715;
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-
-                <tfoot>
-                  <tr className="total-row">
-                    <td>Total</td>
-                    <td className={grandOpd === 0 ? "master-zero" : ""}>
-                      {grandOpd}
-                    </td>
-                    <td className={grandIpd === 0 ? "master-zero" : ""}>
-                      {grandIpd}
-                    </td>
-                    <td className="master-total-cell">{grandOpd + grandIpd}</td>
-                    <td />
-                  </tr>
-                </tfoot>
-              </table>
-
-              <button
-                type="button"
-                className="master-add-row-btn"
-                onClick={() => addLocationRowToDate(dateKey)}
-              >
-                &#43; Add Location Row
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Dept-wise Control Bar */}
-      <div className="master-dept-ctrl-bar">
-        <label>Select Location:</label>
-        <select
-          value={newDeptInput}
-          onChange={(e) => setNewDeptInput(e.target.value)}
-        >
-          <option value="">-- Select --</option>
-          {ALL_DEPTS.filter((d) => !activeDepts.includes(d)).map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-        <button type="button" className="master-btn-add" onClick={addDeptCard}>
-          + Add Location
-        </button>
-        <span style={{ color: "#5a7a9a", fontSize: "12px" }}>
-          Active Location:
-        </span>
-        <div className="master-tags-row">
-          {activeDepts.map((d) => (
-            <span key={d} className="master-tag">
-              {d}
-              <span className="tag-x" onClick={() => removeDeptCard(d)}>
-                &#x2715;
-              </span>
-            </span>
-          ))}
+        {/* Polished Yellow Banner */}
+        <div className="master-banner rounded-xl bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 border border-amber-400/80 p-3 sm:p-3.5 text-center text-amber-950 font-extrabold text-base sm:text-lg tracking-wide shadow-xs">
+          {reportTitle}
         </div>
-      </div>
 
-      {/* Location-wise Summary */}
-      <div className="master-section-title">Location-wise Summary</div>
-      <div className="master-grid-3">
-        {activeDepts.map((dept, ci) => {
-          const dates = deptCardDates[dept] || activeDates;
-          let grandOpd = 0;
-          let grandIpd = 0;
+        {/* ── Date-wise Control Bar ── */}
+        <div className="master-date-bar flex flex-wrap items-center gap-3 rounded-xl border border-slate-200/90 bg-white p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-slate-700 whitespace-nowrap flex items-center gap-1">
+              <Calendar className="size-3.5 text-blue-600" />
+              Select Date:
+            </label>
+            <input
+              type="date"
+              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              value={newDateInput}
+              onChange={(e) => setNewDateInput(e.target.value)}
+            />
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded-lg bg-[#1a6aab] hover:bg-[#155090] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+              onClick={addDate}
+            >
+              <Plus className="size-3" />
+              Add Date
+            </button>
+          </div>
 
-          return (
-            <div key={dept} className="master-table-card">
-              <div className="master-table-header dept-header">
-                <select
-                  value={dept}
-                  onChange={(e) => changeDeptCardLocation(ci, e.target.value)}
+          <div className="flex flex-wrap items-center gap-2 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-3">
+            <span className="text-xs font-semibold text-slate-500">
+              Active dates:
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {activeDates.map((d) => (
+                <span
+                  key={d}
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/90 px-2.5 py-1 text-xs font-bold text-blue-900 shadow-2xs"
                 >
-                  {ALL_DEPTS.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {fmtDisplay(d)}
+                  <button
+                    type="button"
+                    className="ml-1 text-rose-500 hover:text-rose-700 hover:bg-rose-100/60 rounded-full size-4 flex items-center justify-center text-[10px] transition-colors"
+                    onClick={() => removeDate(d)}
+                    title="Remove date"
+                  >
+                    &#x2715;
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
 
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>OPD</th>
-                    <th>IPD</th>
-                    <th>Total</th>
-                    <th style={{ width: "22px" }} />
-                  </tr>
-                </thead>
+        {/* ── Date-wise Summary ── */}
+        <div>
+          <div className="master-section-title text-sm font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
+            <Calendar className="size-4 text-blue-600" />
+            Date-wise Summary
+          </div>
 
-                <tbody>
-                  {dates.map((dateKey, di) => {
-                    const opd = getVal(dateKey, dept, "opd");
-                    const ipd = getVal(dateKey, dept, "ipd");
-                    const total = opd + ipd;
-                    grandOpd += opd;
-                    grandIpd += ipd;
+          <div className="master-grid-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {activeDates.map((dateKey, di) => {
+              const rows = dateRows[dateKey] || [];
+              let grandOpd = 0;
+              let grandIpd = 0;
 
-                    return (
-                      <tr key={di}>
-                        <td style={{ padding: "2px 3px" }}>
-                          <input
-                            type="date"
-                            className="master-date-cell"
-                            value={dateKey}
-                            onChange={(e) =>
-                              changeDeptCardDateVal(dept, di, e.target.value)
-                            }
-                          />
-                        </td>
+              return (
+                <div
+                  key={dateKey}
+                  className="master-table-card rounded-xl border border-slate-300/80 bg-white shadow-2xs overflow-hidden transition-all hover:shadow-sm"
+                >
+                  {/* Beige Date Header */}
+                  <div className="date-header bg-[#e8d8b8] border-b border-[#dacab0] px-3 py-2 flex items-center justify-center">
+                    <input
+                      type="date"
+                      className="rounded-md border border-[#c4b396] bg-white/75 px-2 py-1 text-xs font-bold text-[#443825] shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-700"
+                      value={dateKey}
+                      onChange={(e) => changeDate(di, e.target.value)}
+                    />
+                  </div>
 
-                        <td>
-                          <input
-                            type="number"
-                            min="0"
-                            className="master-num-input"
-                            value={opd}
-                            onChange={(e) =>
-                              setCellVal(
-                                dateKey,
-                                dept,
-                                "opd",
-                                parseInt(e.target.value, 10) || 0
-                              )
-                            }
-                          />
-                        </td>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                        <th className="px-2 py-2 text-left">Location</th>
+                        <th className="px-2 py-2 text-center">OPD</th>
+                        <th className="px-2 py-2 text-center">IPD</th>
+                        <th className="px-2 py-2 text-center">Total</th>
+                        <th className="master-action-col w-6 px-1" />
+                      </tr>
+                    </thead>
 
-                        <td>
-                          <input
-                            type="number"
-                            min="0"
-                            className="master-num-input"
-                            value={ipd}
-                            onChange={(e) =>
-                              setCellVal(
-                                dateKey,
-                                dept,
-                                "ipd",
-                                parseInt(e.target.value, 10) || 0
-                              )
-                            }
-                          />
-                        </td>
+                    <tbody className="divide-y divide-slate-100">
+                      {rows.map((dept, ri) => {
+                        const opd = getVal(dateKey, dept, "opd");
+                        const ipd = getVal(dateKey, dept, "ipd");
+                        const total = opd + ipd;
+                        grandOpd += opd;
+                        grandIpd += ipd;
 
+                        return (
+                          <tr
+                            key={ri}
+                            className="hover:bg-slate-50 transition-colors"
+                          >
+                            <td className="p-1.5">
+                              <select
+                                className="master-dept-select w-full rounded border border-slate-200 bg-white px-1.5 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer font-medium"
+                                value={dept}
+                                onChange={(e) =>
+                                  changeDateRowLocation(
+                                    dateKey,
+                                    ri,
+                                    e.target.value
+                                  )
+                                }
+                              >
+                                {ALL_DEPTS.map((d) => (
+                                  <option key={d} value={d}>
+                                    {d}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+
+                            <td className="p-1 text-center">
+                              <input
+                                type="number"
+                                min="0"
+                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                value={opd}
+                                onChange={(e) =>
+                                  setCellVal(
+                                    dateKey,
+                                    dept,
+                                    "opd",
+                                    parseInt(e.target.value, 10) || 0
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td className="p-1 text-center">
+                              <input
+                                type="number"
+                                min="0"
+                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                value={ipd}
+                                onChange={(e) =>
+                                  setCellVal(
+                                    dateKey,
+                                    dept,
+                                    "ipd",
+                                    parseInt(e.target.value, 10) || 0
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td
+                              className={`p-1 text-center font-bold tabular-nums ${
+                                total === 0 ? "text-rose-600" : "text-blue-900"
+                              }`}
+                            >
+                              {total}
+                            </td>
+
+                            <td className="master-action-col p-1 text-center">
+                              <button
+                                type="button"
+                                className="master-remove-btn text-rose-500 hover:text-rose-700 p-0.5 rounded transition-colors text-sm font-bold"
+                                onClick={() =>
+                                  removeLocationRowFromDate(dateKey, ri)
+                                }
+                                title="Remove row"
+                              >
+                                &#x2715;
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+
+                    <tfoot>
+                      <tr className="total-row bg-[#eef4fb] text-[#1a3a5c] font-bold border-t border-slate-200">
+                        <td className="px-2 py-1.5 text-left">Total</td>
                         <td
-                          className={`master-total-cell ${
-                            total === 0 ? "master-zero" : ""
+                          className={`px-2 py-1.5 text-center tabular-nums ${
+                            grandOpd === 0 ? "text-rose-600" : ""
                           }`}
                         >
-                          {total}
+                          {grandOpd}
                         </td>
-
-                        <td>
-                          <button
-                            type="button"
-                            className="master-remove-row-btn"
-                            onClick={() =>
-                              removeDateRowFromDeptCard(dept, di)
-                            }
-                          >
-                            &#x2715;
-                          </button>
+                        <td
+                          className={`px-2 py-1.5 text-center tabular-nums ${
+                            grandIpd === 0 ? "text-rose-600" : ""
+                          }`}
+                        >
+                          {grandIpd}
                         </td>
+                        <td className="px-2 py-1.5 text-center tabular-nums font-extrabold text-[#1a3a5c]">
+                          {grandOpd + grandIpd}
+                        </td>
+                        <td className="master-action-col" />
                       </tr>
-                    );
-                  })}
-                </tbody>
+                    </tfoot>
+                  </table>
 
-                <tfoot>
-                  <tr className="total-row">
-                    <td>Total</td>
-                    <td className={grandOpd === 0 ? "master-zero" : ""}>
-                      {grandOpd}
-                    </td>
-                    <td className={grandIpd === 0 ? "master-zero" : ""}>
-                      {grandIpd}
-                    </td>
-                    <td className="master-total-cell">{grandOpd + grandIpd}</td>
-                    <td />
-                  </tr>
-                </tfoot>
-              </table>
+                  <button
+                    type="button"
+                    className="master-add-row-btn w-full py-2 bg-slate-50/70 hover:bg-blue-50/60 border-t border-dashed border-slate-200 text-blue-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                    onClick={() => addLocationRowToDate(dateKey)}
+                  >
+                    <Plus className="size-3" /> Add Location Row
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-              <button
-                type="button"
-                className="master-add-row-btn"
-                onClick={() => addDateRowToDeptCard(dept)}
-              >
-                &#43; Add Date Row
-              </button>
+        {/* ── Location-wise Control Bar ── */}
+        <div className="master-dept-ctrl-bar flex flex-wrap items-center gap-3 rounded-xl border border-blue-200/90 bg-[#edf4fb] p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-[#1a3a5c] whitespace-nowrap flex items-center gap-1">
+              <MapPin className="size-3.5 text-blue-600" />
+              Select Location:
+            </label>
+            <select
+              className="rounded-lg border border-[#8aabcc] bg-white px-2.5 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              value={newDeptInput}
+              onChange={(e) => setNewDeptInput(e.target.value)}
+            >
+              <option value="">-- Select --</option>
+              {ALL_DEPTS.filter((d) => !activeDepts.includes(d)).map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded-lg bg-[#1a6aab] hover:bg-[#155090] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+              onClick={addDeptCard}
+            >
+              <Plus className="size-3" />
+              Add Location
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 border-t sm:border-t-0 sm:border-l border-blue-200 pt-2 sm:pt-0 sm:pl-3">
+            <span className="text-xs font-semibold text-[#5a7a9a]">
+              Active Location:
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {activeDepts.map((d) => (
+                <span
+                  key={d}
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-white px-2.5 py-1 text-xs font-bold text-[#1a3a5c] shadow-2xs"
+                >
+                  {d}
+                  <button
+                    type="button"
+                    className="ml-1 text-rose-500 hover:text-rose-700 hover:bg-rose-100/60 rounded-full size-4 flex items-center justify-center text-[10px] transition-colors"
+                    onClick={() => removeDeptCard(d)}
+                    title="Remove location"
+                  >
+                    &#x2715;
+                  </button>
+                </span>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        {/* ── Location-wise Summary ── */}
+        <div>
+          <div className="master-section-title text-sm font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
+            <MapPin className="size-4 text-blue-600" />
+            Location-wise Summary
+          </div>
+
+          <div className="master-grid-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {activeDepts.map((dept, ci) => {
+              const dates = deptCardDates[dept] || activeDates;
+              let grandOpd = 0;
+              let grandIpd = 0;
+
+              return (
+                <div
+                  key={dept}
+                  className="master-table-card rounded-xl border border-slate-300/80 bg-white shadow-2xs overflow-hidden transition-all hover:shadow-sm"
+                >
+                  {/* Blue Location Header */}
+                  <div className="dept-header bg-[#b0cce0] border-b border-[#9ec0d8] px-3 py-2 flex items-center justify-center">
+                    <select
+                      className="rounded-md border border-[#8aabcc] bg-white/80 px-2.5 py-1 text-xs font-bold text-[#1a3a5c] shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-700"
+                      value={dept}
+                      onChange={(e) =>
+                        changeDeptCardLocation(ci, e.target.value)
+                      }
+                    >
+                      {ALL_DEPTS.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                        <th className="px-2 py-2 text-left">Date</th>
+                        <th className="px-2 py-2 text-center">OPD</th>
+                        <th className="px-2 py-2 text-center">IPD</th>
+                        <th className="px-2 py-2 text-center">Total</th>
+                        <th className="master-action-col w-6 px-1" />
+                      </tr>
+                    </thead>
+
+                    <tbody className="divide-y divide-slate-100">
+                      {dates.map((dateKey, di) => {
+                        const opd = getVal(dateKey, dept, "opd");
+                        const ipd = getVal(dateKey, dept, "ipd");
+                        const total = opd + ipd;
+                        grandOpd += opd;
+                        grandIpd += ipd;
+
+                        return (
+                          <tr
+                            key={di}
+                            className="hover:bg-slate-50 transition-colors"
+                          >
+                            <td className="p-1.5">
+                              <input
+                                type="date"
+                                className="master-date-cell rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1.5 py-1 text-xs text-slate-800 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                                value={dateKey}
+                                onChange={(e) =>
+                                  changeDeptCardDateVal(
+                                    dept,
+                                    di,
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td className="p-1 text-center">
+                              <input
+                                type="number"
+                                min="0"
+                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                value={opd}
+                                onChange={(e) =>
+                                  setCellVal(
+                                    dateKey,
+                                    dept,
+                                    "opd",
+                                    parseInt(e.target.value, 10) || 0
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td className="p-1 text-center">
+                              <input
+                                type="number"
+                                min="0"
+                                className="master-num-input w-14 rounded border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white bg-transparent px-1 py-1 text-center text-xs tabular-nums text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                value={ipd}
+                                onChange={(e) =>
+                                  setCellVal(
+                                    dateKey,
+                                    dept,
+                                    "ipd",
+                                    parseInt(e.target.value, 10) || 0
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td
+                              className={`p-1 text-center font-bold tabular-nums ${
+                                total === 0 ? "text-rose-600" : "text-blue-900"
+                              }`}
+                            >
+                              {total}
+                            </td>
+
+                            <td className="master-action-col p-1 text-center">
+                              <button
+                                type="button"
+                                className="master-remove-btn text-rose-500 hover:text-rose-700 p-0.5 rounded transition-colors text-sm font-bold"
+                                onClick={() =>
+                                  removeDateRowFromDeptCard(dept, di)
+                                }
+                                title="Remove row"
+                              >
+                                &#x2715;
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+
+                    <tfoot>
+                      <tr className="total-row bg-[#eef4fb] text-[#1a3a5c] font-bold border-t border-slate-200">
+                        <td className="px-2 py-1.5 text-left">Total</td>
+                        <td
+                          className={`px-2 py-1.5 text-center tabular-nums ${
+                            grandOpd === 0 ? "text-rose-600" : ""
+                          }`}
+                        >
+                          {grandOpd}
+                        </td>
+                        <td
+                          className={`px-2 py-1.5 text-center tabular-nums ${
+                            grandIpd === 0 ? "text-rose-600" : ""
+                          }`}
+                        >
+                          {grandIpd}
+                        </td>
+                        <td className="px-2 py-1.5 text-center tabular-nums font-extrabold text-[#1a3a5c]">
+                          {grandOpd + grandIpd}
+                        </td>
+                        <td className="master-action-col" />
+                      </tr>
+                    </tfoot>
+                  </table>
+
+                  <button
+                    type="button"
+                    className="master-add-row-btn w-full py-2 bg-slate-50/70 hover:bg-blue-50/60 border-t border-dashed border-slate-200 text-blue-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                    onClick={() => addDateRowToDeptCard(dept)}
+                  >
+                    <Plus className="size-3" /> Add Date Row
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

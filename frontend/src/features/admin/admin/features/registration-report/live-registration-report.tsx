@@ -1,5 +1,13 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
+  Printer,
+  FileSpreadsheet,
+  Plus,
+  Trash2,
+  Calendar,
+  Building2,
+} from "lucide-react";
+import {
   useGetRegistrationReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
@@ -68,7 +76,10 @@ export function LiveRegistrationReport() {
   useEffect(() => {
     if (reportResponse?.data?.rows && reportResponse.data.rows.length > 0) {
       const backendRows: RegRow[] = reportResponse.data.rows.map((r, i) => {
-        const name = r.location || r.department || DEFAULT_DEPARTMENTS[i % DEFAULT_DEPARTMENTS.length];
+        const name =
+          r.location ||
+          r.department ||
+          DEFAULT_DEPARTMENTS[i % DEFAULT_DEPARTMENTS.length];
         return {
           id: `backend-${i}`,
           department: name,
@@ -217,10 +228,10 @@ export function LiveRegistrationReport() {
       <head>
         <meta charset="UTF-8">
         <style>
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid black; padding: 8px; text-align: center; }
+          table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+          th, td { border: 1px solid black; padding: 8px; text-align: center; font-size: 12px; }
           th { font-weight: bold; background: #f2f2f2; }
-          h2 { text-align: center; }
+          h2 { text-align: center; font-weight: bold; }
         </style>
       </head>
       <body>
@@ -238,80 +249,8 @@ export function LiveRegistrationReport() {
   };
 
   return (
-    <div className="registration-report-wrapper w-full p-4 sm:p-6 bg-white min-h-screen text-slate-900 font-sans">
+    <div className="registration-report-wrapper w-full p-3 sm:p-6 bg-slate-50/60 min-h-screen text-slate-900 font-sans">
       <style>{`
-        .reg-report-container {
-          max-width: 900px;
-          margin: 0 auto;
-          font-family: Arial, sans-serif;
-        }
-        .reg-report-container h2 {
-          text-align: center;
-          font-weight: bold;
-          font-size: 22px;
-          margin-bottom: 20px;
-        }
-        .reg-title-input {
-          width: 450px;
-          max-width: 100%;
-          padding: 6px 10px;
-          border: 1px solid #aaa;
-          border-radius: 2px;
-          font-size: 14px;
-        }
-        .reg-btn {
-          padding: 8px 14px;
-          margin: 5px 6px 5px 0;
-          border: 1px solid #aaa;
-          background: #f0f0f0;
-          cursor: pointer;
-          font-size: 13px;
-          border-radius: 3px;
-          font-weight: 500;
-        }
-        .reg-btn:hover {
-          background: #e0e0e0;
-        }
-        .reg-delete-btn {
-          background: red;
-          color: white;
-          border: none;
-          cursor: pointer;
-          padding: 6px 12px;
-          border-radius: 3px;
-          font-size: 13px;
-          font-weight: 500;
-        }
-        .reg-delete-btn:hover {
-          background: #cc0000;
-        }
-        .reg-table {
-          border-collapse: collapse;
-          width: 100%;
-          margin-top: 20px;
-          font-size: 13px;
-        }
-        .reg-table th, .reg-table td {
-          border: 1px solid #000;
-          padding: 8px;
-          text-align: center;
-        }
-        .reg-table th {
-          background: #f2f2f2;
-          font-weight: bold;
-        }
-        .reg-table input[type="date"],
-        .reg-table select,
-        .reg-table input[type="number"] {
-          padding: 4px;
-          font-size: 13px;
-          text-align: center;
-          border: 1px solid #ccc;
-          border-radius: 2px;
-          width: 100%;
-          box-sizing: border-box;
-          background: #fff;
-        }
         @media print {
           .reg-print-hide {
             display: none !important;
@@ -319,9 +258,18 @@ export function LiveRegistrationReport() {
           body, .registration-report-wrapper {
             padding: 0 !important;
             margin: 0 !important;
+            background: #fff !important;
+          }
+          .reg-report-container {
+            max-width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
           }
           .reg-table th, .reg-table td {
             border: 1px solid #000 !important;
+            padding: 6px !important;
+            font-size: 11px !important;
           }
           .reg-table input,
           .reg-table select {
@@ -329,74 +277,119 @@ export function LiveRegistrationReport() {
             background: transparent !important;
             box-shadow: none !important;
             text-align: center !important;
+            -webkit-appearance: none !important;
+            appearance: none !important;
           }
         }
       `}</style>
 
-      <div className="reg-report-container">
+      <div className="reg-report-container max-w-4xl mx-auto rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs">
         {/* Centered Heading */}
-        <h2>Registration Report</h2>
+        <div className="text-center mb-6">
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+            Registration Report
+          </h2>
+          <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-blue-600" />
+        </div>
 
         {/* Title Input */}
-        <div className="mb-4 flex flex-wrap items-center gap-2 reg-print-hide">
-          <label className="font-bold text-sm">Title:</label>
+        <div className="mb-5 flex flex-wrap items-center gap-3 reg-print-hide">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap flex items-center gap-1.5">
+            <Building2 className="size-3.5 text-blue-600" />
+            Title:
+          </label>
           <input
             type="text"
-            className="reg-title-input"
+            className="flex-1 max-w-lg rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
 
-        {/* Buttons */}
-        <div className="mb-4 reg-print-hide">
-          <button type="button" className="reg-btn" onClick={addRow}>
+        {/* Action Buttons */}
+        <div className="mb-6 flex flex-wrap items-center gap-2.5 reg-print-hide">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 px-4 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-[0.98]"
+            onClick={addRow}
+          >
+            <Plus className="size-3.5 text-blue-600" />
             Add Row
           </button>
-          <button type="button" className="reg-btn" onClick={printReport}>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-4 py-2 text-xs font-semibold shadow-xs transition-all active:scale-[0.98]"
+            onClick={printReport}
+          >
+            <Printer className="size-3.5" />
             Print
           </button>
-          <button type="button" className="reg-btn" onClick={exportExcel}>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-4 py-2 text-xs font-semibold shadow-xs transition-all active:scale-[0.98]"
+            onClick={exportExcel}
+          >
+            <FileSpreadsheet className="size-3.5" />
             Export Excel
           </button>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="reg-table">
+        <div className="overflow-x-auto rounded-xl border border-slate-300 shadow-2xs">
+          <table className="reg-table w-full border-collapse text-xs sm:text-sm">
             <thead>
-              <tr>
-                <th className="min-w-40">Department</th>
-                <th className="min-w-36">
-                  <input
-                    type="date"
-                    value={d1}
-                    onChange={(e) => setD1(e.target.value)}
-                  />
+              <tr className="bg-slate-100 text-slate-900 border-b border-slate-300">
+                <th className="border border-slate-300 px-3 py-3 text-left font-bold min-w-40">
+                  Department
                 </th>
-                <th className="min-w-36">
-                  <input
-                    type="date"
-                    value={d2}
-                    onChange={(e) => setD2(e.target.value)}
-                  />
+                <th className="border border-slate-300 px-2 py-2 text-center font-bold min-w-36">
+                  <div className="flex items-center justify-center gap-1">
+                    <Calendar className="size-3.5 text-blue-600 shrink-0" />
+                    <input
+                      type="date"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      value={d1}
+                      onChange={(e) => setD1(e.target.value)}
+                    />
+                  </div>
                 </th>
-                <th className="min-w-36">
-                  <input
-                    type="date"
-                    value={d3}
-                    onChange={(e) => setD3(e.target.value)}
-                  />
+                <th className="border border-slate-300 px-2 py-2 text-center font-bold min-w-36">
+                  <div className="flex items-center justify-center gap-1">
+                    <Calendar className="size-3.5 text-blue-600 shrink-0" />
+                    <input
+                      type="date"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      value={d2}
+                      onChange={(e) => setD2(e.target.value)}
+                    />
+                  </div>
                 </th>
-                <th className="w-24 reg-print-hide">Action</th>
+                <th className="border border-slate-300 px-2 py-2 text-center font-bold min-w-36">
+                  <div className="flex items-center justify-center gap-1">
+                    <Calendar className="size-3.5 text-blue-600 shrink-0" />
+                    <input
+                      type="date"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      value={d3}
+                      onChange={(e) => setD3(e.target.value)}
+                    />
+                  </div>
+                </th>
+                <th className="reg-print-hide border border-slate-300 px-3 py-3 text-center font-bold w-24">
+                  Action
+                </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {rows.map((row) => (
-                <tr key={row.id}>
-                  <td>
+                <tr
+                  key={row.id}
+                  className="hover:bg-blue-50/30 transition-colors"
+                >
+                  <td className="border border-slate-300 p-2">
                     <select
+                      className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer font-medium"
                       value={row.department}
                       onChange={(e) =>
                         updateDepartment(row.id, e.target.value)
@@ -409,42 +402,53 @@ export function LiveRegistrationReport() {
                       ))}
                     </select>
                   </td>
-                  <td>
+
+                  <td className="border border-slate-300 p-1.5">
                     <input
                       type="number"
                       min="0"
-                      value={row.v1}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-center text-xs tabular-nums text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      value={row.v1 === 0 ? "" : row.v1}
+                      placeholder="0"
                       onChange={(e) =>
                         updateVal(row.id, "v1", e.target.value)
                       }
                     />
                   </td>
-                  <td>
+
+                  <td className="border border-slate-300 p-1.5">
                     <input
                       type="number"
                       min="0"
-                      value={row.v2}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-center text-xs tabular-nums text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      value={row.v2 === 0 ? "" : row.v2}
+                      placeholder="0"
                       onChange={(e) =>
                         updateVal(row.id, "v2", e.target.value)
                       }
                     />
                   </td>
-                  <td>
+
+                  <td className="border border-slate-300 p-1.5">
                     <input
                       type="number"
                       min="0"
-                      value={row.v3}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-center text-xs tabular-nums text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      value={row.v3 === 0 ? "" : row.v3}
+                      placeholder="0"
                       onChange={(e) =>
                         updateVal(row.id, "v3", e.target.value)
                       }
                     />
                   </td>
-                  <td className="reg-print-hide">
+
+                  <td className="reg-print-hide border border-slate-300 p-2 text-center">
                     <button
                       type="button"
-                      className="reg-delete-btn"
+                      className="inline-flex items-center gap-1 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-3 py-1 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
                       onClick={() => deleteRow(row.id)}
                     >
+                      <Trash2 className="size-3" />
                       Delete
                     </button>
                   </td>
@@ -453,18 +457,32 @@ export function LiveRegistrationReport() {
             </tbody>
 
             <tfoot>
-              <tr style={{ background: "#f2f2f2", fontWeight: "bold" }}>
-                <td>
-                  <b>Total</b>
+              <tr className="bg-slate-100 text-slate-900 font-bold border-t-2 border-slate-400">
+                <td className="border border-slate-300 px-3 py-2.5 text-left font-bold">
+                  Total
                 </td>
-                <td>{t1}</td>
-                <td>{t2}</td>
-                <td>{t3}</td>
-                <td className="reg-print-hide" />
+                <td className="border border-slate-300 px-2 py-2.5 text-center tabular-nums font-extrabold">
+                  {t1.toLocaleString()}
+                </td>
+                <td className="border border-slate-300 px-2 py-2.5 text-center tabular-nums font-extrabold">
+                  {t2.toLocaleString()}
+                </td>
+                <td className="border border-slate-300 px-2 py-2.5 text-center tabular-nums font-extrabold">
+                  {t3.toLocaleString()}
+                </td>
+                <td className="reg-print-hide border border-slate-300" />
               </tr>
-              <tr>
-                <td colSpan={5} className="text-left font-bold py-2.5">
-                  <b>Grand Total: {grandTotal}</b>
+              <tr className="bg-slate-50">
+                <td
+                  colSpan={5}
+                  className="border border-slate-300 text-left font-bold px-4 py-3 text-slate-900"
+                >
+                  <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold mr-2">
+                    Grand Total:
+                  </span>
+                  <span className="text-base sm:text-lg font-extrabold text-blue-700 tabular-nums">
+                    {grandTotal.toLocaleString()}
+                  </span>
                 </td>
               </tr>
             </tfoot>

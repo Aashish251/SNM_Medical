@@ -1,5 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
+  Printer,
+  FileSpreadsheet,
+  Plus,
+  Trash2,
+  Calendar,
+  Building2,
+  CheckCircle2,
+} from "lucide-react";
+import {
   useGetDailyReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
@@ -51,10 +60,6 @@ export function LiveDailyReport() {
     });
     return list;
   }, [metaDepartments]);
-
-  const todayStr = useMemo(() => {
-    return new Date().toISOString().split("T")[0];
-  }, []);
 
   const [samagamName, setSamagamName] = useState(
     "60TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
@@ -173,6 +178,10 @@ export function LiveDailyReport() {
     return t;
   }, [rows]);
 
+  const grandTotal = useMemo(() => {
+    return totals.reduce((sum, v) => sum + v, 0);
+  }, [totals]);
+
   // Print function matching DailyReport.html
   const preparePrint = () => {
     window.print();
@@ -223,131 +232,12 @@ export function LiveDailyReport() {
   };
 
   return (
-    <div className="daily-report-wrapper w-full p-2 sm:p-5 bg-[#f4f4f4] min-h-screen text-slate-800">
+    <div className="daily-report-wrapper w-full p-3 sm:p-6 bg-slate-50/60 min-h-screen text-slate-800 font-sans">
       <style>{`
-        .daily-report-container {
-          background: #fff;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 0 10px rgba(0,0,0,0.1);
-          font-family: Arial, sans-serif;
-        }
-        .daily-report-container h2 {
-          text-align: center;
-          margin: 5px;
-          font-weight: bold;
-          font-size: 18px;
-        }
-        .daily-top-section {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-          flex-wrap: wrap;
-          gap: 15px;
-        }
-        .daily-input-group {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-        }
-        .daily-input-group input {
-          padding: 8px;
-          font-size: 14px;
-          min-width: 250px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          background: #fff;
-        }
-        .daily-button-group {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-        .daily-btn {
-          padding: 8px 14px;
-          border: none;
-          color: white;
-          cursor: pointer;
-          border-radius: 4px;
-          font-size: 13px;
-          font-weight: 500;
-          transition: opacity 0.2s;
-        }
-        .daily-btn:hover {
-          opacity: 0.9;
-        }
-        .daily-print-btn {
-          background: #0066cc;
-        }
-        .daily-excel-btn {
-          background: #28a745;
-        }
-        .daily-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 15px;
-          font-size: 13px;
-        }
-        .daily-table th, .daily-table td {
-          border: 1px solid #000;
-          padding: 8px;
-          text-align: center;
-        }
-        .daily-table th {
-          background: #d9d9d9;
-          font-weight: bold;
-        }
-        .daily-table select,
-        .daily-table input[type="number"] {
-          width: 100%;
-          padding: 5px;
-          box-sizing: border-box;
-          border: 1px solid #ccc;
-          border-radius: 3px;
-          text-align: center;
-          background: #fff;
-        }
-        .daily-table select:focus,
-        .daily-table input[type="number"]:focus {
-          outline: 1px solid #0066cc;
-          border-color: #0066cc;
-        }
-        .daily-table input[type="number"]:disabled {
-          background: #f9f9f9;
-          cursor: not-allowed;
-          color: #888;
-        }
-        .daily-total-row {
-          background: #efefef;
-          font-weight: bold;
-        }
-        .daily-action-col {
-          white-space: nowrap;
-        }
-        .daily-add-btn {
-          background: #0275d8;
-          color: white;
-          padding: 5px 10px;
-          border: none;
-          border-radius: 4px;
-          font-size: 12px;
-          cursor: pointer;
-          margin-right: 5px;
-        }
-        .daily-remove-btn {
-          background: #d9534f;
-          color: white;
-          padding: 5px 10px;
-          border: none;
-          border-radius: 4px;
-          font-size: 12px;
-          cursor: pointer;
-        }
         @media print {
           @page {
             size: landscape;
-            margin: 10mm;
+            margin: 8mm;
           }
           .daily-top-section,
           .daily-action-col,
@@ -361,7 +251,9 @@ export function LiveDailyReport() {
           }
           .daily-report-container {
             box-shadow: none !important;
+            border: none !important;
             padding: 0 !important;
+            max-width: 100% !important;
           }
           .daily-table {
             width: 100% !important;
@@ -371,9 +263,10 @@ export function LiveDailyReport() {
             text-align: center !important;
             vertical-align: middle !important;
             border: 1px solid #000 !important;
+            padding: 6px !important;
+            font-size: 11px !important;
           }
           .daily-table thead th {
-            font-size: 13px !important;
             background: #d9d9d9 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -386,85 +279,110 @@ export function LiveDailyReport() {
             box-shadow: none !important;
             -webkit-appearance: none !important;
             appearance: none !important;
-          }
-          .daily-table input::-webkit-outer-spin-button,
-          .daily-table input::-webkit-inner-spin-button {
-            display: none;
+            font-size: 11px !important;
           }
         }
       `}</style>
 
-      <div className="daily-report-container max-w-6xl mx-auto">
+      <div className="daily-report-container max-w-6xl mx-auto rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs">
         {/* Top Control Section */}
-        <div className="daily-top-section">
-          <div className="daily-input-group">
-            <label>
-              <strong>Samagam Name</strong>
-            </label>
-            <input
-              type="text"
-              value={samagamName}
-              onChange={(e) => setSamagamName(e.target.value)}
-              placeholder="Enter Samagam Name"
-            />
+        <div className="daily-top-section mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="flex flex-wrap items-end gap-4 w-full md:w-auto flex-1">
+            {/* Samagam Name */}
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto flex-1 min-w-[260px]">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <Building2 className="size-3.5 text-blue-600" />
+                Samagam Name
+              </label>
+              <input
+                type="text"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                value={samagamName}
+                onChange={(e) => setSamagamName(e.target.value)}
+                placeholder="Enter Samagam Name"
+              />
+            </div>
+
+            {/* Report Date */}
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto min-w-[190px]">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <Calendar className="size-3.5 text-blue-600" />
+                Report Date
+              </label>
+              <input
+                type="date"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                value={reportDate}
+                onChange={(e) => setReportDate(e.target.value)}
+              />
+            </div>
           </div>
 
-          <div className="daily-input-group">
-            <label>
-              <strong>Report Date</strong>
-            </label>
-            <input
-              type="date"
-              value={reportDate}
-              onChange={(e) => setReportDate(e.target.value)}
-            />
-          </div>
-
-          <div className="daily-button-group">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              className="daily-btn daily-print-btn"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-4 py-2 text-xs font-semibold shadow-xs transition-all active:scale-[0.98]"
               onClick={preparePrint}
             >
+              <Printer className="size-3.5" />
               Print Report
             </button>
             <button
               type="button"
-              className="daily-btn daily-excel-btn"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-4 py-2 text-xs font-semibold shadow-xs transition-all active:scale-[0.98]"
               onClick={exportToExcel}
             >
+              <FileSpreadsheet className="size-3.5" />
               Export to Excel
             </button>
           </div>
         </div>
 
         {/* Dynamic Titles */}
-        <h2>{samagamName}</h2>
-        <h2>{dateTitle}</h2>
+        <div className="mb-6 text-center">
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+            {samagamName}
+          </h2>
+          <h3 className="mt-1 text-sm sm:text-base font-bold tracking-wide text-blue-700">
+            {dateTitle}
+          </h3>
+          <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-blue-600" />
+        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="daily-table">
+        {/* Table Container with Smooth Horizontal Scrolling */}
+        <div className="overflow-x-auto rounded-xl border border-slate-300 shadow-2xs">
+          <table className="daily-table w-full border-collapse text-xs sm:text-sm">
             <thead>
-              <tr>
-                <th>Department</th>
-                <th>Dispensary-1</th>
-                <th>Dispensary-2</th>
-                <th>Dispensary-3</th>
-                <th>Langar-1</th>
-                <th>Langar-2</th>
-                <th>Langar-3</th>
-                <th className="daily-action-col">Action</th>
+              <tr className="bg-slate-200/90 text-slate-900">
+                <th className="border border-slate-400/80 px-3 py-3 text-center font-bold min-w-44">
+                  Department
+                </th>
+                {LOCATIONS.map((loc) => (
+                  <th
+                    key={loc}
+                    className="border border-slate-400/80 px-2 py-3 text-center font-bold min-w-28"
+                  >
+                    {loc}
+                  </th>
+                ))}
+                <th className="daily-action-col border border-slate-400/80 px-3 py-3 text-center font-bold w-36">
+                  Action
+                </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-slate-200">
               {rows.map((row, idx) => {
                 const isDeptSelected = Boolean(row.department);
                 return (
-                  <tr key={row.id}>
-                    <td>
+                  <tr
+                    key={row.id}
+                    className="hover:bg-blue-50/30 transition-colors"
+                  >
+                    <td className="border border-slate-300 p-2">
                       <select
+                        className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer font-medium"
                         value={row.department}
                         onChange={(e) =>
                           handleDepartmentChange(row.id, e.target.value)
@@ -480,13 +398,14 @@ export function LiveDailyReport() {
                     </td>
 
                     {LOCATIONS.map((_, valIdx) => (
-                      <td key={valIdx}>
+                      <td key={valIdx} className="border border-slate-300 p-1.5">
                         <input
                           type="number"
                           min="0"
                           disabled={!isDeptSelected}
+                          className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-center text-xs tabular-nums text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                           value={row.values[valIdx] === 0 ? "" : row.values[valIdx]}
-                          placeholder={isDeptSelected ? "0" : ""}
+                          placeholder={isDeptSelected ? "0" : "—"}
                           onChange={(e) =>
                             handleValueChange(row.id, valIdx, e.target.value)
                           }
@@ -494,21 +413,25 @@ export function LiveDailyReport() {
                       </td>
                     ))}
 
-                    <td className="daily-action-col">
-                      <button
-                        type="button"
-                        className="daily-add-btn"
-                        onClick={() => addRow(idx)}
-                      >
-                        Add New
-                      </button>
-                      <button
-                        type="button"
-                        className="daily-remove-btn"
-                        onClick={() => removeRow(row.id)}
-                      >
-                        Remove
-                      </button>
+                    <td className="daily-action-col border border-slate-300 p-2 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-2.5 py-1 text-xs font-medium shadow-2xs transition-all active:scale-95"
+                          onClick={() => addRow(idx)}
+                        >
+                          <Plus className="size-3" />
+                          Add New
+                        </button>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-2.5 py-1 text-xs font-medium shadow-2xs transition-all active:scale-95"
+                          onClick={() => removeRow(row.id)}
+                        >
+                          <Trash2 className="size-3" />
+                          Remove
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -516,20 +439,33 @@ export function LiveDailyReport() {
             </tbody>
 
             <tfoot>
-              <tr className="daily-total-row">
-                <td>TOTAL</td>
+              <tr className="bg-slate-100 text-slate-900 font-bold border-t-2 border-slate-400">
+                <td className="border border-slate-300 px-3 py-3 text-center">
+                  TOTAL
+                </td>
                 {totals.map((t, i) => (
-                  <td key={i}>{t}</td>
+                  <td
+                    key={i}
+                    className="border border-slate-300 px-2 py-3 text-center tabular-nums text-slate-900 font-extrabold"
+                  >
+                    {t.toLocaleString()}
+                  </td>
                 ))}
-                <td className="daily-action-col">
+                <td className="daily-action-col border border-slate-300 p-2 text-center">
                   {rows.length === 0 && (
                     <button
                       type="button"
-                      className="daily-add-btn"
+                      className="inline-flex items-center gap-1 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs"
                       onClick={() => addRow()}
                     >
+                      <Plus className="size-3.5" />
                       Add New
                     </button>
+                  )}
+                  {rows.length > 0 && (
+                    <span className="text-[11px] font-semibold text-slate-600">
+                      Grand: {grandTotal.toLocaleString()}
+                    </span>
                   )}
                 </td>
               </tr>
