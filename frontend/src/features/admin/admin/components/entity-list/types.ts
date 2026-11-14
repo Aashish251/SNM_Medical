@@ -31,6 +31,8 @@ export type EntityListModuleConfig<T extends { id: string }> = {
   description: string;
   searchPlaceholder: string;
   searchKey: string;
+  /** Optional transform applied to the search/filter input (e.g. alphabet-only for State). */
+  searchTransform?: (value: string) => string;
   secondaryAction?: { label: string; icon: LucideIcon };
   primaryAction?: { label: string; icon: LucideIcon };
   secondaryDialogTitle?: string;

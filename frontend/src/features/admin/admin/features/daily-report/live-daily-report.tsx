@@ -13,6 +13,12 @@ import {
 } from "../../services/reportsApi";
 import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
 import { TableSearchableSelect } from "../reports-common/TableSearchableSelect";
+import { Header } from "@admin/components/layout/header";
+import { Main } from "@admin/components/layout/main";
+import { ProfileDropdown } from "@admin/components/profile-dropdown";
+import { Search } from "@admin/components/search";
+import { ThemeSwitch } from "@admin/components/theme-switch";
+import { Button } from "@admin/components/ui/button";
 
 const FALLBACK_LOCATIONS = [
   "Dispensary-1",
@@ -275,7 +281,24 @@ export function LiveDailyReport() {
   };
 
   return (
-    <div className="w-full space-y-4">
+    <>
+      <Header fixed>
+        <Search className="me-auto" />
+        <ThemeSwitch />
+        <ProfileDropdown />
+      </Header>
+
+      <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
+        {/* Page heading */}
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Patient Daily Report</h2>
+            <p className="text-muted-foreground">
+              Department-wise daily footfall cross-tabulation across all dispensary locations.
+            </p>
+          </div>
+        </div>
+
       <style>{`
         @media print {
           @page {
@@ -330,20 +353,18 @@ export function LiveDailyReport() {
         }
       `}</style>
 
-      {/* Main Full-Width Card */}
-      <div className="daily-card w-full rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs">
-        {/* Top Control Bar: Samagam Name, Date, Buttons (Full Width) */}
-        <div className="daily-top-section mb-5 flex flex-wrap items-end justify-between gap-3 bg-slate-50/90 p-3 sm:p-4 rounded-xl border border-slate-200/80">
+      {/* Top Control Bar */}
+      <div className="daily-top-section mb-5 flex flex-wrap items-end justify-between gap-3 bg-muted/50 p-3 sm:p-4 rounded-lg border border-border">
           <div className="flex flex-wrap items-end gap-3 flex-1 min-w-[280px]">
             {/* Samagam Name */}
             <div className="flex flex-col gap-1 flex-1 min-w-[240px]">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Building2 className="size-3.5 text-blue-600" />
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Building2 className="size-3.5 text-primary" />
                 Samagam Name
               </label>
               <input
                 type="text"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 value={samagamName}
                 onChange={(e) => setSamagamName(e.target.value)}
                 placeholder="Enter Samagam Name"
@@ -352,13 +373,13 @@ export function LiveDailyReport() {
 
             {/* Report Date */}
             <div className="flex flex-col gap-1 w-full sm:w-auto min-w-[170px]">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Calendar className="size-3.5 text-blue-600" />
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Calendar className="size-3.5 text-primary" />
                 Report Date
               </label>
               <input
                 type="date"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 value={reportDate}
                 onChange={(e) => setReportDate(e.target.value)}
               />
@@ -367,49 +388,44 @@ export function LiveDailyReport() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 px-3.5 py-2 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
-              onClick={() => addRow()}
-            >
-              <Plus className="size-3.5 text-blue-600" />
-              Add Row
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
               onClick={preparePrint}
             >
               <Printer className="size-3.5" />
               Print Report
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              size="sm"
+              className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
               onClick={exportToExcel}
             >
               <FileSpreadsheet className="size-3.5" />
               Export to Excel
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Dynamic Titles */}
         <div className="mb-5 text-center">
-          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
             {samagamName}
           </h2>
-          <h3 className="mt-1 text-sm sm:text-base font-bold tracking-wide text-blue-700">
+          <h3 className="mt-1 text-sm sm:text-base font-semibold tracking-wide text-primary">
             {dateTitle}
           </h3>
-          <div className="mx-auto mt-1.5 h-1 w-16 rounded-full bg-blue-600" />
+          <div className="mx-auto mt-1.5 h-1 w-16 rounded-full bg-primary" />
         </div>
 
         {/* Full-Width Responsive Table */}
-        <div className="w-full overflow-x-auto rounded-xl border border-slate-300 shadow-2xs">
+        <div className="w-full overflow-x-auto rounded-lg border border-border shadow-sm">
           <table className="daily-table w-full border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="bg-slate-200/90 text-slate-900">
+              <tr className="bg-muted text-foreground">
                 <th className="border border-slate-400/80 px-3 py-2.5 text-center font-bold min-w-[160px]">
                   Department
                 </th>
@@ -422,7 +438,7 @@ export function LiveDailyReport() {
                   </th>
                 ))}
                 <th className="daily-action-col border border-slate-400/80 px-3 py-2.5 text-center font-bold w-[18%] min-w-[170px]">
-                  Action
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -462,24 +478,22 @@ export function LiveDailyReport() {
                     ))}
 
                     <td className="daily-action-col border border-slate-300 p-2 text-center">
-                      <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
+                          className="inline-flex items-center justify-center rounded-md bg-primary/10 hover:bg-primary/20 text-primary p-1.5 transition-all active:scale-95 cursor-pointer"
                           onClick={() => addRow(idx)}
                           title="Add new row below"
                         >
                           <Plus className="size-3.5" />
-                          <span>Add New</span>
                         </button>
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
+                          className="inline-flex items-center justify-center rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive p-1.5 transition-all active:scale-95 cursor-pointer"
                           onClick={() => removeRow(row.id)}
                           title="Remove this row"
                         >
                           <Trash2 className="size-3.5" />
-                          <span>Remove</span>
                         </button>
                       </div>
                     </td>
@@ -505,11 +519,11 @@ export function LiveDailyReport() {
                   {rows.length === 0 && (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded-md bg-[#0275d8] hover:bg-[#025aa5] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
+                      className="inline-flex items-center justify-center rounded-md bg-primary/10 hover:bg-primary/20 text-primary p-1.5 transition-all active:scale-95 cursor-pointer"
                       onClick={() => addRow()}
+                      title="Add new row"
                     >
                       <Plus className="size-3.5" />
-                      Add New
                     </button>
                   )}
                 </td>
@@ -530,7 +544,7 @@ export function LiveDailyReport() {
             </tfoot>
           </table>
         </div>
-      </div>
-    </div>
+      </Main>
+    </>
   );
 }

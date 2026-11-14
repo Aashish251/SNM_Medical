@@ -13,6 +13,12 @@ import {
 } from "../../services/reportsApi";
 import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
 import { TableSearchableSelect } from "../reports-common/TableSearchableSelect";
+import { Header } from "@admin/components/layout/header";
+import { Main } from "@admin/components/layout/main";
+import { ProfileDropdown } from "@admin/components/profile-dropdown";
+import { Search } from "@admin/components/search";
+import { ThemeSwitch } from "@admin/components/theme-switch";
+import { Button } from "@admin/components/ui/button";
 
 function fmtDisplay(k: string) {
   if (!k) return "";
@@ -459,7 +465,24 @@ export function LiveMasterReport() {
   };
 
   return (
-    <div className="w-full space-y-4">
+    <>
+      <Header fixed>
+        <Search className="me-auto" />
+        <ThemeSwitch />
+        <ProfileDropdown />
+      </Header>
+
+      <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
+        {/* Page heading */}
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Patient Master Report</h2>
+            <p className="text-muted-foreground">
+              Consolidated OPD and IPD footfall across dispensary centres and samagam dates.
+            </p>
+          </div>
+        </div>
+
       <style>{`
         @media print {
           @page {
@@ -543,78 +566,82 @@ export function LiveMasterReport() {
 
       {/* Main Full-Width Wrapper */}
       <div className="w-full space-y-4">
-        {/* Top Control Bar (Full Width, Zero Wasted Space) */}
-        <div className="master-top-bar flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-xs">
+        {/* Top Control Bar */}
+        <div className="master-top-bar flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-3.5 sm:p-4 shadow-sm">
           <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap flex items-center gap-1.5">
-              <Building2 className="size-4 text-blue-600 shrink-0" />
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap flex items-center gap-1.5">
+              <Building2 className="size-4 text-primary shrink-0" />
               Report Title:
             </label>
             <input
               type="text"
-              className="flex-1 max-w-2xl rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex-1 max-w-2xl rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               value={reportTitle}
               onChange={(e) => setReportTitle(e.target.value)}
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
               onClick={() => window.print()}
             >
-              <Printer className="size-3.5 text-slate-500" />
+              <Printer className="size-3.5" />
               Print Report
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1d6f42] hover:bg-[#155534] text-white px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+              size="sm"
+              className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
               onClick={exportToExcel}
             >
               <FileSpreadsheet className="size-3.5" />
-              ⬇ Export to Excel
-            </button>
+              Export to Excel
+            </Button>
           </div>
         </div>
 
-        {/* Polished Yellow Banner (Full Width) */}
-        <div className="master-banner rounded-xl bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 border border-amber-400/80 p-3 sm:p-3.5 text-center text-amber-950 font-extrabold text-base sm:text-lg tracking-wide shadow-xs">
+        {/* Polished Banner (Full Width) */}
+        <div className="master-banner rounded-lg bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 border border-amber-400/80 p-3 sm:p-3.5 text-center text-amber-950 font-bold text-base sm:text-lg tracking-wide shadow-sm">
           {reportTitle}
         </div>
 
         {/* ── Date-wise Control Bar ── */}
-        <div className="master-date-bar flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:p-3.5 shadow-xs">
+        <div className="master-date-bar flex flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 sm:p-3.5 shadow-sm">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700 whitespace-nowrap flex items-center gap-1">
-              <Calendar className="size-3.5 text-blue-600" />
+            <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap flex items-center gap-1">
+              <Calendar className="size-3.5 text-primary" />
               Select Date:
             </label>
             <input
               type="date"
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer font-medium"
+              className="rounded-md border border-border bg-background px-2.5 py-1 text-xs text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer font-medium"
               value={newDateInput}
               onChange={(e) => setNewDateInput(e.target.value)}
             />
-            <button
+            <Button
               type="button"
-              className="inline-flex items-center gap-1 rounded-lg bg-[#1a6aab] hover:bg-[#155090] text-white px-3 py-1 text-xs font-semibold shadow-2xs transition-all active:scale-95"
+              size="sm"
+              className="h-7 gap-1 text-xs"
               onClick={addDate}
             >
               <Plus className="size-3" />
               Add Date
-            </button>
+            </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-3 flex-1">
-            <span className="text-xs font-semibold text-slate-500">
+          <div className="flex flex-wrap items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-border pt-2 sm:pt-0 sm:pl-3 flex-1">
+            <span className="text-xs font-semibold text-muted-foreground">
               Active dates:
             </span>
             <div className="flex flex-wrap items-center gap-1.5">
               {activeDates.map((d) => (
                 <span
                   key={d}
-                  className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/90 px-2.5 py-0.5 text-xs font-bold text-blue-900 shadow-2xs"
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary shadow-sm"
                 >
                   {fmtDisplay(d)}
                   <button
@@ -633,8 +660,8 @@ export function LiveMasterReport() {
 
         {/* ── Date-wise Summary ── */}
         <div className="space-y-2">
-          <div className="master-section-title text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <Calendar className="size-4 text-blue-600" />
+          <div className="master-section-title text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <Calendar className="size-4 text-primary" />
             Date-wise Summary
           </div>
 
@@ -793,10 +820,10 @@ export function LiveMasterReport() {
         </div>
 
         {/* ── Location-wise Control Bar ── */}
-        <div className="master-dept-ctrl-bar flex flex-wrap items-center gap-3 rounded-xl border border-blue-200/90 bg-[#edf4fb] p-3 sm:p-3.5 shadow-xs">
+        <div className="master-dept-ctrl-bar flex flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 sm:p-3.5 shadow-sm">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-[#1a3a5c] whitespace-nowrap flex items-center gap-1">
-              <MapPin className="size-3.5 text-blue-600" />
+            <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap flex items-center gap-1">
+              <MapPin className="size-3.5 text-primary" />
               Select Location:
             </label>
             <select
@@ -821,15 +848,15 @@ export function LiveMasterReport() {
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-blue-200 pt-2 sm:pt-0 sm:pl-3 flex-1">
-            <span className="text-xs font-semibold text-[#5a7a9a]">
+          <div className="flex flex-wrap items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-border pt-2 sm:pt-0 sm:pl-3 flex-1">
+            <span className="text-xs font-semibold text-muted-foreground">
               Active Location:
             </span>
             <div className="flex flex-wrap items-center gap-1.5">
               {activeDepts.map((d) => (
                 <span
                   key={d}
-                  className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-white px-2.5 py-0.5 text-xs font-bold text-[#1a3a5c] shadow-2xs"
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary shadow-sm"
                 >
                   {d}
                   <button
@@ -848,8 +875,8 @@ export function LiveMasterReport() {
 
         {/* ── Location-wise Summary ── */}
         <div className="space-y-2">
-          <div className="master-section-title text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <MapPin className="size-4 text-blue-600" />
+          <div className="master-section-title text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <MapPin className="size-4 text-primary" />
             Location-wise Summary
           </div>
 
@@ -1012,6 +1039,7 @@ export function LiveMasterReport() {
           </div>
         </div>
       </div>
-    </div>
+      </Main>
+    </>
   );
 }

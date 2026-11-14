@@ -13,6 +13,12 @@ import {
 } from "../../services/reportsApi";
 import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
 import { TableSearchableSelect } from "../reports-common/TableSearchableSelect";
+import { Header } from "@admin/components/layout/header";
+import { Main } from "@admin/components/layout/main";
+import { ProfileDropdown } from "@admin/components/profile-dropdown";
+import { Search } from "@admin/components/search";
+import { ThemeSwitch } from "@admin/components/theme-switch";
+import { Button } from "@admin/components/ui/button";
 
 interface RegRow {
   id: string;
@@ -270,7 +276,24 @@ export function LiveRegistrationReport() {
   };
 
   return (
-    <div className="w-full space-y-4">
+    <>
+      <Header fixed>
+        <Search className="me-auto" />
+        <ThemeSwitch />
+        <ProfileDropdown />
+      </Header>
+
+      <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
+        {/* Page heading */}
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Patient Registration Report</h2>
+            <p className="text-muted-foreground">
+              Sewa location–wise patient registration data with date-wise columns.
+            </p>
+          </div>
+        </div>
+
       <style>{`
         @media print {
           .reg-print-hide {
@@ -304,32 +327,20 @@ export function LiveRegistrationReport() {
           .table-searchable-trigger svg {
             display: none !important;
           }
-            appearance: none !important;
-          }
         }
       `}</style>
 
-      {/* Main Full-Width Card */}
-      <div className="reg-card w-full rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs">
-        {/* Title Header */}
-        <div className="text-center mb-5">
-          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-            Registration Report
-          </h2>
-          <div className="mx-auto mt-1.5 h-1 w-16 rounded-full bg-blue-600" />
-        </div>
-
-        {/* Top Controls Bar: Title & Buttons (Full Width, Zero Wasted Space) */}
-        <div className="mb-5 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/90 p-3 sm:p-4 rounded-xl border border-slate-200/80 reg-print-hide">
+      {/* Top Controls Bar: Title & Buttons */}
+      <div className="mb-5 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-muted/50 p-3 sm:p-4 rounded-lg border border-border reg-print-hide">
           {/* Title Input */}
           <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap flex items-center gap-1.5">
-              <Building2 className="size-4 text-blue-600 shrink-0" />
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap flex items-center gap-1.5">
+              <Building2 className="size-4 text-primary shrink-0" />
               Title:
             </label>
             <input
               type="text"
-              className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground shadow-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter Report Title"
@@ -338,38 +349,33 @@ export function LiveRegistrationReport() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 px-3.5 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
-              onClick={addRow}
-            >
-              <Plus className="size-3.5 text-blue-600" />
-              Add Row
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0066cc] hover:bg-[#0052a3] text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
               onClick={printReport}
             >
               <Printer className="size-3.5" />
               Print
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              size="sm"
+              className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
               onClick={exportExcel}
             >
               <FileSpreadsheet className="size-3.5" />
               Export Excel
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Full-Width Responsive Table */}
-        <div className="w-full overflow-x-auto rounded-xl border border-slate-300 shadow-2xs">
+        <div className="w-full overflow-x-auto rounded-lg border border-border shadow-sm">
           <table className="reg-table w-full border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="bg-slate-100 text-slate-900 border-b border-slate-300">
+              <tr className="bg-muted text-foreground border-b border-border">
                 <th className="border border-slate-300 px-3 py-2.5 text-left font-bold w-[28%] min-w-[170px]">
                   Sewa Location
                 </th>
@@ -407,7 +413,7 @@ export function LiveRegistrationReport() {
                   </div>
                 </th>
                 <th className="reg-print-hide border border-slate-300 px-3 py-2.5 text-center font-bold w-[12%] min-w-[90px]">
-                  Action
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -468,14 +474,24 @@ export function LiveRegistrationReport() {
                   </td>
 
                   <td className="reg-print-hide border border-slate-300 p-2 text-center">
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center gap-1 rounded-md bg-[#d9534f] hover:bg-[#c9302c] text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
-                      onClick={() => deleteRow(row.id)}
-                    >
-                      <Trash2 className="size-3" />
-                      Delete
-                    </button>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-md bg-primary/10 hover:bg-primary/20 text-primary p-1.5 transition-all active:scale-95 cursor-pointer"
+                        onClick={addRow}
+                        title="Add new row"
+                      >
+                        <Plus className="size-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive p-1.5 transition-all active:scale-95 cursor-pointer"
+                        onClick={() => deleteRow(row.id)}
+                        title="Delete this row"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -518,7 +534,7 @@ export function LiveRegistrationReport() {
             </tfoot>
           </table>
         </div>
-      </div>
-    </div>
+      </Main>
+    </>
   );
 }
