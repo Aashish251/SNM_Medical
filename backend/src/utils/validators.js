@@ -32,7 +32,7 @@ const PATTERNS = {
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   mobile: /^[6-9]\d{9}$/,
   fullName: /^[A-Za-z]+(?: [A-Za-z]+)*$/,
-  experience: /^\d{1,2}(?:\.\d)?$/,
+  experience: /^\d{1,2}(?:\.\d{1,2})?$/,
   alphanumericText: /^[A-Za-z\s'.,!?\-]+$/,
 };
 
@@ -60,8 +60,11 @@ const validators = {
   },
 
   experience: (value) => {
-    const text = String(value ?? '');
-    return PATTERNS.experience.test(text) && Number(text) >= 0 && Number(text) <= 60;
+    if (value === undefined || value === null || value === '') return true;
+    const text = String(value).trim();
+    if (!text) return true;
+    const num = Number(text);
+    return !isNaN(num) && num >= 0 && num <= 60 && PATTERNS.experience.test(text);
   },
 
   /** Required security question answer: 2-100 chars, only alphabets and spaces. */

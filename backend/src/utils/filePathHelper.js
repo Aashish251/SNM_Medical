@@ -137,7 +137,14 @@ const saveFileToLocalDisk = async (
     const filePath = path.join(uploadsDir, fileName);
 
     // Move file from temp location to uploads directory
-    fs.renameSync(file.path, filePath);
+    try {
+      fs.renameSync(file.path, filePath);
+    } catch (renameErr) {
+      fs.copyFileSync(file.path, filePath);
+      try {
+        fs.unlinkSync(file.path);
+      } catch (_) {}
+    }
 
     logger.info('File uploaded to local storage', { category, fileName });
 

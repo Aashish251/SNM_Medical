@@ -554,19 +554,28 @@ export function ProfileEdit() {
                             {initials}
                           </AvatarFallback>
                         </Avatar>
-                        <div
-                          className="absolute bottom-1 right-1 flex items-center justify-center size-8 rounded-full bg-primary text-primary-foreground shadow-md cursor-pointer"
-                          onClick={() => fileInputRef.current?.click()}
+                        <button
+                          type="button"
+                          className="absolute bottom-1 right-1 flex items-center justify-center size-8 rounded-full bg-primary text-primary-foreground shadow-md cursor-pointer hover:bg-primary/90 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                          }}
+                          title="Select profile picture"
                         >
                           <Camera className="size-3.5" />
-                        </div>
+                        </button>
                       </div>
 
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/jpeg,image/png"
+                        accept="image/jpeg,image/png,image/jpg"
                         className="hidden"
+                        onClick={(e) => {
+                          (e.target as HTMLInputElement).value = "";
+                        }}
                         onChange={handleFileChange}
                       />
 

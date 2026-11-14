@@ -232,10 +232,13 @@ exports.updateUserProfile = async (regId, data) => {
       certificate
     } = data;
 
+    let parsedExp = null;
     if (experience !== undefined && experience !== null && experience !== "") {
-      if (!validators.experience(experience)) {
-        throw new Error("Enter experience between 0 and 50 years, with up to one decimal place");
+      const numExp = parseFloat(experience);
+      if (isNaN(numExp) || numExp < 0 || numExp > 60) {
+        throw new Error("Enter experience between 0 and 50 years");
       }
+      parsedExp = Math.round(numExp * 10) / 10;
     }
 
     // Fetch existing user data to preserve unchanged fields
@@ -255,7 +258,9 @@ exports.updateUserProfile = async (regId, data) => {
       'Favorite food': favoriteFood, 'Childhood nickname': childhoodNickname,
       "Mother's name": motherMaidenName, 'Hobbies': hobbies, 'Remark': remark,
     })) {
-      if (value && !/[A-Za-z]/.test(String(value))) throw new Error(`${label} must contain at least one letter`);
+      if (value && typeof value === 'string' && value.trim() && !/[A-Za-z]/.test(String(value))) {
+        throw new Error(`${label} must contain at least one letter`);
+      }
     }
 
     if (mobileNo) {
@@ -340,34 +345,34 @@ exports.updateUserProfile = async (regId, data) => {
         existingUser.user_type,           // p_user_type (preserve existing)
         existingUser.login_id,            // p_login_id (preserve existing)
         normalize(title) || existingUser.title,  // p_title (update if provided, else preserve)
-        normalize(fullName),              // Only update if provided
-        normalize(email),                 // Only update if provided
+        normalize(fullName) || existingUser.name || existingUser.full_name,
+        normalize(email) || existingUser.email,
         existingUser.password,            // p_password (do NOT update here)
-        normalize(mobileNo),              // Only update if provided
-        normalize(dateOfBirth),           // Only update if provided
-        genderValue,                      // Only update if provided
-        normalize(address),               // Only update if provided
-        stateId ? parseInt(stateId) : null,
-        cityId ? parseInt(cityId) : null,
-        qualificationId ? parseInt(qualificationId) : null,
-        departmentId ? parseInt(departmentId) : null,
-        availableDayId ? parseInt(availableDayId) : existingUser.available_day_id,
-        shiftTimeId ? parseInt(shiftTimeId) : existingUser.shifttime_id,
+        normalize(mobileNo) || existingUser.mobile_no,
+        normalize(dateOfBirth) || (existingUser.date_of_birth ? new Date(existingUser.date_of_birth).toISOString().split('T')[0] : null),
+        genderValue !== null ? genderValue : existingUser.gender,
+        normalize(address) || existingUser.address,
+        stateId !== undefined && stateId !== null && stateId !== "" ? parseInt(stateId, 10) : existingUser.state_id,
+        cityId !== undefined && cityId !== null && cityId !== "" ? parseInt(cityId, 10) : existingUser.city_id,
+        qualificationId !== undefined && qualificationId !== null && qualificationId !== "" ? parseInt(qualificationId, 10) : existingUser.qualification_id,
+        departmentId !== undefined && departmentId !== null && departmentId !== "" ? parseInt(departmentId, 10) : existingUser.department_id,
+        availableDayId ? parseInt(availableDayId, 10) : existingUser.available_day_id,
+        shiftTimeId ? parseInt(shiftTimeId, 10) : existingUser.shifttime_id,
         profileImagePath,  // Now always has a value (new file, existing file, or null)
         certificatePath,   // Now always has a value (new file, existing file, or null)
         existingUser.is_present,          // p_is_present (no change)
         existingUser.pass_entry,          // p_pass_entry (no change)
         existingUser.sewa_location_id,    // p_sewa_location_id (no change)
-        normalize(remark),                // Only update if provided
-        experience ? parseFloat(experience) : null,
-        normalize(lastSewa),              // Only update if provided
-        normalize(recommendedBy),         // Only update if provided
-        normalize(samagamHeldIn),         // Only update if provided
+        normalize(remark) ?? existingUser.remark,
+        parsedExp !== null ? parsedExp : (existingUser.total_exp ? parseFloat(existingUser.total_exp) : null),
+        normalize(lastSewa) ?? existingUser.prev_sewa_perform,
+        normalize(recommendedBy) ?? existingUser.recom_by,
+        samagamHeldIn !== undefined ? normalize(samagamHeldIn) : existingUser.samagam_held_in,
         existingUser.is_deleted,          // p_is_deleted (no change)
-        normalize(favoriteFood),          // Only update if provided
-        normalize(childhoodNickname),     // Only update if provided
-        normalize(motherMaidenName),      // Only update if provided
-        normalize(hobbies),               // Only update if provided
+        favoriteFood !== undefined ? normalize(favoriteFood) : existingUser.favorite_food,
+        childhoodNickname !== undefined ? normalize(childhoodNickname) : existingUser.childhood_nickname,
+        motherMaidenName !== undefined ? normalize(motherMaidenName) : existingUser.mother_maiden_name,
+        hobbies !== undefined ? normalize(hobbies) : existingUser.hobbies,
         existingUser.is_approved,         // p_is_approved (don't change here)
       ]
     );
