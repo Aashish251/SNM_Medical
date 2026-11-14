@@ -8,7 +8,6 @@ import {
   Building2,
 } from "lucide-react";
 import {
-  useGetDailyReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
 import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
@@ -33,18 +32,55 @@ interface DailyRow {
   id: string;
   department: string;
   values: number[];
+  locationValues?: Record<string, number>;
 }
+
+const LS_KEY_DAILY = "report_daily";
+
+interface StoredDaily {
+  createdAt: number;
+  data: {
+    samagamName: string;
+    reportDate: string;
+    rows: DailyRow[];
+    savedLocations?: string[];
+  };
+}
+
+const getStoredDaily = (): StoredDaily | null => {
+  try {
+    const raw = localStorage.getItem(LS_KEY_DAILY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.createdAt || !parsed?.data) {
+      localStorage.removeItem(LS_KEY_DAILY);
+      return null;
+    }
+    // Auto-delete if older than 24 hours
+    if (Date.now() - parsed.createdAt >= 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(LS_KEY_DAILY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    localStorage.removeItem(LS_KEY_DAILY);
+    return null;
+  }
+};
 
 export function LiveDailyReport() {
   const { data: masterDepts } = useGetMasterRecordsQuery({
     module: "department",
     search: "",
   });
-  const { data: masterLocations } = useGetMasterRecordsQuery({
+  const { data: masterLocations, isLoading: isLoadingLocations } = useGetMasterRecordsQuery({
     module: "sewalocation",
     search: "",
   });
   const { data: metaResponse } = useGetReportMetadataQuery();
+
+  // Restore persisted inputs from localStorage on load immediately
+  const storedDaily = useMemo(() => getStoredDaily(), []);
 
   // Dynamic Departments loaded directly from database table
   const allDepartments = useMemo(() => {
@@ -69,6 +105,7 @@ export function LiveDailyReport() {
   }, [masterDepts, metaResponse]);
 
   // Dynamic Locations loaded directly from database table
+  // If masterLocations is still loading on refresh, use savedLocations from localStorage to avoid truncating!
   const locationColumns = useMemo(() => {
     const list: string[] = [];
     if (masterLocations?.data?.items) {
@@ -87,62 +124,102 @@ export function LiveDailyReport() {
         }
       });
     }
-    return list.length > 0 ? list : FALLBACK_LOCATIONS;
-  }, [masterLocations, metaResponse]);
+    if (list.length > 0) return list;
+    if (storedDaily?.data?.savedLocations && storedDaily.data.savedLocations.length > 0) {
+      return storedDaily.data.savedLocations;
+    }
+    return FALLBACK_LOCATIONS;
+  }, [masterLocations, metaResponse, storedDaily]);
 
   const [samagamName, setSamagamName] = useState(
-    "60TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
+    () => storedDaily?.data?.samagamName || "60TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
   );
-  const [reportDate, setReportDate] = useState("");
-  const [rows, setRows] = useState<DailyRow[]>([
-    { id: "row-1", department: "", values: [] },
-  ]);
+  const [reportDate, setReportDate] = useState(
+    () => storedDaily?.data?.reportDate || ""
+  );
+  const [rows, setRows] = useState<DailyRow[]>(() => {
+    if (storedDaily?.data?.rows && storedDaily.data.rows.length > 0) {
+      return storedDaily.data.rows;
+    }
+    return [{ id: "row-1", department: "", values: [] }];
+  });
 
-  // Ensure rows have values initialized to match locationColumns length
+  // Auto-save to localStorage on every change (inputs only, not totals)
   useEffect(() => {
+    try {
+      const existingRaw = localStorage.getItem(LS_KEY_DAILY);
+      let createdAt = Date.now();
+      if (existingRaw) {
+        try {
+          const parsed = JSON.parse(existingRaw);
+          if (parsed?.createdAt && Date.now() - parsed.createdAt < 24 * 60 * 60 * 1000) {
+            createdAt = parsed.createdAt;
+          }
+        } catch {}
+      }
+      localStorage.setItem(
+        LS_KEY_DAILY,
+        JSON.stringify({
+          createdAt,
+          data: {
+            samagamName,
+            reportDate,
+            rows,
+            savedLocations: locationColumns,
+          },
+        })
+      );
+    } catch (e) {
+      console.error("Failed to save daily report to localStorage", e);
+    }
+  }, [samagamName, reportDate, rows, locationColumns]);
+
+  // Auto-delete saved data after 24 hours (checked once a minute)
+  useEffect(() => {
+    const checkExpiry = () => {
+      const raw = localStorage.getItem(LS_KEY_DAILY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed?.createdAt && Date.now() - parsed.createdAt >= 24 * 60 * 60 * 1000) {
+            localStorage.removeItem(LS_KEY_DAILY);
+          }
+        } catch {
+          localStorage.removeItem(LS_KEY_DAILY);
+        }
+      }
+    };
+    const timer = setInterval(checkExpiry, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Ensure rows have values initialized to match locationColumns length WITHOUT truncating
+  useEffect(() => {
+    if (isLoadingLocations) return;
     const targetLen = locationColumns.length;
     setRows((prev) =>
       prev.map((r) => {
-        if (r.values.length !== targetLen) {
+        // Only expand if values is shorter than targetLen; NEVER truncate longer arrays!
+        if (!r.values || r.values.length < targetLen) {
           const newVals = new Array(targetLen).fill(0);
-          r.values.forEach((v, i) => {
-            if (i < targetLen) newVals[i] = v;
-          });
+          if (Array.isArray(r.values)) {
+            r.values.forEach((v, i) => {
+              newVals[i] = Number(v) || 0;
+            });
+          }
+          if (r.locationValues) {
+            locationColumns.forEach((loc, i) => {
+              if (r.locationValues?.[loc] !== undefined) {
+                newVals[i] = r.locationValues[loc];
+              }
+            });
+          }
           return { ...r, values: newVals };
         }
         return r;
       })
     );
-  }, [locationColumns]);
-
-  // Query backend data if available for date
-  const { data: reportResponse } = useGetDailyReportQuery(
-    { date: reportDate, includeEmpty: false },
-    { skip: !reportDate }
-  );
-
-  // If backend returns rows for this date, populate them
-  useEffect(() => {
-    if (reportResponse?.data?.rows && reportResponse.data.rows.length > 0) {
-      const backendRows: DailyRow[] = reportResponse.data.rows.map(
-        (r, idx) => ({
-          id: `backend-${idx}`,
-          department: r.department,
-          values: locationColumns.map((loc) => {
-            const locKey = loc.toLowerCase().replace("-", " ");
-            const locKeyAlt = loc.toLowerCase().replace("-", "");
-            return (
-              r.values[loc] ??
-              r.values[locKey] ??
-              r.values[locKeyAlt] ??
-              0
-            );
-          }),
-        })
-      );
-      setRows(backendRows);
-    }
-  }, [reportResponse, locationColumns]);
+  }, [locationColumns, isLoadingLocations]);
 
   // Date Title formatted as en-GB (DD/MM/YYYY)
   const dateTitle = useMemo(() => {
@@ -161,6 +238,7 @@ export function LiveDailyReport() {
       id: `row-${Date.now()}-${Math.random()}`,
       department: "",
       values: new Array(locationColumns.length).fill(0),
+      locationValues: {},
     };
     if (typeof index === "number") {
       const updated = [...rows];
@@ -192,19 +270,31 @@ export function LiveDailyReport() {
     );
   };
 
-  // Update number value
+  // Update number value (stores in both indexed array and by location name)
   const handleValueChange = (
     id: string,
     valIdx: number,
+    locName: string,
     rawVal: string
   ) => {
     const num = Math.max(0, parseInt(rawVal, 10) || 0);
     setRows((prev) =>
       prev.map((r) => {
         if (r.id === id) {
-          const newVals = [...r.values];
+          const targetLen = Math.max(locationColumns.length, r.values?.length || 0, valIdx + 1);
+          const newVals = new Array(targetLen).fill(0);
+          if (Array.isArray(r.values)) {
+            r.values.forEach((v, i) => {
+              newVals[i] = Number(v) || 0;
+            });
+          }
           newVals[valIdx] = num;
-          return { ...r, values: newVals };
+
+          const newLocValues = { ...(r.locationValues || {}) };
+          if (locName) {
+            newLocValues[locName] = num;
+          }
+          return { ...r, values: newVals, locationValues: newLocValues };
         }
         return r;
       })
@@ -217,10 +307,11 @@ export function LiveDailyReport() {
     const t = new Array(numCols).fill(0);
     rows.forEach((r) => {
       if (r.department) {
-        r.values.forEach((v, idx) => {
-          if (idx < numCols) {
-            t[idx] += v || 0;
-          }
+        locationColumns.forEach((loc, idx) => {
+          const val = r.locationValues?.[loc] !== undefined
+            ? r.locationValues[loc]
+            : r.values?.[idx];
+          t[idx] += Number(val) || 0;
         });
       }
     });
@@ -257,7 +348,10 @@ export function LiveDailyReport() {
         html += `
           <tr>
             <td>${r.department}</td>
-            ${r.values.map((v) => `<td>${v || 0}</td>`).join("")}
+            ${locationColumns.map((loc, idx) => {
+              const val = r.locationValues?.[loc] !== undefined ? r.locationValues[loc] : r.values?.[idx];
+              return `<td>${val || 0}</td>`;
+            }).join("")}
           </tr>
         `;
       }
@@ -418,7 +512,6 @@ export function LiveDailyReport() {
           <h3 className="mt-1 text-sm sm:text-base font-semibold tracking-wide text-primary">
             {dateTitle}
           </h3>
-          <div className="mx-auto mt-1.5 h-1 w-16 rounded-full bg-primary" />
         </div>
 
         {/* Full-Width Responsive Table */}
@@ -461,21 +554,28 @@ export function LiveDailyReport() {
                       />
                     </td>
 
-                    {locationColumns.map((_, valIdx) => (
-                      <td key={valIdx} className="border border-slate-300 p-1">
-                        <input
-                          type="number"
-                          min="0"
-                          disabled={!isDeptSelected}
-                          className="w-full rounded-md border border-slate-300 bg-white px-1.5 py-1.5 text-center text-xs tabular-nums text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                          value={row.values[valIdx] === 0 ? "" : row.values[valIdx]}
-                          placeholder={isDeptSelected ? "0" : "—"}
-                          onChange={(e) =>
-                            handleValueChange(row.id, valIdx, e.target.value)
-                          }
-                        />
-                      </td>
-                    ))}
+                    {locationColumns.map((loc, valIdx) => {
+                      const curVal = row.locationValues?.[loc] !== undefined
+                        ? row.locationValues[loc]
+                        : row.values?.[valIdx];
+                      const displayVal = curVal === 0 || curVal === undefined ? "" : curVal;
+
+                      return (
+                        <td key={valIdx} className="border border-slate-300 p-1">
+                          <input
+                            type="number"
+                            min="0"
+                            disabled={!isDeptSelected}
+                            className="w-full rounded-md border border-slate-300 bg-white px-1.5 py-1.5 text-center text-xs tabular-nums text-slate-800 shadow-2xs transition-all focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                            value={displayVal}
+                            placeholder={isDeptSelected ? "0" : "—"}
+                            onChange={(e) =>
+                              handleValueChange(row.id, valIdx, loc, e.target.value)
+                            }
+                          />
+                        </td>
+                      );
+                    })}
 
                     <td className="daily-action-col border border-slate-300 p-2 text-center">
                       <div className="flex items-center justify-center gap-1.5">

@@ -57,6 +57,7 @@ export const masterDataApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { module }) => [
         { type: "Masters", id: module },
+        "RegistrationDropdown",
       ],
     }),
     updateMasterRecord: builder.mutation<
@@ -76,6 +77,7 @@ export const masterDataApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { module }) => [
         { type: "Masters", id: module },
+        "RegistrationDropdown",
       ],
     }),
     deleteMasterRecord: builder.mutation<
@@ -88,6 +90,7 @@ export const masterDataApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { module }) => [
         { type: "Masters", id: module },
+        "RegistrationDropdown",
       ],
     }),
   }),

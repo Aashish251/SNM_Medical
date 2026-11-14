@@ -323,6 +323,7 @@ export function MasterTablePage({
         toast.success(`${recordTitle} deleted successfully.`);
       } catch (err) {
         toast.error(normalizeApiError(err).message);
+        throw err;
       }
     },
     [deleteMasterRecord, module, recordTitle]

@@ -8,7 +8,6 @@ import {
   Building2,
 } from "lucide-react";
 import {
-  useGetRegistrationReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
 import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
@@ -41,6 +40,40 @@ function formatDate(dateStr: string) {
   }
 }
 
+const LS_KEY_REG = "report_registration";
+
+interface StoredReg {
+  createdAt: number;
+  data: {
+    title: string;
+    d1: string;
+    d2: string;
+    d3: string;
+    rows: RegRow[];
+  };
+}
+
+const getStoredReg = (): StoredReg | null => {
+  try {
+    const raw = localStorage.getItem(LS_KEY_REG);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.createdAt || !parsed?.data) {
+      localStorage.removeItem(LS_KEY_REG);
+      return null;
+    }
+    // Auto-delete if older than 24 hours
+    if (Date.now() - parsed.createdAt >= 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(LS_KEY_REG);
+      return null;
+    }
+    return parsed;
+  } catch {
+    localStorage.removeItem(LS_KEY_REG);
+    return null;
+  }
+};
+
 export function LiveRegistrationReport() {
   const { data: masterLocations } = useGetMasterRecordsQuery({
     module: "sewalocation",
@@ -71,14 +104,71 @@ export function LiveRegistrationReport() {
     return list;
   }, [masterLocations, metaResponse]);
 
-  const [title, setTitle] = useState("60 Maharashtra Nirankari Sant Samagam");
-  const [d1, setD1] = useState(availableDates[0]?.date || "2025-01-24");
-  const [d2, setD2] = useState(availableDates[1]?.date || "2025-01-25");
-  const [d3, setD3] = useState(availableDates[2]?.date || "2025-01-26");
+  // Restore persisted inputs from localStorage on load
+  const storedReg = useMemo(() => getStoredReg(), []);
 
-  const [rows, setRows] = useState<RegRow[]>([
-    { id: "row-1", department: "", v1: 0, v2: 0, v3: 0 },
-  ]);
+  const [title, setTitle] = useState(
+    () => storedReg?.data?.title || "60 Maharashtra Nirankari Sant Samagam"
+  );
+  const [d1, setD1] = useState(
+    () => storedReg?.data?.d1 || availableDates[0]?.date || "2025-01-24"
+  );
+  const [d2, setD2] = useState(
+    () => storedReg?.data?.d2 || availableDates[1]?.date || "2025-01-25"
+  );
+  const [d3, setD3] = useState(
+    () => storedReg?.data?.d3 || availableDates[2]?.date || "2025-01-26"
+  );
+
+  const [rows, setRows] = useState<RegRow[]>(
+    () => (storedReg?.data?.rows && storedReg.data.rows.length > 0)
+      ? storedReg.data.rows
+      : [{ id: "row-1", department: "", v1: 0, v2: 0, v3: 0 }]
+  );
+
+  // Auto-save to localStorage on every change (inputs only, not totals)
+  useEffect(() => {
+    try {
+      const existingRaw = localStorage.getItem(LS_KEY_REG);
+      let createdAt = Date.now();
+      if (existingRaw) {
+        try {
+          const parsed = JSON.parse(existingRaw);
+          if (parsed?.createdAt && Date.now() - parsed.createdAt < 24 * 60 * 60 * 1000) {
+            createdAt = parsed.createdAt;
+          }
+        } catch {}
+      }
+      localStorage.setItem(
+        LS_KEY_REG,
+        JSON.stringify({
+          createdAt,
+          data: { title, d1, d2, d3, rows },
+        })
+      );
+    } catch (e) {
+      console.error("Failed to save registration report to localStorage", e);
+    }
+  }, [title, d1, d2, d3, rows]);
+
+  // Auto-delete saved data after 24 hours (checked once a minute)
+  useEffect(() => {
+    const checkExpiry = () => {
+      const raw = localStorage.getItem(LS_KEY_REG);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed?.createdAt && Date.now() - parsed.createdAt >= 24 * 60 * 60 * 1000) {
+            localStorage.removeItem(LS_KEY_REG);
+          }
+        } catch {
+          localStorage.removeItem(LS_KEY_REG);
+        }
+      }
+    };
+    const timer = setInterval(checkExpiry, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Sync initial row with loaded sewaLocations if empty
   useEffect(() => {
@@ -91,35 +181,6 @@ export function LiveRegistrationReport() {
       });
     }
   }, [sewaLocations]);
-
-  // Optional backend data fetching
-  const queryDatesStr = [d1, d2, d3].filter(Boolean).join(",");
-  const { data: reportResponse } = useGetRegistrationReportQuery(
-    { dates: queryDatesStr, includeEmpty: true },
-    { skip: !queryDatesStr }
-  );
-
-  useEffect(() => {
-    if (reportResponse?.data?.rows && reportResponse.data.rows.length > 0) {
-      const backendRows: RegRow[] = reportResponse.data.rows.map((r, i) => {
-        const name =
-          r.location ||
-          r.department ||
-          sewaLocations[i % (sewaLocations.length || 1)] ||
-          `Location ${i + 1}`;
-        return {
-          id: `backend-${i}`,
-          department: name,
-          v1: r.values[d1] ?? 0,
-          v2: r.values[d2] ?? 0,
-          v3: r.values[d3] ?? 0,
-        };
-      });
-      if (backendRows.length > 0) {
-        setRows(backendRows);
-      }
-    }
-  }, [reportResponse, d1, d2, d3, sewaLocations]);
 
   // Add row
   const addRow = () => {

@@ -8,7 +8,6 @@ import {
   Building2,
 } from "lucide-react";
 import {
-  useGetMasterReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
 import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
@@ -29,6 +28,41 @@ function fmtDisplay(k: string) {
   }
   return k;
 }
+
+const LS_KEY_MASTER = "report_master";
+
+interface StoredMaster {
+  createdAt: number;
+  data: {
+    reportTitle: string;
+    data: Record<string, Record<string, { opd: number; ipd: number }>>;
+    activeDates: string[];
+    dateRows: Record<string, string[]>;
+    activeDepts: string[];
+    deptCardDates: Record<string, string[]>;
+  };
+}
+
+const getStoredMaster = (): StoredMaster | null => {
+  try {
+    const raw = localStorage.getItem(LS_KEY_MASTER);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.createdAt || !parsed?.data) {
+      localStorage.removeItem(LS_KEY_MASTER);
+      return null;
+    }
+    // Auto-delete if older than 24 hours
+    if (Date.now() - parsed.createdAt >= 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(LS_KEY_MASTER);
+      return null;
+    }
+    return parsed;
+  } catch {
+    localStorage.removeItem(LS_KEY_MASTER);
+    return null;
+  }
+};
 
 export function LiveMasterReport() {
   const { data: masterLocations } = useGetMasterRecordsQuery({
@@ -60,30 +94,83 @@ export function LiveMasterReport() {
     return list;
   }, [masterLocations, metaResponse]);
 
+  // Restore persisted inputs from localStorage on load
+  const storedMaster = useMemo(() => getStoredMaster(), []);
+
   const [reportTitle, setReportTitle] = useState(
-    "58th Maharashtra Samagam Dispensary Master Report"
+    () => storedMaster?.data?.reportTitle || "58th Maharashtra Samagam Dispensary Master Report"
   );
 
   // Single source of truth for (dateKey, location) -> { opd, ipd }
   const [data, setData] = useState<
     Record<string, Record<string, { opd: number; ipd: number }>>
-  >({});
+  >(() => storedMaster?.data?.data || {});
 
   // Active dates
-  const [activeDates, setActiveDates] = useState<string[]>([
-    "2025-01-24",
-    "2025-01-25",
-    "2025-01-26",
-  ]);
+  const [activeDates, setActiveDates] = useState<string[]>(
+    () => (storedMaster?.data?.activeDates && storedMaster.data.activeDates.length > 0)
+      ? storedMaster.data.activeDates
+      : ["2025-01-24", "2025-01-25", "2025-01-26"]
+  );
 
   // dateRows[dateKey] = [ dept1, dept2, ... ]
-  const [dateRows, setDateRows] = useState<Record<string, string[]>>({});
+  const [dateRows, setDateRows] = useState<Record<string, string[]>>(
+    () => storedMaster?.data?.dateRows || {}
+  );
 
   // Active locations shown in location-wise section
-  const [activeDepts, setActiveDepts] = useState<string[]>([]);
+  const [activeDepts, setActiveDepts] = useState<string[]>(
+    () => storedMaster?.data?.activeDepts || []
+  );
 
   // deptCardDates[dept] = [ date1, date2, ... ]
-  const [deptCardDates, setDeptCardDates] = useState<Record<string, string[]>>({});
+  const [deptCardDates, setDeptCardDates] = useState<Record<string, string[]>>(
+    () => storedMaster?.data?.deptCardDates || {}
+  );
+
+  // Auto-save to localStorage on every change (inputs only, not totals)
+  useEffect(() => {
+    try {
+      const existingRaw = localStorage.getItem(LS_KEY_MASTER);
+      let createdAt = Date.now();
+      if (existingRaw) {
+        try {
+          const parsed = JSON.parse(existingRaw);
+          if (parsed?.createdAt && Date.now() - parsed.createdAt < 24 * 60 * 60 * 1000) {
+            createdAt = parsed.createdAt;
+          }
+        } catch {}
+      }
+      localStorage.setItem(
+        LS_KEY_MASTER,
+        JSON.stringify({
+          createdAt,
+          data: { reportTitle, data, activeDates, dateRows, activeDepts, deptCardDates },
+        })
+      );
+    } catch (e) {
+      console.error("Failed to save master report to localStorage", e);
+    }
+  }, [reportTitle, data, activeDates, dateRows, activeDepts, deptCardDates]);
+
+  // Auto-delete saved data after 24 hours (checked once a minute)
+  useEffect(() => {
+    const checkExpiry = () => {
+      const raw = localStorage.getItem(LS_KEY_MASTER);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed?.createdAt && Date.now() - parsed.createdAt >= 24 * 60 * 60 * 1000) {
+            localStorage.removeItem(LS_KEY_MASTER);
+          }
+        } catch {
+          localStorage.removeItem(LS_KEY_MASTER);
+        }
+      }
+    };
+    const timer = setInterval(checkExpiry, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Sync with dynamic database locations once loaded
   useEffect(() => {
@@ -112,29 +199,6 @@ export function LiveMasterReport() {
 
   const [newDateInput, setNewDateInput] = useState("");
   const [newDeptInput, setNewDeptInput] = useState("");
-
-  // Backend query
-  const queryDatesStr = activeDates.join(",");
-  const { data: apiResponse } = useGetMasterReportQuery(
-    { dates: queryDatesStr, includeEmpty: true },
-    { skip: !queryDatesStr }
-  );
-
-  // Merge live API data from database
-  useEffect(() => {
-    if (apiResponse?.data?.dateWise && apiResponse.data.dateWise.length > 0) {
-      setData((prev) => {
-        const next = { ...prev };
-        apiResponse.data.dateWise.forEach((dw) => {
-          if (!next[dw.date]) next[dw.date] = {};
-          dw.rows.forEach((r) => {
-            next[dw.date][r.label] = { opd: r.opd, ipd: r.ipd };
-          });
-        });
-        return next;
-      });
-    }
-  }, [apiResponse]);
 
   const getVal = (dateKey: string, dept: string, field: "opd" | "ipd") => {
     return data[dateKey]?.[dept]?.[field] ?? 0;

@@ -185,7 +185,11 @@ export function EntityListTable<T extends { id: string }>({
         </Table>
       </div>
       <DataTablePagination table={table} className="mt-auto" />
-      <EntityListBulkActions table={table} entityLabel={config.title} />
+      <EntityListBulkActions
+        table={table}
+        entityLabel={config.title}
+        onDelete={config.onDelete}
+      />
     </div>
   );
 }

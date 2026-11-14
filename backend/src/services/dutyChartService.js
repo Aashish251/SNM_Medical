@@ -72,14 +72,96 @@ function summarizeChart(chart) {
   };
 }
 
+async function getApprovedUsersMap() {
+  try {
+    const [approvedRows] = await promisePool.execute(
+      `SELECT mobile_no, full_name FROM registration_tbl WHERE is_deleted = 0 AND (is_approved = 1 OR is_approved = '1')`
+    );
+    const approvedContacts = new Set(
+      approvedRows.map((r) => String(r.mobile_no || "").replace(/\D/g, "").slice(-10)).filter(Boolean)
+    );
+    const approvedNames = new Set(
+      approvedRows.map((r) => String(r.full_name || "").trim().toLowerCase()).filter(Boolean)
+    );
+    return { approvedContacts, approvedNames };
+  } catch (err) {
+    return null;
+  }
+}
+
+async function filterApprovedEntries(entries = []) {
+  if (!entries || entries.length === 0) return [];
+  const approvedMap = await getApprovedUsersMap();
+  if (!approvedMap) return entries;
+
+  const { approvedContacts, approvedNames } = approvedMap;
+  return entries.filter((entry) => {
+    const contact = String(entry.contact || "").replace(/\D/g, "").slice(-10);
+    const name = String(entry.name || "").trim().toLowerCase();
+    return (contact && approvedContacts.has(contact)) || (name && approvedNames.has(name));
+  });
+}
+
+async function validateStaffApproval(name, contact) {
+  try {
+    const cleanContact = String(contact || "").replace(/\D/g, "").slice(-10);
+    const cleanName = String(name || "").trim();
+
+    let query = `SELECT reg_id, full_name, mobile_no, is_approved, is_deleted FROM registration_tbl WHERE is_deleted = 0`;
+    const params = [];
+
+    if (cleanContact && cleanName) {
+      query += ` AND (RIGHT(REPLACE(mobile_no, ' ', ''), 10) = ? OR full_name = ?)`;
+      params.push(cleanContact, cleanName);
+    } else if (cleanContact) {
+      query += ` AND RIGHT(REPLACE(mobile_no, ' ', ''), 10) = ?`;
+      params.push(cleanContact);
+    } else if (cleanName) {
+      query += ` AND full_name = ?`;
+      params.push(cleanName);
+    }
+
+    query += ` LIMIT 1`;
+
+    const [rows] = await promisePool.execute(query, params);
+    if (rows && rows.length > 0) {
+      const u = rows[0];
+      const isApproved = u.is_approved === 1 || u.is_approved === "1";
+      if (!isApproved) {
+        throw new Error(`Staff member "${name}" is not approved yet. Only approved users can be assigned duties.`);
+      }
+    } else {
+      throw new Error(`Staff member "${name}" is not registered or approved. Only approved users can be assigned duties.`);
+    }
+  } catch (err) {
+    if (err.message && err.message.includes("Only approved users")) {
+      throw err;
+    }
+  }
+}
+
 exports.listCharts = async ({ department, year } = {}) => {
   const data = await readData();
 
-  return data.dutyCharts
+  let charts = data.dutyCharts
     .filter((chart) => !department || chart.department === department)
     .filter((chart) => !year || String(chart.year) === String(year))
-    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
-    .map(summarizeChart);
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+  const approvedMap = await getApprovedUsersMap();
+  if (approvedMap) {
+    const { approvedContacts, approvedNames } = approvedMap;
+    charts = charts.map((chart) => {
+      const filteredEntries = chart.entries.filter((entry) => {
+        const contact = String(entry.contact || "").replace(/\D/g, "").slice(-10);
+        const name = String(entry.name || "").trim().toLowerCase();
+        return (contact && approvedContacts.has(contact)) || (name && approvedNames.has(name));
+      });
+      return { ...chart, entries: filteredEntries };
+    });
+  }
+
+  return charts.map(summarizeChart);
 };
 
 // New: List all entries flattened with chart context
@@ -95,14 +177,23 @@ exports.listEntries = async ({ department, year } = {}) => {
     charts = charts.filter((chart) => String(chart.year) === String(year));
   }
 
-  return charts.flatMap((chart) =>
+  const allEntries = charts.flatMap((chart) =>
     chart.entries.map((entry) => summarizeEntry(entry, chart))
   );
+
+  return await filterApprovedEntries(allEntries);
 };
 
 exports.getChartById = async (chartId) => {
   const data = await readData();
-  return data.dutyCharts.find((chart) => chart.id === Number(chartId)) || null;
+  const chart = data.dutyCharts.find((chart) => chart.id === Number(chartId)) || null;
+  if (!chart) return null;
+
+  const entries = await filterApprovedEntries(chart.entries);
+  return {
+    ...chart,
+    entries,
+  };
 };
 
 exports.getChartByDepartmentYear = async (department, year) => {
@@ -124,9 +215,10 @@ exports.getChartByDepartmentYear = async (department, year) => {
     return null;
   }
 
-  const entries = charts.flatMap((chart) =>
+  const allEntries = charts.flatMap((chart) =>
     chart.entries.map((entry) => summarizeEntry(entry, chart))
   );
+  const entries = await filterApprovedEntries(allEntries);
 
   const latestChart = charts[charts.length - 1];
 
@@ -213,6 +305,7 @@ exports.deleteChart = async (chartId) => {
 exports.createEntry = async (payload) => {
   const chartInput = normalizeChartPayload(payload);
   const entryInput = normalizeEntryPayload(payload);
+  await validateStaffApproval(entryInput.name, entryInput.contact);
   const timestamp = new Date().toISOString();
   let responsePayload;
 
@@ -261,6 +354,7 @@ exports.createEntry = async (payload) => {
 
 exports.updateEntry = async (chartId, entryId, payload) => {
   const updates = normalizeEntryPayload(payload);
+  await validateStaffApproval(updates.name, updates.contact);
   let updatedEntry = null;
 
   await updateData(async (data) => {
@@ -355,10 +449,10 @@ exports.getDutyDepartments = async (search = "") => {
 };
 
 /**
- * Fetch staff names from registration_tbl for duty assignment.
+ * Fetch staff names from registration_tbl for duty assignment (approved only).
  */
 exports.getDutyStaff = async (search = "", department = "") => {
-  let query = `SELECT reg_id, full_name, mobile_no, department_id FROM registration_tbl WHERE is_deleted = 0`;
+  let query = `SELECT reg_id, full_name, mobile_no, department_id, is_approved FROM registration_tbl WHERE is_deleted = 0 AND (is_approved = 1 OR is_approved = '1')`;
   const params = [];
 
   if (search && search.trim()) {
@@ -398,6 +492,7 @@ exports.getDutyStaff = async (search = "", department = "") => {
       contact: r.mobile_no || "",
       departmentId: deptId,
       department: deptName,
+      isApproved: true,
     };
   });
 

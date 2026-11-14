@@ -123,7 +123,7 @@ async function getRows(moduleName, search = "") {
       id: getField(row, module.idFields),
       value: getField(row, module.valueFields),
     }))
-    .filter((row) => row.id !== null && row.value !== null)
+    .filter((row) => row.id !== null && row.value !== null && row.is_deleted !== 1)
     .filter(
       (row) =>
         !normalizedSearch ||
@@ -225,34 +225,152 @@ exports.createItem = async (moduleName, payload, userId) => {
   };
 };
 
-exports.updateItem = async (moduleName, id, payload) => {
-  if (moduleName !== "department") {
-    throw new AppError("Update is not supported for this master module", 405);
+exports.updateItem = async (moduleName, id, payload, userId) => {
+  const module = getModule(moduleName);
+  const recordId = Number(id);
+  if (!Number.isInteger(recordId) || recordId < 1) {
+    throw new AppError("Invalid record ID", 400);
   }
+
   const value = String(payload.value || payload.name || "").trim();
   if (!value || value.length > 100) {
     throw new AppError("Value is required and must be 100 characters or fewer", 400);
   }
-  await promisePool.execute(MODULES.department.procedure, [
-    "UPDATE",
-    Number(id),
+
+  const [existing] = await promisePool.execute(
+    `SELECT id FROM ${module.table} WHERE id = ? AND is_deleted = 0 LIMIT 1`,
+    [recordId]
+  );
+  if (!existing || !existing.length) {
+    throw new AppError(`${module.singularLabel} record not found`, 404);
+  }
+
+  const updatedBy = Number(payload.updatedBy || userId || 1);
+  const extraConditions = [];
+  const extraValues = [];
+
+  if (moduleName === "state" && payload.countryId !== undefined) {
+    const countryId = Number(payload.countryId);
+    if (!Number.isInteger(countryId) || countryId < 1) {
+      throw new AppError("A valid country ID is required for a state", 400);
+    }
+    extraConditions.push("country_id = ?");
+    extraValues.push(countryId);
+  }
+
+  if (moduleName === "city" && payload.stateId !== undefined) {
+    const stateId = Number(payload.stateId);
+    if (!Number.isInteger(stateId) || stateId < 1) {
+      throw new AppError("A valid state is required for a city", 400);
+    }
+    const [states] = await promisePool.execute(
+      "SELECT id FROM state_tbl WHERE id = ? AND is_deleted = 0 LIMIT 1",
+      [stateId]
+    );
+    if (!states.length) {
+      throw new AppError("Selected state was not found", 400);
+    }
+    extraConditions.push("state_id = ?");
+    extraValues.push(stateId);
+  }
+
+  const duplicateSql = `SELECT id FROM ${module.table}
+    WHERE ${module.valueColumn} = ? AND id != ? AND is_deleted = 0
+    ${extraConditions.length ? `AND ${extraConditions.join(" AND ")}` : ""}
+    LIMIT 1`;
+  const [duplicates] = await promisePool.execute(duplicateSql, [
     value,
-    Number(payload.updatedBy) || 1,
-    null,
+    recordId,
+    ...extraValues,
   ]);
-  return { id: Number(id), value };
+  if (duplicates.length) {
+    throw new AppError(`${module.singularLabel} already exists`, 409);
+  }
+
+  if (moduleName === "department") {
+    await promisePool.execute(MODULES.department.procedure, [
+      "UPDATE",
+      recordId,
+      value,
+      updatedBy,
+      null,
+    ]);
+  } else if (["qualification", "sewalocation", "shifttime", "availableday"].includes(moduleName)) {
+    await promisePool.execute(
+      `UPDATE ${module.table} SET ${module.valueColumn} = ?, updated_datetime = NOW(), updated_by = ? WHERE id = ?`,
+      [value, updatedBy, recordId]
+    );
+  } else if (moduleName === "state") {
+    if (payload.countryId !== undefined) {
+      await promisePool.execute(
+        `UPDATE state_tbl SET state_name = ?, country_id = ? WHERE id = ?`,
+        [value, Number(payload.countryId), recordId]
+      );
+    } else {
+      await promisePool.execute(
+        `UPDATE state_tbl SET state_name = ? WHERE id = ?`,
+        [value, recordId]
+      );
+    }
+  } else if (moduleName === "city") {
+    if (payload.stateId !== undefined) {
+      await promisePool.execute(
+        `UPDATE city_tbl SET city_name = ?, state_id = ? WHERE id = ?`,
+        [value, Number(payload.stateId), recordId]
+      );
+    } else {
+      await promisePool.execute(
+        `UPDATE city_tbl SET city_name = ? WHERE id = ?`,
+        [value, recordId]
+      );
+    }
+  }
+
+  return {
+    id: recordId,
+    value,
+    ...(moduleName === "city" && payload.stateId !== undefined ? { stateId: Number(payload.stateId) } : {}),
+    ...(moduleName === "state" && payload.countryId !== undefined ? { countryId: Number(payload.countryId) } : {}),
+  };
 };
 
 exports.deleteItem = async (moduleName, id, deletedBy = 1) => {
-  if (moduleName !== "department") {
-    throw new AppError("Delete is not supported for this master module", 405);
+  const module = getModule(moduleName);
+  const recordId = Number(id);
+  if (!Number.isInteger(recordId) || recordId < 1) {
+    throw new AppError("Invalid record ID", 400);
   }
-  await promisePool.execute(MODULES.department.procedure, [
-    "DELETE",
-    Number(id),
-    null,
-    Number(deletedBy) || 1,
-    null,
-  ]);
-  return { id: Number(id), isDeleted: true };
+
+  const [existing] = await promisePool.execute(
+    `SELECT id FROM ${module.table} WHERE id = ? AND is_deleted = 0 LIMIT 1`,
+    [recordId]
+  );
+  if (!existing || !existing.length) {
+    throw new AppError(`${module.singularLabel} record not found`, 404);
+  }
+
+  const updaterId = Number(deletedBy) || 1;
+
+  if (moduleName === "department") {
+    await promisePool.execute(MODULES.department.procedure, [
+      "DELETE",
+      recordId,
+      null,
+      updaterId,
+      null,
+    ]);
+  } else if (["qualification", "sewalocation", "shifttime", "availableday"].includes(moduleName)) {
+    await promisePool.execute(
+      `UPDATE ${module.table} SET is_deleted = 1, updated_datetime = NOW(), updated_by = ? WHERE id = ?`,
+      [updaterId, recordId]
+    );
+  } else {
+    // state, city
+    await promisePool.execute(
+      `UPDATE ${module.table} SET is_deleted = 1 WHERE id = ?`,
+      [recordId]
+    );
+  }
+
+  return { id: recordId, isDeleted: true };
 };
