@@ -11,26 +11,10 @@ import {
   useGetDailyReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
+import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
+import { TableSearchableSelect } from "../reports-common/TableSearchableSelect";
 
-const DEFAULT_DEPARTMENTS = [
-  "Registration",
-  "OPD",
-  "INDOOR",
-  "Homeopathy",
-  "Accupressure",
-  "Physiotherapy",
-  "Dental",
-  "Eye",
-  "ENT",
-  "ECG",
-  "Pediatric",
-  "ICU",
-  "Injection",
-  "Dressing",
-  "Pathology",
-];
-
-const LOCATIONS = [
+const FALLBACK_LOCATIONS = [
   "Dispensary-1",
   "Dispensary-2",
   "Dispensary-3",
@@ -42,31 +26,88 @@ const LOCATIONS = [
 interface DailyRow {
   id: string;
   department: string;
-  values: number[]; // 6 values corresponding to LOCATIONS
+  values: number[];
 }
 
 export function LiveDailyReport() {
+  const { data: masterDepts } = useGetMasterRecordsQuery({
+    module: "department",
+    search: "",
+  });
+  const { data: masterLocations } = useGetMasterRecordsQuery({
+    module: "sewalocation",
+    search: "",
+  });
   const { data: metaResponse } = useGetReportMetadataQuery();
-  const availableDates = metaResponse?.data?.availableDates || [];
-  const metaDepartments = metaResponse?.data?.departments || [];
 
+  // Dynamic Departments loaded directly from database table
   const allDepartments = useMemo(() => {
-    const list = [...DEFAULT_DEPARTMENTS];
-    metaDepartments.forEach((d) => {
-      if (!list.includes(d.name)) {
-        list.push(d.name);
-      }
-    });
+    const list: string[] = [];
+    if (masterDepts?.data?.items) {
+      masterDepts.data.items.forEach((d) => {
+        const val = String(d.value || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
+    if (metaResponse?.data?.departments) {
+      metaResponse.data.departments.forEach((d) => {
+        const val = String(d.name || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
     return list;
-  }, [metaDepartments]);
+  }, [masterDepts, metaResponse]);
+
+  // Dynamic Locations loaded directly from database table
+  const locationColumns = useMemo(() => {
+    const list: string[] = [];
+    if (masterLocations?.data?.items) {
+      masterLocations.data.items.forEach((item) => {
+        const val = String(item.value || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
+    if (metaResponse?.data?.locations) {
+      metaResponse.data.locations.forEach((loc) => {
+        const val = String(loc.name || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
+    return list.length > 0 ? list : FALLBACK_LOCATIONS;
+  }, [masterLocations, metaResponse]);
 
   const [samagamName, setSamagamName] = useState(
     "60TH MAHARASHTRA NIRANKARI SANT SAMAGAM"
   );
   const [reportDate, setReportDate] = useState("");
   const [rows, setRows] = useState<DailyRow[]>([
-    { id: "row-1", department: "", values: [0, 0, 0, 0, 0, 0] },
+    { id: "row-1", department: "", values: [] },
   ]);
+
+  // Ensure rows have values initialized to match locationColumns length
+  useEffect(() => {
+    const targetLen = locationColumns.length;
+    setRows((prev) =>
+      prev.map((r) => {
+        if (r.values.length !== targetLen) {
+          const newVals = new Array(targetLen).fill(0);
+          r.values.forEach((v, i) => {
+            if (i < targetLen) newVals[i] = v;
+          });
+          return { ...r, values: newVals };
+        }
+        return r;
+      })
+    );
+  }, [locationColumns]);
 
   // Query backend data if available for date
   const { data: reportResponse } = useGetDailyReportQuery(
@@ -81,7 +122,7 @@ export function LiveDailyReport() {
         (r, idx) => ({
           id: `backend-${idx}`,
           department: r.department,
-          values: LOCATIONS.map((loc) => {
+          values: locationColumns.map((loc) => {
             const locKey = loc.toLowerCase().replace("-", " ");
             const locKeyAlt = loc.toLowerCase().replace("-", "");
             return (
@@ -95,7 +136,7 @@ export function LiveDailyReport() {
       );
       setRows(backendRows);
     }
-  }, [reportResponse]);
+  }, [reportResponse, locationColumns]);
 
   // Date Title formatted as en-GB (DD/MM/YYYY)
   const dateTitle = useMemo(() => {
@@ -113,7 +154,7 @@ export function LiveDailyReport() {
     const newRow: DailyRow = {
       id: `row-${Date.now()}-${Math.random()}`,
       department: "",
-      values: [0, 0, 0, 0, 0, 0],
+      values: new Array(locationColumns.length).fill(0),
     };
     if (typeof index === "number") {
       const updated = [...rows];
@@ -137,7 +178,7 @@ export function LiveDailyReport() {
           return {
             ...r,
             department,
-            values: department ? r.values : [0, 0, 0, 0, 0, 0],
+            values: department ? r.values : new Array(locationColumns.length).fill(0),
           };
         }
         return r;
@@ -166,16 +207,19 @@ export function LiveDailyReport() {
 
   // Column totals
   const totals = useMemo(() => {
-    const t = [0, 0, 0, 0, 0, 0];
+    const numCols = locationColumns.length || 1;
+    const t = new Array(numCols).fill(0);
     rows.forEach((r) => {
       if (r.department) {
         r.values.forEach((v, idx) => {
-          t[idx] += v;
+          if (idx < numCols) {
+            t[idx] += v || 0;
+          }
         });
       }
     });
     return t;
-  }, [rows]);
+  }, [rows, locationColumns]);
 
   const grandTotal = useMemo(() => {
     return totals.reduce((sum, v) => sum + v, 0);
@@ -191,14 +235,14 @@ export function LiveDailyReport() {
     let html = "<table border='1'>";
     html += `
       <tr>
-        <th colspan="7">${samagamName}</th>
+        <th colspan="${locationColumns.length + 1}">${samagamName}</th>
       </tr>
       <tr>
-        <th colspan="7">${dateTitle}</th>
+        <th colspan="${locationColumns.length + 1}">${dateTitle}</th>
       </tr>
       <tr>
         <th>Department</th>
-        ${LOCATIONS.map((loc) => `<th>${loc}</th>`).join("")}
+        ${locationColumns.map((loc) => `<th>${loc}</th>`).join("")}
       </tr>
     `;
 
@@ -270,7 +314,8 @@ export function LiveDailyReport() {
             print-color-adjust: exact;
           }
           .daily-table input,
-          .daily-table select {
+          .daily-table select,
+          .table-searchable-trigger {
             border: none !important;
             background: transparent !important;
             text-align: center !important;
@@ -278,6 +323,9 @@ export function LiveDailyReport() {
             -webkit-appearance: none !important;
             appearance: none !important;
             font-size: 11px !important;
+          }
+          .table-searchable-trigger svg {
+            display: none !important;
           }
         }
       `}</style>
@@ -362,13 +410,13 @@ export function LiveDailyReport() {
           <table className="daily-table w-full border-collapse text-xs sm:text-sm">
             <thead>
               <tr className="bg-slate-200/90 text-slate-900">
-                <th className="border border-slate-400/80 px-3 py-2.5 text-center font-bold w-[22%] min-w-[150px]">
+                <th className="border border-slate-400/80 px-3 py-2.5 text-center font-bold min-w-[160px]">
                   Department
                 </th>
-                {LOCATIONS.map((loc) => (
+                {locationColumns.map((loc) => (
                   <th
                     key={loc}
-                    className="border border-slate-400/80 px-2 py-2.5 text-center font-bold w-[10%] min-w-[85px]"
+                    className="border border-slate-400/80 px-2 py-2.5 text-center font-bold min-w-[85px]"
                   >
                     {loc}
                   </th>
@@ -387,24 +435,17 @@ export function LiveDailyReport() {
                     key={row.id}
                     className="hover:bg-blue-50/30 transition-colors"
                   >
-                    <td className="border border-slate-300 p-1.5">
-                      <select
-                        className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer font-medium"
+                    <td className="border border-slate-300 p-2">
+                      <TableSearchableSelect
                         value={row.department}
-                        onChange={(e) =>
-                          handleDepartmentChange(row.id, e.target.value)
-                        }
-                      >
-                        <option value="">Select Department</option>
-                        {allDepartments.map((dept) => (
-                          <option key={dept} value={dept}>
-                            {dept}
-                          </option>
-                        ))}
-                      </select>
+                        options={allDepartments}
+                        onChange={(val) => handleDepartmentChange(row.id, val)}
+                        placeholder="Select Department"
+                        searchPlaceholder="Search department..."
+                      />
                     </td>
 
-                    {LOCATIONS.map((_, valIdx) => (
+                    {locationColumns.map((_, valIdx) => (
                       <td key={valIdx} className="border border-slate-300 p-1">
                         <input
                           type="number"
@@ -476,7 +517,7 @@ export function LiveDailyReport() {
               {rows.length > 0 && (
                 <tr className="bg-slate-200/90 text-slate-900 font-bold border-t border-slate-300">
                   <td
-                    colSpan={8}
+                    colSpan={locationColumns.length + 2}
                     className="border border-slate-300 px-4 py-2 text-left text-xs sm:text-sm font-extrabold"
                   >
                     Grand Total:{" "}

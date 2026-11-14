@@ -11,19 +11,12 @@ import {
   useGetRegistrationReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
-
-const DEFAULT_DEPARTMENTS = [
-  "Desp-1",
-  "Desp-2",
-  "Desp-3",
-  "Langar-1",
-  "Langar-2",
-  "Langar-3",
-];
+import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
+import { TableSearchableSelect } from "../reports-common/TableSearchableSelect";
 
 interface RegRow {
   id: string;
-  department: string;
+  department: string; // holds the Sewa Location name
   v1: number;
   v2: number;
   v3: number;
@@ -43,19 +36,34 @@ function formatDate(dateStr: string) {
 }
 
 export function LiveRegistrationReport() {
+  const { data: masterLocations } = useGetMasterRecordsQuery({
+    module: "sewalocation",
+    search: "",
+  });
   const { data: metaResponse } = useGetReportMetadataQuery();
   const availableDates = metaResponse?.data?.availableDates || [];
-  const metaLocations = metaResponse?.data?.locations || [];
 
-  const allDepts = useMemo(() => {
-    const list = [...DEFAULT_DEPARTMENTS];
-    metaLocations.forEach((loc) => {
-      if (!list.includes(loc.name)) {
-        list.push(loc.name);
-      }
-    });
+  // Dynamic Sewa Locations loaded directly from the database table
+  const sewaLocations = useMemo(() => {
+    const list: string[] = [];
+    if (masterLocations?.data?.items) {
+      masterLocations.data.items.forEach((item) => {
+        const val = String(item.value || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
+    if (metaResponse?.data?.locations) {
+      metaResponse.data.locations.forEach((loc) => {
+        const val = String(loc.name || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
     return list;
-  }, [metaLocations]);
+  }, [masterLocations, metaResponse]);
 
   const [title, setTitle] = useState("60 Maharashtra Nirankari Sant Samagam");
   const [d1, setD1] = useState(availableDates[0]?.date || "2025-01-24");
@@ -63,8 +71,20 @@ export function LiveRegistrationReport() {
   const [d3, setD3] = useState(availableDates[2]?.date || "2025-01-26");
 
   const [rows, setRows] = useState<RegRow[]>([
-    { id: "row-1", department: DEFAULT_DEPARTMENTS[0], v1: 0, v2: 0, v3: 0 },
+    { id: "row-1", department: "", v1: 0, v2: 0, v3: 0 },
   ]);
+
+  // Sync initial row with loaded sewaLocations if empty
+  useEffect(() => {
+    if (sewaLocations.length > 0) {
+      setRows((prev) => {
+        if (prev.length === 1 && !prev[0].department) {
+          return [{ ...prev[0], department: sewaLocations[0] }];
+        }
+        return prev;
+      });
+    }
+  }, [sewaLocations]);
 
   // Optional backend data fetching
   const queryDatesStr = [d1, d2, d3].filter(Boolean).join(",");
@@ -79,7 +99,8 @@ export function LiveRegistrationReport() {
         const name =
           r.location ||
           r.department ||
-          DEFAULT_DEPARTMENTS[i % DEFAULT_DEPARTMENTS.length];
+          sewaLocations[i % (sewaLocations.length || 1)] ||
+          `Location ${i + 1}`;
         return {
           id: `backend-${i}`,
           department: name,
@@ -92,13 +113,13 @@ export function LiveRegistrationReport() {
         setRows(backendRows);
       }
     }
-  }, [reportResponse, d1, d2, d3]);
+  }, [reportResponse, d1, d2, d3, sewaLocations]);
 
   // Add row
   const addRow = () => {
     const newRow: RegRow = {
       id: `row-${Date.now()}-${Math.random()}`,
-      department: DEFAULT_DEPARTMENTS[0],
+      department: sewaLocations[0] || "",
       v1: 0,
       v2: 0,
       v3: 0,
@@ -111,7 +132,7 @@ export function LiveRegistrationReport() {
     setRows((prev) => prev.filter((r) => r.id !== id));
   };
 
-  // Update department
+  // Update department / location
   const updateDepartment = (id: string, department: string) => {
     setRows((prev) =>
       prev.map((r) => (r.id === id ? { ...r, department } : r))
@@ -158,7 +179,7 @@ export function LiveRegistrationReport() {
       <h2 style="text-align:center; font-weight:bold; font-family:Arial, sans-serif; font-size:18px;">${title}</h2>
       <table border="1" style="border-collapse:collapse; width:100%; font-family:Arial, sans-serif; text-align:center; margin-top:15px;">
         <tr style="background:#f2f2f2; font-weight:bold;">
-          <th style="padding:8px; border:1px solid #000;">Department</th>
+          <th style="padding:8px; border:1px solid #000; text-align:left;">Sewa Location</th>
           <th style="padding:8px; border:1px solid #000;">${date1Formatted}</th>
           <th style="padding:8px; border:1px solid #000;">${date2Formatted}</th>
           <th style="padding:8px; border:1px solid #000;">${date3Formatted}</th>
@@ -168,7 +189,7 @@ export function LiveRegistrationReport() {
     rows.forEach((r) => {
       html += `
         <tr>
-          <td style="padding:8px; border:1px solid #000;">${r.department}</td>
+          <td style="padding:8px; border:1px solid #000; text-align:left;">${r.department}</td>
           <td style="padding:8px; border:1px solid #000;">${r.v1}</td>
           <td style="padding:8px; border:1px solid #000;">${r.v2}</td>
           <td style="padding:8px; border:1px solid #000;">${r.v3}</td>
@@ -271,12 +292,18 @@ export function LiveRegistrationReport() {
             font-size: 11px !important;
           }
           .reg-table input,
-          .reg-table select {
+          .reg-table select,
+          .table-searchable-trigger {
             border: none !important;
             background: transparent !important;
             box-shadow: none !important;
-            text-align: center !important;
+            text-align: left !important;
             -webkit-appearance: none !important;
+            appearance: none !important;
+          }
+          .table-searchable-trigger svg {
+            display: none !important;
+          }
             appearance: none !important;
           }
         }
@@ -343,8 +370,8 @@ export function LiveRegistrationReport() {
           <table className="reg-table w-full border-collapse text-xs sm:text-sm">
             <thead>
               <tr className="bg-slate-100 text-slate-900 border-b border-slate-300">
-                <th className="border border-slate-300 px-3 py-2.5 text-left font-bold w-[28%] min-w-[160px]">
-                  Department
+                <th className="border border-slate-300 px-3 py-2.5 text-left font-bold w-[28%] min-w-[170px]">
+                  Sewa Location
                 </th>
                 <th className="border border-slate-300 px-2 py-2 text-center font-bold w-[20%] min-w-[130px]">
                   <div className="flex items-center justify-center gap-1">
@@ -392,19 +419,13 @@ export function LiveRegistrationReport() {
                   className="hover:bg-blue-50/30 transition-colors"
                 >
                   <td className="border border-slate-300 p-2">
-                    <select
-                      className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 shadow-2xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer font-medium"
+                    <TableSearchableSelect
                       value={row.department}
-                      onChange={(e) =>
-                        updateDepartment(row.id, e.target.value)
-                      }
-                    >
-                      {allDepts.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                      options={sewaLocations}
+                      onChange={(val) => updateDepartment(row.id, val)}
+                      placeholder="Select Sewa Location"
+                      searchPlaceholder="Search sewa location..."
+                    />
                   </td>
 
                   <td className="border border-slate-300 p-1.5">

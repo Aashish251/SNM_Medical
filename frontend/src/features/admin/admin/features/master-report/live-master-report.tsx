@@ -11,45 +11,8 @@ import {
   useGetMasterReportQuery,
   useGetReportMetadataQuery,
 } from "../../services/reportsApi";
-
-const ALL_DEPTS = [
-  "Dispensary 1",
-  "Dispensary 2",
-  "Dispensary 3",
-  "Langar 1",
-  "Langar 2",
-  "Langar 3",
-];
-
-const INITIAL_DATA: Record<
-  string,
-  Record<string, { opd: number; ipd: number }>
-> = {
-  "2025-01-24": {
-    "Dispensary 1": { opd: 2537, ipd: 54 },
-    "Dispensary 2": { opd: 2918, ipd: 0 },
-    "Dispensary 3": { opd: 0, ipd: 0 },
-    "Langar 1": { opd: 481, ipd: 0 },
-    "Langar 2": { opd: 0, ipd: 0 },
-    "Langar 3": { opd: 231, ipd: 0 },
-  },
-  "2025-01-25": {
-    "Dispensary 1": { opd: 3495, ipd: 77 },
-    "Dispensary 2": { opd: 3264, ipd: 32 },
-    "Dispensary 3": { opd: 0, ipd: 0 },
-    "Langar 1": { opd: 602, ipd: 0 },
-    "Langar 2": { opd: 0, ipd: 0 },
-    "Langar 3": { opd: 477, ipd: 0 },
-  },
-  "2025-01-26": {
-    "Dispensary 1": { opd: 2100, ipd: 30 },
-    "Dispensary 2": { opd: 1800, ipd: 12 },
-    "Dispensary 3": { opd: 250, ipd: 0 },
-    "Langar 1": { opd: 200, ipd: 0 },
-    "Langar 2": { opd: 100, ipd: 0 },
-    "Langar 3": { opd: 50, ipd: 0 },
-  },
-};
+import { useGetMasterRecordsQuery } from "../master/services/masterDataApi";
+import { TableSearchableSelect } from "../reports-common/TableSearchableSelect";
 
 function fmtDisplay(k: string) {
   if (!k) return "";
@@ -62,8 +25,34 @@ function fmtDisplay(k: string) {
 }
 
 export function LiveMasterReport() {
+  const { data: masterLocations } = useGetMasterRecordsQuery({
+    module: "sewalocation",
+    search: "",
+  });
   const { data: metaResponse } = useGetReportMetadataQuery();
   const availableDates = metaResponse?.data?.availableDates || [];
+
+  // Dynamic Locations loaded directly from the database table
+  const sewaLocations = useMemo(() => {
+    const list: string[] = [];
+    if (masterLocations?.data?.items) {
+      masterLocations.data.items.forEach((item) => {
+        const val = String(item.value || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
+    if (metaResponse?.data?.locations) {
+      metaResponse.data.locations.forEach((loc) => {
+        const val = String(loc.name || "").trim();
+        if (val && !list.includes(val)) {
+          list.push(val);
+        }
+      });
+    }
+    return list;
+  }, [masterLocations, metaResponse]);
 
   const [reportTitle, setReportTitle] = useState(
     "58th Maharashtra Samagam Dispensary Master Report"
@@ -72,7 +61,7 @@ export function LiveMasterReport() {
   // Single source of truth for (dateKey, location) -> { opd, ipd }
   const [data, setData] = useState<
     Record<string, Record<string, { opd: number; ipd: number }>>
-  >(INITIAL_DATA);
+  >({});
 
   // Active dates
   const [activeDates, setActiveDates] = useState<string[]>([
@@ -82,24 +71,38 @@ export function LiveMasterReport() {
   ]);
 
   // dateRows[dateKey] = [ dept1, dept2, ... ]
-  const [dateRows, setDateRows] = useState<Record<string, string[]>>({
-    "2025-01-24": [...ALL_DEPTS],
-    "2025-01-25": [...ALL_DEPTS],
-    "2025-01-26": [...ALL_DEPTS],
-  });
+  const [dateRows, setDateRows] = useState<Record<string, string[]>>({});
 
   // Active locations shown in location-wise section
-  const [activeDepts, setActiveDepts] = useState<string[]>([...ALL_DEPTS]);
+  const [activeDepts, setActiveDepts] = useState<string[]>([]);
 
   // deptCardDates[dept] = [ date1, date2, ... ]
-  const [deptCardDates, setDeptCardDates] = useState<Record<string, string[]>>({
-    "Dispensary 1": ["2025-01-24", "2025-01-25", "2025-01-26"],
-    "Dispensary 2": ["2025-01-24", "2025-01-25", "2025-01-26"],
-    "Dispensary 3": ["2025-01-24", "2025-01-25", "2025-01-26"],
-    "Langar 1": ["2025-01-24", "2025-01-25", "2025-01-26"],
-    "Langar 2": ["2025-01-24", "2025-01-25", "2025-01-26"],
-    "Langar 3": ["2025-01-24", "2025-01-25", "2025-01-26"],
-  });
+  const [deptCardDates, setDeptCardDates] = useState<Record<string, string[]>>({});
+
+  // Sync with dynamic database locations once loaded
+  useEffect(() => {
+    if (sewaLocations.length > 0) {
+      setActiveDepts((prev) => (prev.length === 0 ? sewaLocations : prev));
+      setDateRows((prev) => {
+        const next = { ...prev };
+        activeDates.forEach((dk) => {
+          if (!next[dk] || next[dk].length === 0) {
+            next[dk] = [...sewaLocations];
+          }
+        });
+        return next;
+      });
+      setDeptCardDates((prev) => {
+        const next = { ...prev };
+        sewaLocations.forEach((loc) => {
+          if (!next[loc]) {
+            next[loc] = [...activeDates];
+          }
+        });
+        return next;
+      });
+    }
+  }, [sewaLocations, activeDates]);
 
   const [newDateInput, setNewDateInput] = useState("");
   const [newDeptInput, setNewDeptInput] = useState("");
@@ -111,7 +114,7 @@ export function LiveMasterReport() {
     { skip: !queryDatesStr }
   );
 
-  // Merge API data if it has entries for dates
+  // Merge live API data from database
   useEffect(() => {
     if (apiResponse?.data?.dateWise && apiResponse.data.dateWise.length > 0) {
       setData((prev) => {
@@ -119,9 +122,7 @@ export function LiveMasterReport() {
         apiResponse.data.dateWise.forEach((dw) => {
           if (!next[dw.date]) next[dw.date] = {};
           dw.rows.forEach((r) => {
-            if (!next[dw.date][r.label]) {
-              next[dw.date][r.label] = { opd: r.opd, ipd: r.ipd };
-            }
+            next[dw.date][r.label] = { opd: r.opd, ipd: r.ipd };
           });
         });
         return next;
@@ -169,7 +170,7 @@ export function LiveMasterReport() {
     setActiveDates(nextDates);
     setDateRows((prev) => ({
       ...prev,
-      [newDateInput]: prev[newDateInput] || [...ALL_DEPTS],
+      [newDateInput]: prev[newDateInput] || [...sewaLocations],
     }));
     setDeptCardDates((prev) => {
       const updated: Record<string, string[]> = {};
@@ -210,7 +211,7 @@ export function LiveMasterReport() {
     });
     setDateRows((prev) => {
       const next = { ...prev };
-      next[newVal] = next[old] || [...ALL_DEPTS];
+      next[newVal] = next[old] || [...sewaLocations];
       delete next[old];
       return next;
     });
@@ -233,7 +234,10 @@ export function LiveMasterReport() {
 
   const addLocationRowToDate = (dateKey: string) => {
     const current = dateRows[dateKey] || [];
-    const next = ALL_DEPTS.find((d) => !current.includes(d)) || ALL_DEPTS[0];
+    const next =
+      sewaLocations.find((d) => !current.includes(d)) ||
+      sewaLocations[0] ||
+      "Location";
     setDateRows((prev) => ({
       ...prev,
       [dateKey]: [...(prev[dateKey] || []), next],
@@ -680,23 +684,15 @@ export function LiveMasterReport() {
                             className="hover:bg-slate-50 transition-colors"
                           >
                             <td className="p-1">
-                              <select
-                                className="master-dept-select w-full rounded border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-slate-800 shadow-2xs cursor-pointer font-medium"
+                              <TableSearchableSelect
                                 value={dept}
-                                onChange={(e) =>
-                                  changeDateRowLocation(
-                                    dateKey,
-                                    ri,
-                                    e.target.value
-                                  )
+                                options={sewaLocations}
+                                onChange={(val) =>
+                                  changeDateRowLocation(dateKey, ri, val)
                                 }
-                              >
-                                {ALL_DEPTS.map((d) => (
-                                  <option key={d} value={d}>
-                                    {d}
-                                  </option>
-                                ))}
-                              </select>
+                                placeholder="Select Location"
+                                searchPlaceholder="Search location..."
+                              />
                             </td>
 
                             <td className="p-1 text-center">
@@ -809,7 +805,7 @@ export function LiveMasterReport() {
               onChange={(e) => setNewDeptInput(e.target.value)}
             >
               <option value="">-- Select --</option>
-              {ALL_DEPTS.filter((d) => !activeDepts.includes(d)).map((d) => (
+              {sewaLocations.filter((d) => !activeDepts.includes(d)).map((d) => (
                 <option key={d} value={d}>
                   {d}
                 </option>
@@ -870,19 +866,14 @@ export function LiveMasterReport() {
                 >
                   {/* Blue Location Header */}
                   <div className="dept-header bg-[#b0cce0] border-b border-[#9ec0d8] px-3 py-1.5 flex items-center justify-center">
-                    <select
-                      className="rounded border border-[#8aabcc] bg-white/85 px-2 py-0.5 text-xs font-bold text-[#1a3a5c] shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-700"
+                    <TableSearchableSelect
                       value={dept}
-                      onChange={(e) =>
-                        changeDeptCardLocation(ci, e.target.value)
-                      }
-                    >
-                      {ALL_DEPTS.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                      options={sewaLocations}
+                      onChange={(val) => changeDeptCardLocation(ci, val)}
+                      placeholder="Select Location"
+                      searchPlaceholder="Search location..."
+                      className="bg-white/85 border-[#8aabcc] text-[#1a3a5c] font-bold"
+                    />
                   </div>
 
                   <table className="w-full text-xs">
