@@ -55,6 +55,7 @@ export interface DutyStaffOption {
   contact?: string;
   departmentId?: number | null;
   department?: string;
+  isApproved?: boolean;
 }
 
 export interface DutyDepartmentsResponse {
@@ -79,6 +80,8 @@ export interface DutyStaffResponse {
       departmentId?: number | null;
       department_id?: number | null;
       department?: string;
+      isApproved?: boolean | number;
+      is_approved?: boolean | number | string;
     }>;
     count?: number;
   };
@@ -121,14 +124,25 @@ export const dutyChartApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response: DutyStaffResponse) => {
         const rawItems = response?.data?.items || [];
-        return rawItems.map((item) => ({
-          id: item.id,
-          label: item.label || item.full_name || item.value || "",
-          value: item.label || item.full_name || item.value || "",
-          contact: item.contact || "",
-          departmentId: item.departmentId ?? item.department_id ?? null,
-          department: item.department || "",
-        }));
+        return rawItems
+          .filter((item) => {
+            if (item.isApproved !== undefined) {
+              return item.isApproved === true || item.isApproved === 1;
+            }
+            if (item.is_approved !== undefined) {
+              return item.is_approved === 1 || item.is_approved === "1" || item.is_approved === true;
+            }
+            return true;
+          })
+          .map((item) => ({
+            id: item.id,
+            label: item.label || item.full_name || item.value || "",
+            value: item.label || item.full_name || item.value || "",
+            contact: item.contact || "",
+            departmentId: item.departmentId ?? item.department_id ?? null,
+            department: item.department || "",
+            isApproved: true,
+          }));
       },
       providesTags: [{ type: "DutyChart", id: "STAFF" }],
     }),

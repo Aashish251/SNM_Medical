@@ -46,7 +46,7 @@ function createProfileFormData(data: FormValues, options: ProfileFormDataOptions
   formData.append("availableDayId", data.availableDayId || "");
   formData.append("gender", data.gender || "Male");
   formData.append("userType", data.userType || "ms");
-  formData.append("experience", String(data.experience || 0));
+  formData.append("experience", String(parseFloat(String(data.experience || 0)) || 0));
   formData.append("lastSewa", clean(data.lastSewa));
   formData.append("recommendedBy", clean(data.recommendedBy));
   formData.append("samagamHeldIn", clean(data.samagamHeldIn));
@@ -73,9 +73,13 @@ function createProfileFormData(data: FormValues, options: ProfileFormDataOptions
 function appendFileListValue(
   formData: FormData,
   fieldName: "profilePic" | "certificate",
-  value: FormValues[typeof fieldName]
+  value: unknown
 ) {
-  if (value instanceof FileList && value.length > 0) {
+  if (value instanceof File) {
+    formData.append(fieldName, value);
+  } else if (typeof FileList !== "undefined" && value instanceof FileList && value.length > 0) {
+    formData.append(fieldName, value[0]);
+  } else if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
     formData.append(fieldName, value[0]);
   }
 }

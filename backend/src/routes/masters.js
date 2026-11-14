@@ -70,7 +70,7 @@ router.post("/:module",
 router.put("/:module/:id",
   /* #swagger.tags = ['Masters']
      #swagger.summary = 'Update master record'
-     #swagger.description = 'Update an active department using the existing sp_department_master stored procedure.'
+     #swagger.description = 'Update an active master record in its database table.'
      #swagger.parameters['module'] = {
        in: 'path',
        type: 'string',
@@ -94,7 +94,7 @@ router.put("/:module/:id",
      #swagger.responses[200] = { description: 'Master record updated successfully' }
      #swagger.responses[400] = { description: 'Invalid master record data' }
      #swagger.responses[404] = { description: 'Master record not found' }
-     #swagger.responses[405] = { description: 'Update is not supported for this master module' }
+     #swagger.responses[409] = { description: 'Master record already exists' }
      #swagger.responses[500] = { description: 'Failed to update master record' }
   */
   authenticateToken,
@@ -105,14 +105,14 @@ router.put("/:module/:id",
 router.delete("/:module/:id",
   /* #swagger.tags = ['Masters']
      #swagger.summary = 'Delete master record'
-     #swagger.description = 'Delete a department using the existing sp_department_master stored procedure.'
+     #swagger.description = 'Soft delete an active master record from its database table.'
      #swagger.parameters['module'] = {
        in: 'path',
        type: 'string',
        required: true,
        description: 'Master module name',
        enum: ['qualification', 'department', 'sewalocation', 'shifttime', 'availableday', 'state', 'city'],
-       example: 'department'
+       example: 'sewalocation'
      }
      #swagger.parameters['id'] = {
        in: 'path',
@@ -127,8 +127,8 @@ router.delete("/:module/:id",
        schema: { updatedBy: 1 }
      }
      #swagger.responses[200] = { description: 'Master record deleted successfully' }
+     #swagger.responses[400] = { description: 'Invalid master record ID' }
      #swagger.responses[404] = { description: 'Master record not found' }
-     #swagger.responses[405] = { description: 'Delete is not supported for this master module' }
      #swagger.responses[500] = { description: 'Failed to delete master record' }
   */
   authenticateToken,

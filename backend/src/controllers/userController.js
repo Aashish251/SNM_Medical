@@ -133,7 +133,14 @@ exports.updateUserProfile = async (req, res) => {
     sendResponse(res, 200, true, 'Profile updated successfully', result);
   } catch (error) {
     logger.error('Update profile failed', { regId: req.params?.regId, error: error.message });
-    const status = /not found/i.test(error.message) ? 404 : 500;
+    let status = 500;
+    if (/not found/i.test(error.message)) {
+      status = 404;
+    } else if (
+      /must contain|already registered|experience|birthdate|invalid/i.test(error.message)
+    ) {
+      status = 400;
+    }
     sendResponse(res, status, false, error.message || 'Failed to update profile');
   }
 };

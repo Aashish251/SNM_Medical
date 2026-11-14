@@ -25,7 +25,8 @@ exports.updateItem = asyncHandler(async (req, res) => {
   const item = await masterDataService.updateItem(
     req.params.module,
     req.params.id,
-    req.body
+    req.body,
+    req.user?.userId
   );
   sendResponse(res, 200, true, "Master record updated successfully", item);
 });
@@ -34,7 +35,7 @@ exports.deleteItem = asyncHandler(async (req, res) => {
   await masterDataService.deleteItem(
     req.params.module,
     req.params.id,
-    req.body?.updatedBy || 1
+    req.body?.updatedBy || req.user?.userId || 1
   );
   sendResponse(res, 200, true, "Master record deleted successfully");
 });

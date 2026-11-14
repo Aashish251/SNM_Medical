@@ -26,8 +26,24 @@ export function DutyChart() {
       : Array.isArray(response?.data?.items)
         ? response.data.items
         : [];
-    return rawItems as DutyChartEntry[];
-  }, [response]);
+    const list = rawItems as DutyChartEntry[];
+    if (staffOptions.length > 0) {
+      const approvedContacts = new Set(
+        staffOptions
+          .map((s) => s.contact?.replace(/\D/g, "").slice(-10))
+          .filter(Boolean)
+      );
+      const approvedNames = new Set(
+        staffOptions.map((s) => s.value.trim().toLowerCase()).filter(Boolean)
+      );
+      return list.filter((e) => {
+        const c = e.contact ? e.contact.replace(/\D/g, "").slice(-10) : "";
+        const n = e.name ? e.name.trim().toLowerCase() : "";
+        return (c && approvedContacts.has(c)) || (n && approvedNames.has(n));
+      });
+    }
+    return list;
+  }, [response, staffOptions]);
 
   useEffect(() => {
     if (isError && error) {

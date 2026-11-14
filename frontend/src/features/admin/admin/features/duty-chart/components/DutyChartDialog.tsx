@@ -139,6 +139,20 @@ export function DutyChartDialog({
       return;
     }
 
+    // Verify staff is approved from staff list
+    if (staffForDepartment.length > 0) {
+      const isApprovedStaff = staffForDepartment.some(
+        (s) => s.value === values.name || s.label === values.name
+      );
+      if (!isApprovedStaff) {
+        form.setError("name", {
+          type: "manual",
+          message: "Only approved staff members can be assigned duties.",
+        });
+        return;
+      }
+    }
+
     const payload: Record<string, string> = {
       title: values.title.trim(),
       date: values.date,
@@ -276,7 +290,7 @@ export function DutyChartDialog({
                         !selectedDepartment
                           ? "Select Department first"
                           : staffForDepartment.length === 0
-                          ? "No staff found in this department"
+                          ? "No approved staff found in this department"
                           : "Type to search staff name..."
                       }
                       disabled={
@@ -287,7 +301,7 @@ export function DutyChartDialog({
                   </FormControl>
                   {selectedDepartment && staffForDepartment.length === 0 && (
                     <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                      No staff members are registered under {selectedDepartment}.
+                      No approved staff members are available under {selectedDepartment}.
                     </p>
                   )}
                   <FormMessage />

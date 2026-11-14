@@ -19,6 +19,8 @@ type DataTableToolbarProps<TData> = {
     }[]
   }[]
   extraActions?: React.ReactNode
+  /** Optional transform applied to the search input value before setting the filter. */
+  searchTransform?: (value: string) => string
 }
 
 export function DataTableToolbar<TData>({
@@ -27,6 +29,7 @@ export function DataTableToolbar<TData>({
   searchKey,
   filters = [],
   extraActions,
+  searchTransform,
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
     table.getState().columnFilters.length > 0 || table.getState().globalFilter
@@ -40,9 +43,11 @@ export function DataTableToolbar<TData>({
             value={
               (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
             }
-            onChange={(event) =>
-              table.getColumn(searchKey)?.setFilterValue(event.target.value)
-            }
+            onChange={(event) => {
+              const raw = event.target.value
+              const transformed = searchTransform ? searchTransform(raw) : raw
+              table.getColumn(searchKey)?.setFilterValue(transformed)
+            }}
             className='h-8 w-37.5 lg:w-62.5'
           />
         ) : (

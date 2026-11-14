@@ -118,6 +118,7 @@ export function EntityListTable<T extends { id: string }>({
         searchKey={config.searchKey}
         filters={config.filters}
         extraActions={config.extraToolbarActions?.(table)}
+        searchTransform={config.searchTransform}
       />
       <div className="admin-surface">
         <Table>
@@ -184,7 +185,11 @@ export function EntityListTable<T extends { id: string }>({
         </Table>
       </div>
       <DataTablePagination table={table} className="mt-auto" />
-      <EntityListBulkActions table={table} entityLabel={config.title} />
+      <EntityListBulkActions
+        table={table}
+        entityLabel={config.title}
+        onDelete={config.onDelete}
+      />
     </div>
   );
 }

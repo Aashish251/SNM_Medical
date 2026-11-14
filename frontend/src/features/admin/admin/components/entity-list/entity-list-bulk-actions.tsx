@@ -15,26 +15,43 @@ import { ConfirmDialog } from "@admin/components/confirm-dialog";
 type EntityListBulkActionsProps<TData> = {
   table: Table<TData>;
   entityLabel: string;
+  onDelete?: (row: TData) => Promise<void> | void;
 };
 
 export function EntityListBulkActions<TData>({
   table,
   entityLabel,
+  onDelete,
 }: EntityListBulkActionsProps<TData>) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
 
   const handleBulkDelete = () => {
-    toast.promise(sleep(1500), {
-      loading: `Deleting ${entityLabel.toLowerCase()} records...`,
-      success: () => {
-        table.resetRowSelection();
-        return `Deleted ${selectedCount} record${selectedCount > 1 ? "s" : ""}`;
-      },
-      error: "Error deleting records",
-    });
     setShowDeleteConfirm(false);
-    table.resetRowSelection();
+    if (onDelete && selectedRows.length > 0) {
+      toast.promise(
+        Promise.all(selectedRows.map((r) => Promise.resolve(onDelete(r.original)))),
+        {
+          loading: `Deleting ${selectedCount} ${entityLabel.toLowerCase()} record${selectedCount > 1 ? "s" : ""}...`,
+          success: () => {
+            table.resetRowSelection();
+            return `Successfully deleted ${selectedCount} record${selectedCount > 1 ? "s" : ""}`;
+          },
+          error: "Error deleting records",
+        }
+      );
+    } else {
+      toast.promise(sleep(1500), {
+        loading: `Deleting ${entityLabel.toLowerCase()} records...`,
+        success: () => {
+          table.resetRowSelection();
+          return `Deleted ${selectedCount} record${selectedCount > 1 ? "s" : ""}`;
+        },
+        error: "Error deleting records",
+      });
+      table.resetRowSelection();
+    }
   };
 
   return (

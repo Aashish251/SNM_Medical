@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAppSelector } from "@app/store/hooks";
 import { Header } from "@admin/components/layout/header";
@@ -12,10 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@admin/components/ui/avatar
 import { Skeleton } from "@admin/components/ui/skeleton";
 import { ROUTE_ADMIN_PROFILE_EDIT, ROUTE_ADMIN_MASTER_SEARCH } from "@admin/constants/routePaths";
 import { Button } from "@admin/components/ui/button";
-import { useGetUserDetailsQueryQuery } from "@features/update-profile/services";
+import {
+  useGetUserDetailsQueryQuery,
+  useUpdateUserProfileMutation,
+} from "@features/update-profile/services";
 import { useGetRegistrationDropdownDataQuery, useLazyGetCitiesByStateQuery } from "@shared/services/commonApi";
 import { DUMMY } from "@shared/config/common";
 import { openDocumentView } from "@shared/utils/documentHelper";
+import { normalizeApiError } from "@shared/api/errors";
+import toast from "react-hot-toast";
 import {
   User,
   Mail,
@@ -30,6 +35,7 @@ import {
   Shield,
   ExternalLink,
   Camera,
+  Loader2,
   Zap,
   FileText,
   Users,
@@ -322,6 +328,50 @@ export function Profile() {
   const [triggerGetCities] = useLazyGetCitiesByStateQuery();
   const [fetchedCities, setFetchedCities] = useState<any[]>([]);
 
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [updateProfile, { isLoading: isUploadingAvatar }] = useUpdateUserProfileMutation();
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAvatarPreview(null);
+  }, [userId]);
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a JPG or PNG image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be under 5MB");
+      return;
+    }
+
+    setAvatarPreview(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append("profilePic", file);
+    if (profile?.fullName) formData.append("fullName", profile.fullName);
+    if (profile?.email) formData.append("email", profile.email);
+    if (profile?.mobileNo) formData.append("mobileNo", profile.mobileNo);
+
+    const toastId = toast.loading("Updating profile picture...");
+    try {
+      await updateProfile({ id: String(userId), formData }).unwrap();
+      toast.success("Profile picture updated successfully!", { id: toastId });
+    } catch (error) {
+      setAvatarPreview(null);
+      toast.error(normalizeApiError(error).message || "Failed to update profile picture", { id: toastId });
+    } finally {
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = "";
+      }
+    }
+  };
+
   useEffect(() => {
     const sId = profile?.stateId ?? (profile as any)?.state_id;
     if (sId && Number(sId) > 0) {
@@ -348,7 +398,7 @@ export function Profile() {
   const displayName = profile?.fullName ?? (isViewingOtherUser ? "—" : userDetails?.name ?? "Purab Kanaujiya");
   const email = profile?.email ?? (isViewingOtherUser ? "—" : userDetails?.email ?? "purab.kanaujiya@gmail.com");
   const initials = (displayName !== "—" ? displayName : "U").slice(0, 2).toUpperCase();
-  const profileImage = assetUrl(profile?.profileImage ?? (isViewingOtherUser ? undefined : userDetails?.profilePic));
+  const profileImage = avatarPreview ?? assetUrl(profile?.profileImage ?? (isViewingOtherUser ? undefined : userDetails?.profilePic));
   const certificatePath =
     typeof profile?.certificate === "string" && profile.certificate.trim() !== ""
       ? profile.certificate
@@ -588,12 +638,33 @@ export function Profile() {
             </AvatarFallback>
           </Avatar>
           {/* Camera button badge */}
-          <div
-            onClick={handleEditProfile}
-            className="absolute bottom-1 right-1 flex items-center justify-center size-7 rounded-full bg-[#0066FF] text-white shadow-md cursor-pointer hover:bg-blue-700 transition-colors"
+          <button
+            type="button"
+            disabled={isUploadingAvatar}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              avatarInputRef.current?.click();
+            }}
+            title="Click to select new profile picture"
+            className="absolute bottom-1 right-1 flex items-center justify-center size-7 rounded-full bg-[#0066FF] text-white shadow-md cursor-pointer hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            <Camera className="size-3.5" />
-          </div>
+            {isUploadingAvatar ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Camera className="size-3.5" />
+            )}
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/jpg"
+            className="hidden"
+            onClick={(e) => {
+              (e.target as HTMLInputElement).value = "";
+            }}
+            onChange={handleAvatarFileChange}
+          />
         </div>
 
         {/* Name + role + badge */}
